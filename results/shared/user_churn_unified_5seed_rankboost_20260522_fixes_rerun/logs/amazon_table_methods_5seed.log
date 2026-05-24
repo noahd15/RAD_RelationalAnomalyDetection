@@ -1,0 +1,29 @@
+==========================================================================================
+RUNNING 5-SEED TABLE-METHOD EVAL | seeds=[0, 1, 2, 3, 4]
+==========================================================================================
+[resume] Loaded existing checkpoint: <REPO_ROOT>/results/amazon/full_ablation_5seed_table_rankboost/per_seed_metrics.csv (50 rows)
+[baselines] All seeds already checkpointed — skipping baseline run
+[seed=0] Skipping RAD (rules, BCE) (already checkpointed)
+[seed=0] Skipping RAD (rules, no BCE) (already checkpointed)
+[seed=0] Skipping RAD (no rules, BCE) (already checkpointed)
+[seed=0] Skipping RAD (no rules, no BCE) (already checkpointed)
+[seed=1] Skipping RAD (rules, BCE) (already checkpointed)
+[seed=1] Skipping RAD (rules, no BCE) (already checkpointed)
+[seed=1] Skipping RAD (no rules, BCE) (already checkpointed)
+[seed=1] Skipping RAD (no rules, no BCE) (already checkpointed)
+[seed=2] Skipping RAD (rules, BCE) (already checkpointed)
+[seed=2] Skipping RAD (rules, no BCE) (already checkpointed)
+[seed=2] Skipping RAD (no rules, BCE) (already checkpointed)
+[seed=2] Skipping RAD (no rules, no BCE) (already checkpointed)
+[seed=3] Skipping RAD (rules, BCE) (already checkpointed)
+[seed=3] Skipping RAD (rules, no BCE) (already checkpointed)
+[seed=3] Skipping RAD (no rules, BCE) (already checkpointed)
+[seed=3] Skipping RAD (no rules, no BCE) (already checkpointed)
+[seed=4] Skipping RAD (rules, BCE) (already checkpointed)
+[seed=4] Skipping RAD (rules, no BCE) (already checkpointed)
+[seed=4] Skipping RAD (no rules, BCE) (already checkpointed)
+[seed=4] Skipping RAD (no rules, no BCE) (already checkpointed)
+[done] wrote <REPO_ROOT>/results/amazon/full_ablation_5seed_table_rankboost/per_seed_metrics.csv
+[done] wrote <REPO_ROOT>/results/amazon/full_ablation_5seed_table_rankboost/mean_std_metrics.csv
+[done] wrote <REPO_ROOT>/results/amazon/full_ablation_5seed_table_rankboost/mean_std_metrics_pretty.csv
+[done] wrote <REPO_ROOT>/results/amazon/full_ablation_5seed_table_rankboost/mean_std_metrics.png

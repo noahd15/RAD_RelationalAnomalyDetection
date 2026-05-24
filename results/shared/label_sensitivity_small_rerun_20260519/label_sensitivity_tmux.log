@@ -1,0 +1,10 @@
+========================================================================================
+Label-sensitivity ablation: RAD vs supervised RDL
+datasets=['amazon', 'hm']
+target_rates=[0.01, 0.015, 0.03]
+tau_multipliers=[0.6, 1.0]
+seeds=[0, 1]
+out_dir=<REPO_ROOT>/results/shared/label_sensitivity_small_rerun_20260519
+========================================================================================
+[1/24] dataset=amazon target=0.0100 tau_mult=0.600 seed=0
+[2/24] dataset=amazon target=0.0100 tau_mult=0.600 seed=1

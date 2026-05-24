@@ -1,0 +1,8 @@
+[2026-05-06 14:38:56] START run=4 metric=roc_auc ls=0.2 lr=1.0 af=1.0 as=1.0
+================================================================================
+RAD LATENT DIMENSION SWEEP: Amazon User-Churn at-risk-filtered dataset
+================================================================================
+Device: NVIDIA RTX 6000 Ada Generation (cuda:0)
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 39.58 seconds.
+Dataset loaded (Amazon user-churn)

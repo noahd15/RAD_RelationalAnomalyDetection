@@ -1,0 +1,27 @@
+========================================================================================
+Label-sensitivity ablation: RAD vs supervised RDL
+datasets=['amazon', 'hm']
+target_rates=[0.005, 0.01, 0.015, 0.02, 0.03]
+tau_multipliers=[0.3, 0.5, 0.6, 0.8, 1.0, 1.2]
+seeds=[0, 1, 2]
+out_dir=<REPO_ROOT>/results/shared/label_sensitivity_tau_thorough_20260519
+========================================================================================
+[1/180] dataset=amazon target=0.0050 tau_mult=0.300 seed=0 [skip: already recorded]
+[2/180] dataset=amazon target=0.0050 tau_mult=0.300 seed=1 [skip: already recorded]
+[3/180] dataset=amazon target=0.0050 tau_mult=0.300 seed=2 [skip: already recorded]
+[4/180] dataset=amazon target=0.0050 tau_mult=0.500 seed=0 [skip: already recorded]
+[5/180] dataset=amazon target=0.0050 tau_mult=0.500 seed=1 [skip: already recorded]
+[6/180] dataset=amazon target=0.0050 tau_mult=0.500 seed=2 [skip: already recorded]
+[7/180] dataset=amazon target=0.0050 tau_mult=0.600 seed=0 [skip: already recorded]
+[8/180] dataset=amazon target=0.0050 tau_mult=0.600 seed=1 [skip: already recorded]
+[9/180] dataset=amazon target=0.0050 tau_mult=0.600 seed=2 [skip: already recorded]
+[10/180] dataset=amazon target=0.0050 tau_mult=0.800 seed=0 [skip: already recorded]
+[11/180] dataset=amazon target=0.0050 tau_mult=0.800 seed=1 [skip: already recorded]
+[12/180] dataset=amazon target=0.0050 tau_mult=0.800 seed=2 [skip: already recorded]
+[13/180] dataset=amazon target=0.0050 tau_mult=1.000 seed=0 [skip: already recorded]
+[14/180] dataset=amazon target=0.0050 tau_mult=1.000 seed=1 [skip: already recorded]
+[15/180] dataset=amazon target=0.0050 tau_mult=1.000 seed=2 [skip: already recorded]
+[16/180] dataset=amazon target=0.0050 tau_mult=1.200 seed=0 [skip: already recorded]
+[17/180] dataset=amazon target=0.0050 tau_mult=1.200 seed=1 [skip: already recorded]
+[18/180] dataset=amazon target=0.0050 tau_mult=1.200 seed=2 [skip: already recorded]
+[19/180] dataset=amazon target=0.0100 tau_mult=0.300 seed=0

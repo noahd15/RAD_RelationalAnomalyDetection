@@ -1,0 +1,53 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=hm | weighted_loss=True
+device=cuda:0 | seeds=[2, 3, 4]
+partial_auroc_max_fpr=0.1
+output=<REPO_ROOT>/results/hm/rdl_weighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-hm/db...
+Done in 0.89 seconds.
+[rdl] masked identity-proxy features: customer.postal_code
+[resume] found 2 completed seeds in <REPO_ROOT>/results/hm/rdl_weighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+
+[seed=2] starting
+[seed=2] test split has no labels; using val split for final evaluation.
+  epoch 01 | steps=676 | loss=1.3039 | val_auprc=0.8919 | val_auroc=0.6776
+  epoch 02 | steps=676 | loss=1.2867 | val_auprc=0.8941 | val_auroc=0.6840
+  epoch 03 | steps=676 | loss=1.2812 | val_auprc=0.8937 | val_auroc=0.6817
+  epoch 04 | steps=676 | loss=1.2789 | val_auprc=0.8950 | val_auroc=0.6830
+  epoch 05 | steps=676 | loss=1.2754 | val_auprc=0.8948 | val_auroc=0.6843
+  epoch 06 | steps=676 | loss=1.2713 | val_auprc=0.8936 | val_auroc=0.6808
+  epoch 07 | steps=676 | loss=1.2697 | val_auprc=0.8906 | val_auroc=0.6779
+  early stop at epoch 7
+[seed=2] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_fresh_5seed_rankboost_20260523_pauroc/raw_scores/hm_rdl_weighted/seed_2__dataset_hm__weighted_1.pt
+[seed=2] auprc=0.8951 auroc=0.6836 pauc@fpr<=0.100=0.5546 p@k=0.8504 lift=1.1010 pos_weight=65.66
+
+[seed=3] starting
+[seed=3] test split has no labels; using val split for final evaluation.
+  epoch 01 | steps=676 | loss=1.3048 | val_auprc=0.8935 | val_auroc=0.6784
+  epoch 02 | steps=676 | loss=1.2890 | val_auprc=0.8942 | val_auroc=0.6831
+  epoch 03 | steps=676 | loss=1.2830 | val_auprc=0.8951 | val_auroc=0.6838
+  epoch 04 | steps=676 | loss=1.2793 | val_auprc=0.8956 | val_auroc=0.6844
+  epoch 05 | steps=676 | loss=1.2761 | val_auprc=0.8948 | val_auroc=0.6833
+  epoch 06 | steps=676 | loss=1.2737 | val_auprc=0.8945 | val_auroc=0.6832
+  epoch 07 | steps=676 | loss=1.2704 | val_auprc=0.8938 | val_auroc=0.6803
+  early stop at epoch 7
+[seed=3] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_fresh_5seed_rankboost_20260523_pauroc/raw_scores/hm_rdl_weighted/seed_3__dataset_hm__weighted_1.pt
+[seed=3] auprc=0.8955 auroc=0.6841 pauc@fpr<=0.100=0.5554 p@k=0.8506 lift=1.1014 pos_weight=65.66
+
+[seed=4] starting
+[seed=4] test split has no labels; using val split for final evaluation.
+  epoch 01 | steps=676 | loss=1.3053 | val_auprc=0.8944 | val_auroc=0.6800
+  epoch 02 | steps=676 | loss=1.2879 | val_auprc=0.8939 | val_auroc=0.6794
+  epoch 03 | steps=676 | loss=1.2837 | val_auprc=0.8922 | val_auroc=0.6791
+  epoch 04 | steps=676 | loss=1.2799 | val_auprc=0.8942 | val_auroc=0.6819
+  early stop at epoch 4
+[seed=4] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_fresh_5seed_rankboost_20260523_pauroc/raw_scores/hm_rdl_weighted/seed_4__dataset_hm__weighted_1.pt
+[seed=4] auprc=0.8943 auroc=0.6797 pauc@fpr<=0.100=0.5541 p@k=0.8489 lift=1.0999 pos_weight=65.66
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auroc_partial_mean  auroc_partial_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+     hm           True    0.682628   0.001859            0.554292           0.000742    0.894797    0.00058  0.850004 0.000899   1.100535  0.000713
+
+Per-seed: <REPO_ROOT>/results/hm/rdl_weighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+Summary:  <REPO_ROOT>/results/hm/rdl_weighted_5seed_rankboost_pauroc_20260523/summary_mean_std.csv

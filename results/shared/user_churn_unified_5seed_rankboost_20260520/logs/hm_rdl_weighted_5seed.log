@@ -1,0 +1,68 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=hm | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4]
+output=<REPO_ROOT>/results/hm/rdl_weighted_5seed_rankboost/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-hm/db...
+Done in 0.91 seconds.
+
+[seed=0] starting
+  epoch 01 | steps=2000 | loss=0.2354 | val_auprc=0.0396 | val_auroc=0.7020
+  epoch 02 | steps=2000 | loss=0.2328 | val_auprc=0.0392 | val_auroc=0.7100
+  epoch 03 | steps=2000 | loss=0.2319 | val_auprc=0.0382 | val_auroc=0.7111
+  epoch 04 | steps=2000 | loss=0.2311 | val_auprc=0.0369 | val_auroc=0.7087
+  early stop at epoch 4
+[seed=0] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_weighted_5seed/seed_0__dataset_hm__weighted_1.pt
+[seed=0] auprc=0.0396 auroc=0.7026 p@k=0.0845 lift=2.6438 pos_weight=0.22
+
+[seed=1] starting
+  epoch 01 | steps=2000 | loss=0.2353 | val_auprc=0.0392 | val_auroc=0.7011
+  epoch 02 | steps=2000 | loss=0.2327 | val_auprc=0.0391 | val_auroc=0.7050
+  epoch 03 | steps=2000 | loss=0.2318 | val_auprc=0.0378 | val_auroc=0.7093
+  epoch 04 | steps=2000 | loss=0.2312 | val_auprc=0.0359 | val_auroc=0.7007
+  early stop at epoch 4
+[seed=1] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_weighted_5seed/seed_1__dataset_hm__weighted_1.pt
+[seed=1] auprc=0.0392 auroc=0.7052 p@k=0.0610 lift=2.6181 pos_weight=0.22
+
+[seed=2] starting
+  epoch 01 | steps=2000 | loss=0.2349 | val_auprc=0.0381 | val_auroc=0.6915
+  epoch 02 | steps=2000 | loss=0.2327 | val_auprc=0.0386 | val_auroc=0.7070
+  epoch 03 | steps=2000 | loss=0.2318 | val_auprc=0.0380 | val_auroc=0.7097
+  epoch 04 | steps=2000 | loss=0.2313 | val_auprc=0.0396 | val_auroc=0.7164
+  epoch 05 | steps=2000 | loss=0.2308 | val_auprc=0.0403 | val_auroc=0.7153
+  epoch 06 | steps=2000 | loss=0.2304 | val_auprc=0.0424 | val_auroc=0.7289
+  epoch 07 | steps=2000 | loss=0.2301 | val_auprc=0.0445 | val_auroc=0.7261
+  epoch 08 | steps=2000 | loss=0.2301 | val_auprc=0.0402 | val_auroc=0.7177
+  epoch 09 | steps=2000 | loss=0.2297 | val_auprc=0.0398 | val_auroc=0.7170
+  epoch 10 | steps=2000 | loss=0.2295 | val_auprc=0.0407 | val_auroc=0.7217
+  early stop at epoch 10
+[seed=2] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_weighted_5seed/seed_2__dataset_hm__weighted_1.pt
+[seed=2] auprc=0.0442 auroc=0.7238 p@k=0.0704 lift=2.9534 pos_weight=0.22
+
+[seed=3] starting
+  epoch 01 | steps=2000 | loss=0.2353 | val_auprc=0.0382 | val_auroc=0.6862
+  epoch 02 | steps=2000 | loss=0.2327 | val_auprc=0.0329 | val_auroc=0.6939
+  epoch 03 | steps=2000 | loss=0.2318 | val_auprc=0.0371 | val_auroc=0.7009
+  epoch 04 | steps=2000 | loss=0.2315 | val_auprc=0.0344 | val_auroc=0.7028
+  early stop at epoch 4
+[seed=3] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_weighted_5seed/seed_3__dataset_hm__weighted_1.pt
+[seed=3] auprc=0.0384 auroc=0.6887 p@k=0.0751 lift=2.5667 pos_weight=0.22
+
+[seed=4] starting
+  epoch 01 | steps=2000 | loss=0.2353 | val_auprc=0.0359 | val_auroc=0.6962
+  epoch 02 | steps=2000 | loss=0.2329 | val_auprc=0.0397 | val_auroc=0.7099
+  epoch 03 | steps=2000 | loss=0.2319 | val_auprc=0.0385 | val_auroc=0.7064
+  epoch 04 | steps=2000 | loss=0.2313 | val_auprc=0.0409 | val_auroc=0.7133
+  epoch 05 | steps=2000 | loss=0.2307 | val_auprc=0.0407 | val_auroc=0.7160
+  epoch 06 | steps=2000 | loss=0.2306 | val_auprc=0.0388 | val_auroc=0.7196
+  epoch 07 | steps=2000 | loss=0.2302 | val_auprc=0.0394 | val_auroc=0.7211
+  early stop at epoch 7
+[seed=4] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_weighted_5seed/seed_4__dataset_hm__weighted_1.pt
+[seed=4] auprc=0.0403 auroc=0.7086 p@k=0.0610 lift=2.6918 pos_weight=0.22
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+     hm           True    0.705786   0.012607    0.040367   0.002269  0.070423 0.009959   2.694754  0.151484
+
+Per-seed: <REPO_ROOT>/results/hm/rdl_weighted_5seed_rankboost/per_seed.csv
+Summary:  <REPO_ROOT>/results/hm/rdl_weighted_5seed_rankboost/summary_mean_std.csv

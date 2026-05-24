@@ -1,9 +1,6 @@
-<h1 align="center">
-[ICLR 2025]DRL: Decomposed Representation Learning for Tabular Anomaly Detection<br>
-Links: [<a href="https://openreview.net/forum?id=CJnceDksRd">OpenReview</a>]
-</h1>
+# DRL Baseline Bundle
 
-**📥 Contact Email Update:** Please use **yeht22@mails.jlu.edu.cn** for all future communications. The previous email (yeht2118@mails.jlu.edu.cn) is no longer active.
+This directory contains the DRL baseline implementation used in the submission package.
 
 ## 📖 Overview
 
@@ -99,14 +96,6 @@ Output locations:
 - Training logs are also written under `./models/` as `.log` files.
 
 
-## 🤗 Citing the paper
-If our work is useful for your own, you can cite us with the following BibTex entry:
+## Notes
 
-    @inproceedings{
-    ye2025drl,
-    title={{DRL}: Decomposed Representation Learning for Tabular Anomaly Detection},
-    author={Hangting Ye and He Zhao and Wei Fan and Mingyuan Zhou and Dan dan Guo and Yi Chang},
-    booktitle={The Thirteenth International Conference on Learning Representations},
-    year={2025},
-    url={https://openreview.net/forum?id=CJnceDksRd}
-    }
+Any upstream project metadata has been removed from this submission copy to keep the package anonymous.

@@ -1,7 +1,8 @@
 #!/bin/bash
 # Background monitor: checks every 3 min, logs status to results/monitor_log.txt
-LOG=<REPO_ROOT>/results/run_log.txt
-MLOG=<REPO_ROOT>/results/monitor_log.txt
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOG="$ROOT_DIR/results/run_log.txt"
+MLOG="$ROOT_DIR/results/monitor_log.txt"
 
 while true; do
     TS=$(date '+%H:%M:%S')

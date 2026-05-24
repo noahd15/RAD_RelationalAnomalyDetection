@@ -1,0 +1,23 @@
+# Root dependencies for the paper-facing submission bundle.
+#
+# This covers the kept `scripts/` runners plus the LANL code path.
+# The DRL baseline bundle still includes `DRL/environment.yml` for its
+# original conda-based setup.
+
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+tqdm
+duckdb
+
+torch
+torch-geometric
+relbench
+pytorch_frame
+sentence-transformers
+
+# Only needed for optional LLM-backed rule generation.
+transformers
+bitsandbytes

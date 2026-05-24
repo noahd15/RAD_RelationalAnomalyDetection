@@ -1,0 +1,58 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=amazon | weighted_loss=True
+device=cuda:0 | seeds=[2, 3, 4]
+partial_auroc_max_fpr=0.1
+output=<REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 36.77 seconds.
+[rdl] masked identity-proxy features: customer.customer_name
+[resume] found 2 completed seeds in <REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+
+[seed=2] starting
+[seed=2] test split has no labels; using val split for final evaluation.
+  epoch 01 | steps=1278 | loss=1.2377 | val_auprc=0.7622 | val_auroc=0.6982
+  epoch 02 | steps=1278 | loss=1.2125 | val_auprc=0.7658 | val_auroc=0.7035
+  epoch 03 | steps=1278 | loss=1.2001 | val_auprc=0.7684 | val_auroc=0.7048
+  epoch 04 | steps=1278 | loss=1.1926 | val_auprc=0.7701 | val_auroc=0.7058
+  epoch 05 | steps=1278 | loss=1.1858 | val_auprc=0.7662 | val_auroc=0.7027
+  epoch 06 | steps=1278 | loss=1.1803 | val_auprc=0.7636 | val_auroc=0.7029
+  epoch 07 | steps=1278 | loss=1.1740 | val_auprc=0.7679 | val_auroc=0.7067
+  early stop at epoch 7
+[seed=2] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_fresh_5seed_rankboost_20260523_pauroc/raw_scores/amazon_rdl_weighted/seed_2__dataset_amazon__weighted_1.pt
+[seed=2] auprc=0.7701 auroc=0.7058 pauc@fpr<=0.100=0.5426 p@k=0.7399 lift=1.2280 pos_weight=65.67
+
+[seed=3] starting
+[seed=3] test split has no labels; using val split for final evaluation.
+  epoch 01 | steps=1278 | loss=1.2359 | val_auprc=0.7631 | val_auroc=0.7015
+  epoch 02 | steps=1278 | loss=1.2089 | val_auprc=0.7552 | val_auroc=0.6959
+  epoch 03 | steps=1278 | loss=1.1979 | val_auprc=0.7570 | val_auroc=0.7000
+  epoch 04 | steps=1278 | loss=1.1910 | val_auprc=0.7634 | val_auroc=0.7013
+  epoch 05 | steps=1278 | loss=1.1865 | val_auprc=0.7737 | val_auroc=0.7091
+  epoch 06 | steps=1278 | loss=1.1803 | val_auprc=0.7682 | val_auroc=0.7050
+  epoch 07 | steps=1278 | loss=1.1753 | val_auprc=0.7704 | val_auroc=0.7068
+  epoch 08 | steps=1278 | loss=1.1680 | val_auprc=0.7664 | val_auroc=0.7003
+  early stop at epoch 8
+[seed=3] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_fresh_5seed_rankboost_20260523_pauroc/raw_scores/amazon_rdl_weighted/seed_3__dataset_amazon__weighted_1.pt
+[seed=3] auprc=0.7737 auroc=0.7091 pauc@fpr<=0.100=0.5454 p@k=0.7416 lift=1.2337 pos_weight=65.67
+
+[seed=4] starting
+[seed=4] test split has no labels; using val split for final evaluation.
+  epoch 01 | steps=1278 | loss=1.2388 | val_auprc=0.7613 | val_auroc=0.6975
+  epoch 02 | steps=1278 | loss=1.2080 | val_auprc=0.7639 | val_auroc=0.7039
+  epoch 03 | steps=1278 | loss=1.1987 | val_auprc=0.7700 | val_auroc=0.7056
+  epoch 04 | steps=1278 | loss=1.1923 | val_auprc=0.7680 | val_auroc=0.7030
+  epoch 05 | steps=1278 | loss=1.1854 | val_auprc=0.7731 | val_auroc=0.7088
+  epoch 06 | steps=1278 | loss=1.1807 | val_auprc=0.7715 | val_auroc=0.7074
+  epoch 07 | steps=1278 | loss=1.1747 | val_auprc=0.7703 | val_auroc=0.7060
+  epoch 08 | steps=1278 | loss=1.1674 | val_auprc=0.7676 | val_auroc=0.7042
+  early stop at epoch 8
+[seed=4] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_fresh_5seed_rankboost_20260523_pauroc/raw_scores/amazon_rdl_weighted/seed_4__dataset_amazon__weighted_1.pt
+[seed=4] auprc=0.7731 auroc=0.7088 pauc@fpr<=0.100=0.5459 p@k=0.7415 lift=1.2327 pos_weight=65.67
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auroc_partial_mean  auroc_partial_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+ amazon           True    0.708435   0.001617            0.545093           0.001421     0.77278   0.001635  0.741167 0.000787   1.232269  0.002608
+
+Per-seed: <REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+Summary:  <REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost_pauroc_20260523/summary_mean_std.csv

@@ -1,0 +1,39 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=amazon | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4]
+partial_auroc_max_fpr=0.1
+output=<REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 54.20 seconds.
+[rdl] masked identity-proxy features: customer.customer_name
+
+[seed=0] starting
+[seed=0] test split has no labels; using val split for final evaluation.
+  epoch 01 | steps=1278 | loss=1.2402 | val_auprc=0.7590 | val_auroc=0.6974
+  epoch 02 | steps=1278 | loss=1.2144 | val_auprc=0.7606 | val_auroc=0.7004
+  epoch 03 | steps=1278 | loss=1.2030 | val_auprc=0.7659 | val_auroc=0.7020
+  epoch 04 | steps=1278 | loss=1.1955 | val_auprc=0.7681 | val_auroc=0.7039
+  epoch 05 | steps=1278 | loss=1.1886 | val_auprc=0.7670 | val_auroc=0.7058
+  epoch 06 | steps=1278 | loss=1.1837 | val_auprc=0.7744 | val_auroc=0.7102
+  epoch 07 | steps=1278 | loss=1.1779 | val_auprc=0.7718 | val_auroc=0.7084
+  epoch 08 | steps=1278 | loss=1.1711 | val_auprc=0.7648 | val_auroc=0.7045
+  epoch 09 | steps=1278 | loss=1.1653 | val_auprc=0.7708 | val_auroc=0.7060
+  early stop at epoch 9
+[seed=0] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_fresh_5seed_rankboost_20260523_pauroc/raw_scores/amazon_rdl_weighted/seed_0__dataset_amazon__weighted_1.pt
+[seed=0] auprc=0.7744 auroc=0.7102 pauc@fpr<=0.100=0.5461 p@k=0.7420 lift=1.2348 pos_weight=65.67
+
+[seed=1] starting
+[seed=1] test split has no labels; using val split for final evaluation.
+  epoch 01 | steps=1278 | loss=1.2406 | val_auprc=0.7670 | val_auroc=0.7011
+  epoch 02 | steps=1278 | loss=1.2124 | val_auprc=0.7643 | val_auroc=0.7037
+  epoch 03 | steps=1278 | loss=1.2018 | val_auprc=0.7727 | val_auroc=0.7083
+  epoch 04 | steps=1278 | loss=1.1948 | val_auprc=0.7709 | val_auroc=0.7074
+  epoch 05 | steps=1278 | loss=1.1895 | val_auprc=0.7679 | val_auroc=0.7073
+  epoch 06 | steps=1278 | loss=1.1844 | val_auprc=0.7668 | val_auroc=0.7061
+  early stop at epoch 6
+[seed=1] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_fresh_5seed_rankboost_20260523_pauroc/raw_scores/amazon_rdl_weighted/seed_1__dataset_amazon__weighted_1.pt
+[seed=1] auprc=0.7727 auroc=0.7083 pauc@fpr<=0.100=0.5454 p@k=0.7409 lift=1.2321 pos_weight=65.67
+
+[seed=2] starting
+[seed=2] test split has no labels; using val split for final evaluation.

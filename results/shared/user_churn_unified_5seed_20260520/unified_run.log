@@ -1,0 +1,7 @@
+Unified output root: <REPO_ROOT>/results/shared/user_churn_unified_5seed_20260520
+Manifest: <REPO_ROOT>/results/shared/user_churn_unified_5seed_20260520/manifest.csv
+========================================================================================
+PHASE 1 | tasks=['amazon_table_methods_5seed', 'hm_full_ablation_5seed']
+========================================================================================
+[start] amazon_table_methods_5seed gpu=0 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_20260520/logs/amazon_table_methods_5seed.log
+[start] hm_full_ablation_5seed gpu=1 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_20260520/logs/hm_full_ablation_5seed.log

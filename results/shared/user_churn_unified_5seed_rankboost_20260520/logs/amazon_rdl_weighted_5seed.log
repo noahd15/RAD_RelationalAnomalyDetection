@@ -1,0 +1,77 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=amazon | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4]
+output=<REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 45.19 seconds.
+
+[seed=0] starting
+  epoch 01 | steps=2000 | loss=0.4769 | val_auprc=0.0363 | val_auroc=0.7154
+  epoch 02 | steps=2000 | loss=0.4706 | val_auprc=0.0343 | val_auroc=0.7160
+  epoch 03 | steps=2000 | loss=0.4691 | val_auprc=0.0347 | val_auroc=0.7174
+  epoch 04 | steps=2000 | loss=0.4683 | val_auprc=0.0350 | val_auroc=0.7179
+  early stop at epoch 4
+[seed=0] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/amazon_rdl_weighted_5seed/seed_0__dataset_amazon__weighted_1.pt
+[seed=0] auprc=0.0363 auroc=0.7154 p@k=0.0598 lift=2.4224 pos_weight=0.65
+
+[seed=1] starting
+  epoch 01 | steps=2000 | loss=0.4770 | val_auprc=0.0346 | val_auroc=0.7137
+  epoch 02 | steps=2000 | loss=0.4705 | val_auprc=0.0354 | val_auroc=0.7177
+  epoch 03 | steps=2000 | loss=0.4689 | val_auprc=0.0348 | val_auroc=0.7177
+  epoch 04 | steps=2000 | loss=0.4679 | val_auprc=0.0350 | val_auroc=0.7178
+  epoch 05 | steps=2000 | loss=0.4675 | val_auprc=0.0360 | val_auroc=0.7190
+  epoch 06 | steps=2000 | loss=0.4668 | val_auprc=0.0358 | val_auroc=0.7207
+  epoch 07 | steps=2000 | loss=0.4661 | val_auprc=0.0349 | val_auroc=0.7179
+  epoch 08 | steps=2000 | loss=0.4655 | val_auprc=0.0355 | val_auroc=0.7177
+  early stop at epoch 8
+[seed=1] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/amazon_rdl_weighted_5seed/seed_1__dataset_amazon__weighted_1.pt
+[seed=1] auprc=0.0360 auroc=0.7187 p@k=0.0623 lift=2.4020 pos_weight=0.65
+
+[seed=2] starting
+  epoch 01 | steps=2000 | loss=0.4761 | val_auprc=0.0340 | val_auroc=0.7135
+  epoch 02 | steps=2000 | loss=0.4706 | val_auprc=0.0349 | val_auroc=0.7162
+  epoch 03 | steps=2000 | loss=0.4691 | val_auprc=0.0357 | val_auroc=0.7178
+  epoch 04 | steps=2000 | loss=0.4681 | val_auprc=0.0353 | val_auroc=0.7166
+  epoch 05 | steps=2000 | loss=0.4677 | val_auprc=0.0360 | val_auroc=0.7187
+  epoch 06 | steps=2000 | loss=0.4669 | val_auprc=0.0355 | val_auroc=0.7174
+  epoch 07 | steps=2000 | loss=0.4659 | val_auprc=0.0361 | val_auroc=0.7191
+  epoch 08 | steps=2000 | loss=0.4656 | val_auprc=0.0365 | val_auroc=0.7177
+  epoch 09 | steps=2000 | loss=0.4653 | val_auprc=0.0361 | val_auroc=0.7176
+  epoch 10 | steps=2000 | loss=0.4646 | val_auprc=0.0347 | val_auroc=0.7177
+[seed=2] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/amazon_rdl_weighted_5seed/seed_2__dataset_amazon__weighted_1.pt
+[seed=2] auprc=0.0365 auroc=0.7175 p@k=0.0611 lift=2.4298 pos_weight=0.65
+
+[seed=3] starting
+  epoch 01 | steps=2000 | loss=0.4763 | val_auprc=0.0340 | val_auroc=0.7131
+  epoch 02 | steps=2000 | loss=0.4706 | val_auprc=0.0352 | val_auroc=0.7174
+  epoch 03 | steps=2000 | loss=0.4691 | val_auprc=0.0349 | val_auroc=0.7167
+  epoch 04 | steps=2000 | loss=0.4683 | val_auprc=0.0363 | val_auroc=0.7162
+  epoch 05 | steps=2000 | loss=0.4674 | val_auprc=0.0368 | val_auroc=0.7173
+  epoch 06 | steps=2000 | loss=0.4667 | val_auprc=0.0362 | val_auroc=0.7193
+  epoch 07 | steps=2000 | loss=0.4663 | val_auprc=0.0360 | val_auroc=0.7187
+  epoch 08 | steps=2000 | loss=0.4654 | val_auprc=0.0362 | val_auroc=0.7186
+  early stop at epoch 8
+[seed=3] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/amazon_rdl_weighted_5seed/seed_3__dataset_amazon__weighted_1.pt
+[seed=3] auprc=0.0368 auroc=0.7176 p@k=0.0592 lift=2.4505 pos_weight=0.65
+
+[seed=4] starting
+  epoch 01 | steps=2000 | loss=0.4763 | val_auprc=0.0347 | val_auroc=0.7139
+  epoch 02 | steps=2000 | loss=0.4704 | val_auprc=0.0356 | val_auroc=0.7172
+  epoch 03 | steps=2000 | loss=0.4692 | val_auprc=0.0356 | val_auroc=0.7180
+  epoch 04 | steps=2000 | loss=0.4677 | val_auprc=0.0353 | val_auroc=0.7191
+  epoch 05 | steps=2000 | loss=0.4676 | val_auprc=0.0356 | val_auroc=0.7187
+  epoch 06 | steps=2000 | loss=0.4667 | val_auprc=0.0362 | val_auroc=0.7202
+  epoch 07 | steps=2000 | loss=0.4663 | val_auprc=0.0363 | val_auroc=0.7200
+  epoch 08 | steps=2000 | loss=0.4657 | val_auprc=0.0361 | val_auroc=0.7193
+  epoch 09 | steps=2000 | loss=0.4652 | val_auprc=0.0362 | val_auroc=0.7212
+  epoch 10 | steps=2000 | loss=0.4643 | val_auprc=0.0365 | val_auroc=0.7212
+[seed=4] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/amazon_rdl_weighted_5seed/seed_4__dataset_amazon__weighted_1.pt
+[seed=4] auprc=0.0365 auroc=0.7207 p@k=0.0585 lift=2.4313 pos_weight=0.65
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+ amazon           True    0.717964   0.001943    0.036419   0.000263  0.060178 0.001532    2.42721  0.017513
+
+Per-seed: <REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost/per_seed.csv
+Summary:  <REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost/summary_mean_std.csv

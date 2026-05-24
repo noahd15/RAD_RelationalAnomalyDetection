@@ -1,0 +1,125 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=hm | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+output=<REPO_ROOT>/results/hm/rdl_weighted_10seed/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-hm/db...
+Done in 0.93 seconds.
+
+[seed=0] starting
+  epoch 01 | steps=2000 | loss=0.2352 | val_auprc=0.0345 | val_auroc=0.6840
+  epoch 02 | steps=2000 | loss=0.2327 | val_auprc=0.0337 | val_auroc=0.6943
+  epoch 03 | steps=2000 | loss=0.2315 | val_auprc=0.0330 | val_auroc=0.6930
+  epoch 04 | steps=2000 | loss=0.2310 | val_auprc=0.0350 | val_auroc=0.7088
+  epoch 05 | steps=2000 | loss=0.2306 | val_auprc=0.0349 | val_auroc=0.6975
+  epoch 06 | steps=2000 | loss=0.2303 | val_auprc=0.0338 | val_auroc=0.7036
+  epoch 07 | steps=2000 | loss=0.2301 | val_auprc=0.0348 | val_auroc=0.7112
+  early stop at epoch 7
+[seed=0] auprc=0.0349 auroc=0.7057 p@k=0.0483 lift=2.3245 pos_weight=0.22
+
+[seed=1] starting
+  epoch 01 | steps=2000 | loss=0.2352 | val_auprc=0.0339 | val_auroc=0.6898
+  epoch 02 | steps=2000 | loss=0.2327 | val_auprc=0.0326 | val_auroc=0.6911
+  epoch 03 | steps=2000 | loss=0.2318 | val_auprc=0.0335 | val_auroc=0.7034
+  epoch 04 | steps=2000 | loss=0.2311 | val_auprc=0.0355 | val_auroc=0.7039
+  epoch 05 | steps=2000 | loss=0.2306 | val_auprc=0.0354 | val_auroc=0.7045
+  epoch 06 | steps=2000 | loss=0.2302 | val_auprc=0.0364 | val_auroc=0.6980
+  epoch 07 | steps=2000 | loss=0.2303 | val_auprc=0.0342 | val_auroc=0.6978
+  epoch 08 | steps=2000 | loss=0.2298 | val_auprc=0.0340 | val_auroc=0.6999
+  epoch 09 | steps=2000 | loss=0.2297 | val_auprc=0.0353 | val_auroc=0.7049
+  early stop at epoch 9
+[seed=1] auprc=0.0367 auroc=0.7036 p@k=0.0773 lift=2.4470 pos_weight=0.22
+
+[seed=2] starting
+  epoch 01 | steps=2000 | loss=0.2352 | val_auprc=0.0311 | val_auroc=0.6743
+  epoch 02 | steps=2000 | loss=0.2326 | val_auprc=0.0337 | val_auroc=0.6866
+  epoch 03 | steps=2000 | loss=0.2316 | val_auprc=0.0334 | val_auroc=0.6905
+  epoch 04 | steps=2000 | loss=0.2310 | val_auprc=0.0341 | val_auroc=0.6985
+  epoch 05 | steps=2000 | loss=0.2307 | val_auprc=0.0350 | val_auroc=0.6996
+  epoch 06 | steps=2000 | loss=0.2301 | val_auprc=0.0359 | val_auroc=0.7007
+  epoch 07 | steps=2000 | loss=0.2301 | val_auprc=0.0340 | val_auroc=0.6989
+  epoch 08 | steps=2000 | loss=0.2299 | val_auprc=0.0342 | val_auroc=0.7009
+  epoch 09 | steps=2000 | loss=0.2296 | val_auprc=0.0340 | val_auroc=0.7063
+  early stop at epoch 9
+[seed=2] auprc=0.0359 auroc=0.7012 p@k=0.0725 lift=2.3973 pos_weight=0.22
+
+[seed=3] starting
+  epoch 01 | steps=2000 | loss=0.2349 | val_auprc=0.0325 | val_auroc=0.6796
+  epoch 02 | steps=2000 | loss=0.2326 | val_auprc=0.0325 | val_auroc=0.6912
+  epoch 03 | steps=2000 | loss=0.2318 | val_auprc=0.0335 | val_auroc=0.6934
+  epoch 04 | steps=2000 | loss=0.2312 | val_auprc=0.0322 | val_auroc=0.6958
+  epoch 05 | steps=2000 | loss=0.2307 | val_auprc=0.0345 | val_auroc=0.6987
+  epoch 06 | steps=2000 | loss=0.2304 | val_auprc=0.0339 | val_auroc=0.7064
+  epoch 07 | steps=2000 | loss=0.2299 | val_auprc=0.0335 | val_auroc=0.7023
+  epoch 08 | steps=2000 | loss=0.2299 | val_auprc=0.0332 | val_auroc=0.6991
+  early stop at epoch 8
+[seed=3] auprc=0.0346 auroc=0.6992 p@k=0.0628 lift=2.3048 pos_weight=0.22
+
+[seed=4] starting
+  epoch 01 | steps=2000 | loss=0.2351 | val_auprc=0.0338 | val_auroc=0.6908
+  epoch 02 | steps=2000 | loss=0.2325 | val_auprc=0.0323 | val_auroc=0.6948
+  epoch 03 | steps=2000 | loss=0.2318 | val_auprc=0.0343 | val_auroc=0.7045
+  epoch 04 | steps=2000 | loss=0.2312 | val_auprc=0.0334 | val_auroc=0.6999
+  epoch 05 | steps=2000 | loss=0.2308 | val_auprc=0.0342 | val_auroc=0.7057
+  epoch 06 | steps=2000 | loss=0.2303 | val_auprc=0.0333 | val_auroc=0.7039
+  early stop at epoch 6
+[seed=4] auprc=0.0339 auroc=0.6960 p@k=0.0628 lift=2.2619 pos_weight=0.22
+
+[seed=5] starting
+  epoch 01 | steps=2000 | loss=0.2351 | val_auprc=0.0332 | val_auroc=0.6781
+  epoch 02 | steps=2000 | loss=0.2327 | val_auprc=0.0332 | val_auroc=0.6845
+  epoch 03 | steps=2000 | loss=0.2317 | val_auprc=0.0325 | val_auroc=0.6926
+  epoch 04 | steps=2000 | loss=0.2310 | val_auprc=0.0345 | val_auroc=0.6956
+  epoch 05 | steps=2000 | loss=0.2305 | val_auprc=0.0333 | val_auroc=0.6886
+  epoch 06 | steps=2000 | loss=0.2302 | val_auprc=0.0340 | val_auroc=0.7025
+  epoch 07 | steps=2000 | loss=0.2299 | val_auprc=0.0334 | val_auroc=0.7055
+  early stop at epoch 7
+[seed=5] auprc=0.0346 auroc=0.6952 p@k=0.0580 lift=2.3083 pos_weight=0.22
+
+[seed=6] starting
+  epoch 01 | steps=2000 | loss=0.2348 | val_auprc=0.0346 | val_auroc=0.6853
+  epoch 02 | steps=2000 | loss=0.2323 | val_auprc=0.0334 | val_auroc=0.6907
+  epoch 03 | steps=2000 | loss=0.2317 | val_auprc=0.0332 | val_auroc=0.6883
+  epoch 04 | steps=2000 | loss=0.2312 | val_auprc=0.0336 | val_auroc=0.7000
+  early stop at epoch 4
+[seed=6] auprc=0.0348 auroc=0.6916 p@k=0.0676 lift=2.3186 pos_weight=0.22
+
+[seed=7] starting
+  epoch 01 | steps=2000 | loss=0.2352 | val_auprc=0.0309 | val_auroc=0.6778
+  epoch 02 | steps=2000 | loss=0.2326 | val_auprc=0.0315 | val_auroc=0.6835
+  epoch 03 | steps=2000 | loss=0.2317 | val_auprc=0.0329 | val_auroc=0.7049
+  epoch 04 | steps=2000 | loss=0.2311 | val_auprc=0.0343 | val_auroc=0.7042
+  epoch 05 | steps=2000 | loss=0.2307 | val_auprc=0.0336 | val_auroc=0.6989
+  epoch 06 | steps=2000 | loss=0.2305 | val_auprc=0.0319 | val_auroc=0.6964
+  epoch 07 | steps=2000 | loss=0.2302 | val_auprc=0.0336 | val_auroc=0.6999
+  early stop at epoch 7
+[seed=7] auprc=0.0344 auroc=0.7060 p@k=0.0386 lift=2.2943 pos_weight=0.22
+
+[seed=8] starting
+  epoch 01 | steps=2000 | loss=0.2350 | val_auprc=0.0318 | val_auroc=0.6848
+  epoch 02 | steps=2000 | loss=0.2329 | val_auprc=0.0339 | val_auroc=0.6931
+  epoch 03 | steps=2000 | loss=0.2318 | val_auprc=0.0335 | val_auroc=0.6985
+  epoch 04 | steps=2000 | loss=0.2313 | val_auprc=0.0328 | val_auroc=0.6966
+  epoch 05 | steps=2000 | loss=0.2307 | val_auprc=0.0348 | val_auroc=0.6998
+  epoch 06 | steps=2000 | loss=0.2305 | val_auprc=0.0347 | val_auroc=0.7000
+  epoch 07 | steps=2000 | loss=0.2303 | val_auprc=0.0322 | val_auroc=0.6967
+  epoch 08 | steps=2000 | loss=0.2300 | val_auprc=0.0335 | val_auroc=0.7039
+  early stop at epoch 8
+[seed=8] auprc=0.0349 auroc=0.7000 p@k=0.0676 lift=2.3282 pos_weight=0.22
+
+[seed=9] starting
+  epoch 01 | steps=2000 | loss=0.2352 | val_auprc=0.0347 | val_auroc=0.6874
+  epoch 02 | steps=2000 | loss=0.2327 | val_auprc=0.0346 | val_auroc=0.6943
+  epoch 03 | steps=2000 | loss=0.2318 | val_auprc=0.0367 | val_auroc=0.7044
+  epoch 04 | steps=2000 | loss=0.2313 | val_auprc=0.0337 | val_auroc=0.6984
+  epoch 05 | steps=2000 | loss=0.2309 | val_auprc=0.0343 | val_auroc=0.6989
+  epoch 06 | steps=2000 | loss=0.2306 | val_auprc=0.0353 | val_auroc=0.7026
+  early stop at epoch 6
+[seed=9] auprc=0.0365 auroc=0.7002 p@k=0.0821 lift=2.4348 pos_weight=0.22
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+     hm           True    0.699868   0.004647    0.035119   0.000934  0.063768 0.013042    2.34197  0.062308
+
+Per-seed: <REPO_ROOT>/results/hm/rdl_weighted_10seed/per_seed.csv
+Summary:  <REPO_ROOT>/results/hm/rdl_weighted_10seed/summary_mean_std.csv

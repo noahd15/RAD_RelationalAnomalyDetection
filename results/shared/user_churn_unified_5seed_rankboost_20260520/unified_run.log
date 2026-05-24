@@ -1,0 +1,37 @@
+Unified output root: <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520
+Manifest: <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/manifest.csv
+========================================================================================
+PHASE 1 | tasks=['amazon_table_methods_5seed', 'hm_full_ablation_5seed']
+========================================================================================
+[start] amazon_table_methods_5seed gpu=0 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/logs/amazon_table_methods_5seed.log
+[start] hm_full_ablation_5seed gpu=1 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/logs/hm_full_ablation_5seed.log
+[done] amazon_table_methods_5seed exit=0
+[done] hm_full_ablation_5seed exit=0
+========================================================================================
+PHASE 2 | tasks=['amazon_rdl_weighted_5seed', 'hm_rdl_weighted_5seed']
+========================================================================================
+[start] amazon_rdl_weighted_5seed gpu=0 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/logs/amazon_rdl_weighted_5seed.log
+[start] hm_rdl_weighted_5seed gpu=1 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/logs/hm_rdl_weighted_5seed.log
+[done] amazon_rdl_weighted_5seed exit=0
+[done] hm_rdl_weighted_5seed exit=0
+========================================================================================
+PHASE 3 | tasks=['amazon_rdl_unweighted_5seed', 'hm_rdl_unweighted_5seed']
+========================================================================================
+[start] amazon_rdl_unweighted_5seed gpu=0 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/logs/amazon_rdl_unweighted_5seed.log
+[start] hm_rdl_unweighted_5seed gpu=1 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/logs/hm_rdl_unweighted_5seed.log
+[done] amazon_rdl_unweighted_5seed exit=0
+[done] hm_rdl_unweighted_5seed exit=0
+========================================================================================
+PHASE 4 | tasks=['amazon_norules_5seed', 'hm_norules_5seed']
+========================================================================================
+[start] amazon_norules_5seed gpu=0 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/logs/amazon_norules_5seed.log
+[start] hm_norules_5seed gpu=1 log=<REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/logs/hm_norules_5seed.log
+[done] amazon_norules_5seed exit=0
+[done] hm_norules_5seed exit=0
+[render] <REPO_ROOT>/rad/bin/python <REPO_ROOT>/scripts/active/render_user_churn_unified_5seed.py --out-root <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520
+Saved <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/rendered/amazon_main_table_5seed_rankboost.csv
+Saved <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/rendered/hm_main_table_5seed_rankboost.csv
+Saved <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/rendered/amazon_main_table_5seed_rankboost.png
+Saved <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/rendered/hm_main_table_5seed_rankboost.png
+Saved <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/rendered/precision_at_k_barplot_5seed_rankboost.png
+All unified 5-seed user-churn tasks completed.

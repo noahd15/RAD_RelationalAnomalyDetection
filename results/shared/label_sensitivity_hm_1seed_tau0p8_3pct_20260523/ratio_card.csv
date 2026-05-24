@@ -1,0 +1,2 @@
+dataset,target_anom_rate,tau_multiplier,raw_positive_rate,unexpected_positive_rate,raw_users,raw_anomalies,unexpected_users,unexpected_anomalies,n_success
+hm,0.03,0.8,0.8128,0.03,76556.0,62225.0,14479.0,434.0,1

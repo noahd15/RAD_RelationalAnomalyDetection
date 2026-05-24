@@ -1,0 +1,35 @@
+========================================================================================
+Label-sensitivity ablation: RAD vs supervised RDL
+datasets=['amazon']
+target_rates=[0.005, 0.015, 0.03]
+tau_multipliers=[0.6, 0.8, 1.0]
+seeds=[0, 1, 2, 3, 4]
+out_dir=<REPO_ROOT>/results/shared/label_sensitivity_5seed_20260522_fixes_rerun
+========================================================================================
+[1/45] dataset=amazon target=0.0050 tau_mult=0.600 seed=0 [skip: already recorded]
+[2/45] dataset=amazon target=0.0050 tau_mult=0.600 seed=1 [skip: already recorded]
+[3/45] dataset=amazon target=0.0050 tau_mult=0.600 seed=2 [skip: already recorded]
+[4/45] dataset=amazon target=0.0050 tau_mult=0.600 seed=3 [skip: already recorded]
+[5/45] dataset=amazon target=0.0050 tau_mult=0.600 seed=4 [skip: already recorded]
+[6/45] dataset=amazon target=0.0050 tau_mult=0.800 seed=0 [skip: already recorded]
+[7/45] dataset=amazon target=0.0050 tau_mult=0.800 seed=1 [skip: already recorded]
+[8/45] dataset=amazon target=0.0050 tau_mult=0.800 seed=2 [skip: already recorded]
+[9/45] dataset=amazon target=0.0050 tau_mult=0.800 seed=3 [skip: already recorded]
+[10/45] dataset=amazon target=0.0050 tau_mult=0.800 seed=4 [skip: already recorded]
+[11/45] dataset=amazon target=0.0050 tau_mult=1.000 seed=0 [skip: already recorded]
+[12/45] dataset=amazon target=0.0050 tau_mult=1.000 seed=1 [skip: already recorded]
+[13/45] dataset=amazon target=0.0050 tau_mult=1.000 seed=2 [skip: already recorded]
+[14/45] dataset=amazon target=0.0050 tau_mult=1.000 seed=3 [skip: already recorded]
+[15/45] dataset=amazon target=0.0050 tau_mult=1.000 seed=4
+[16/45] dataset=amazon target=0.0150 tau_mult=0.600 seed=0
+[17/45] dataset=amazon target=0.0150 tau_mult=0.600 seed=1
+[18/45] dataset=amazon target=0.0150 tau_mult=0.600 seed=2
+[19/45] dataset=amazon target=0.0150 tau_mult=0.600 seed=3
+[20/45] dataset=amazon target=0.0150 tau_mult=0.600 seed=4
+[21/45] dataset=amazon target=0.0150 tau_mult=0.800 seed=0
+[22/45] dataset=amazon target=0.0150 tau_mult=0.800 seed=1
+[23/45] dataset=amazon target=0.0150 tau_mult=0.800 seed=2
+[24/45] dataset=amazon target=0.0150 tau_mult=0.800 seed=3
+[25/45] dataset=amazon target=0.0150 tau_mult=0.800 seed=4
+[26/45] dataset=amazon target=0.0150 tau_mult=1.000 seed=0
+[27/45] dataset=amazon target=0.0150 tau_mult=1.000 seed=1

@@ -26,7 +26,9 @@ Entity IDs masked:
 import copy
 import os
 import random
+import json
 import time as time_module
+from pathlib import Path
 from typing import Dict, Optional
 
 import duckdb
@@ -40,7 +42,8 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 from relbench.modeling.nn import HeteroGraphSAGE
 
 # ── Config ────────────────────────────────────────────────────────────────────
-GRAPH_PATH   = "data/sampled_hetero_graph.pt"
+_HERE = Path(__file__).resolve().parent
+GRAPH_PATH   = str(_HERE / "data" / "sampled_hetero_graph.pt")
 CHANNELS     = 128
 NUM_LAYERS   = 2
 EPOCHS       = 150
@@ -66,6 +69,8 @@ else:
 
 USE_POS_WEIGHT = _parse_bool_env("RDL_USE_POS_WEIGHT", True)
 RESULTS_DIR = os.environ.get("RDL_RESULTS_DIR", "results")
+RAW_RESULTS_DIR = os.environ.get("RDL_RAW_RESULTS_DIR", os.path.join(RESULTS_DIR, "lanl_rdl_raw"))
+PARTIAL_AUROC_MAX_FPR = float(os.environ.get("RDL_PARTIAL_AUROC_MAX_FPR", "0.1"))
 LOSS_TAG = "weighted" if USE_POS_WEIGHT else "unweighted"
 BY_SEED_CSV = os.path.join(RESULTS_DIR, f"lanl_rdl_{LOSS_TAG}_by_seed.csv")
 SUMMARY_CSV = os.path.join(RESULTS_DIR, f"lanl_rdl_{LOSS_TAG}_summary_mean_std.csv")
@@ -74,7 +79,7 @@ DEVICE       = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 # ── Fix graph time tensors from duckdb ────────────────────────────────────────
-DB_PATH = "data/sample.duckdb"
+DB_PATH = str(_HERE / "data" / "sample.duckdb")
 
 def fix_graph_times(g, db_path: str):
     """
@@ -225,6 +230,16 @@ def precision_at_k(y_true: np.ndarray, y_score: np.ndarray, k: int = 127) -> flo
     return float(y_true[top_idx].mean())
 
 
+def partial_roc_auc(y_true: np.ndarray, y_score: np.ndarray, max_fpr: float) -> float:
+    y_true = np.asarray(y_true).astype(np.int8).reshape(-1)
+    y_score = np.asarray(y_score).astype(np.float64).reshape(-1)
+    if not (0.0 < max_fpr < 1.0):
+        return float("nan")
+    if np.unique(y_true).size <= 1:
+        return float("nan")
+    return float(roc_auc_score(y_true, y_score, max_fpr=max_fpr))
+
+
 # ── Per-seed training ─────────────────────────────────────────────────────────
 def run_one_seed(g, in_dims: dict, seed: int) -> dict:
     set_seed(seed)
@@ -310,12 +325,26 @@ def run_one_seed(g, in_dims: dict, seed: int) -> dict:
 
     auroc = float(roc_auc_score(y_test, test_scores))
     auprc = float(average_precision_score(y_test, test_scores))
+    pauc = partial_roc_auc(y_test, test_scores, PARTIAL_AUROC_MAX_FPR)
     p127  = precision_at_k(y_test, test_scores, 127)
+
+    os.makedirs(RAW_RESULTS_DIR, exist_ok=True)
+    raw_path = os.path.join(RAW_RESULTS_DIR, f"seed_{seed:03d}.npz")
+    np.savez_compressed(
+        raw_path,
+        seed=np.array(seed, dtype=np.int64),
+        y_true=y_test.astype(np.int8),
+        y_score=test_scores.astype(np.float32),
+        train_pos_weight=np.array(pos_weight_scalar, dtype=np.float32),
+        partial_auroc_max_fpr=np.array(PARTIAL_AUROC_MAX_FPR, dtype=np.float32),
+    )
     return {
         "auroc": auroc,
         "auprc": auprc,
+        "pauroc": pauc,
         "p@127": p127,
         "train_pos_weight": float(pos_weight_scalar),
+        "raw_path": raw_path,
     }
 
 
@@ -324,8 +353,10 @@ def main():
     os.makedirs(RESULTS_DIR, exist_ok=True)
     print(f"[rdl] Device: {DEVICE}")
     print(f"[rdl] weighted_loss={USE_POS_WEIGHT}  seeds={SEEDS}")
+    print(f"[rdl] partial_auroc_max_fpr={PARTIAL_AUROC_MAX_FPR}")
     print(f"[rdl] by-seed csv: {BY_SEED_CSV}")
     print(f"[rdl] summary csv: {SUMMARY_CSV}")
+    print(f"[rdl] raw outputs: {RAW_RESULTS_DIR}")
     t0 = time_module.time()
 
     print(f"[rdl] Loading graph from {GRAPH_PATH} ...")
@@ -373,7 +404,7 @@ def main():
     if os.path.exists(BY_SEED_CSV):
         try:
             prev = pd.read_csv(BY_SEED_CSV)
-            need_cols = {"seed", "auroc", "auprc", "p@127"}
+            need_cols = {"seed", "auroc", "auprc", "pauroc", "p@127"}
             if need_cols.issubset(set(prev.columns)):
                 prev = prev.dropna(subset=["seed"]).copy()
                 prev["seed"] = prev["seed"].astype(int)
@@ -404,6 +435,7 @@ def main():
 
     aurocs = by_seed_df["auroc"].astype(float).tolist()
     auprcs = by_seed_df["auprc"].astype(float).tolist()
+    paurocs = by_seed_df["pauroc"].astype(float).tolist()
     p127s = by_seed_df["p@127"].astype(float).tolist()
 
     summary_df = pd.DataFrame(
@@ -415,6 +447,8 @@ def main():
                 "auroc_std": float(np.std(aurocs)),
                 "auprc_mean": float(np.mean(auprcs)),
                 "auprc_std": float(np.std(auprcs)),
+                "pauroc_mean": float(np.mean(paurocs)),
+                "pauroc_std": float(np.std(paurocs)),
                 "p@127_mean": float(np.mean(p127s)),
                 "p@127_std": float(np.std(p127s)),
             }
@@ -429,6 +463,7 @@ def main():
     print(f"  seeds_ran:      {len(by_seed_df)}")
     print(f"  AUROC:         {np.mean(aurocs):.4f} ± {np.std(aurocs):.4f}")
     print(f"  AUPRC:         {np.mean(auprcs):.4f} ± {np.std(auprcs):.4f}")
+    print(f"  pAUROC@{PARTIAL_AUROC_MAX_FPR:.2f}: {np.mean(paurocs):.4f} ± {np.std(paurocs):.4f}")
     print(f"  Precision@127: {np.mean(p127s):.4f} ± {np.std(p127s):.4f}")
     print(f"\nPer-seed breakdown:")
     for _, r in by_seed_df.sort_values("seed").iterrows():

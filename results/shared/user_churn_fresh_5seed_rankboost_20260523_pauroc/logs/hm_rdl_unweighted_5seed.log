@@ -1,0 +1,30 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=hm | weighted_loss=False
+device=cuda:0 | seeds=[0, 1, 2, 3, 4]
+partial_auroc_max_fpr=0.1
+output=<REPO_ROOT>/results/hm/rdl_unweighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-hm/db...
+Done in 1.26 seconds.
+[rdl] masked identity-proxy features: customer.postal_code
+
+[seed=0] starting
+[seed=0] test split has no labels; using val split for final evaluation.
+Traceback (most recent call last):
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 608, in <module>
+    main()
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 577, in main
+    m = run_seed(seed, task, graph_data, col_stats, events_df, event_time_col)
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 383, in run_seed
+    test_table.df = test_table.df.loc[keep_te].copy()
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/pandas/core/indexing.py", line 1192, in __getitem__
+    return self._getitem_axis(maybe_callable, axis=axis)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/pandas/core/indexing.py", line 1414, in _getitem_axis
+    return self._getbool_axis(key, axis=axis)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/pandas/core/indexing.py", line 1210, in _getbool_axis
+    key = check_bool_indexer(labels, key)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/pandas/core/indexing.py", line 2717, in check_bool_indexer
+    return check_array_indexer(index, result)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/pandas/core/indexers/utils.py", line 539, in check_array_indexer
+    raise IndexError(
+IndexError: Boolean index has wrong length: 76556 instead of 74921

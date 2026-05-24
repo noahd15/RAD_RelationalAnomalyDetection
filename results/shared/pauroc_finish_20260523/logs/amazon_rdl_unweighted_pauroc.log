@@ -1,0 +1,65 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=amazon | weighted_loss=False
+device=cuda:0 | seeds=[0, 1, 2, 3, 4]
+partial_auroc_max_fpr=0.1
+output=<REPO_ROOT>/results/amazon/rdl_unweighted_5seed_rankboost_pauroc_20260523/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 36.25 seconds.
+[rdl] masked identity-proxy features: customer.customer_name
+
+[seed=0] starting
+[seed=0] test split has no labels; using val split for final evaluation.
+Traceback (most recent call last):
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 616, in <module>
+    main()
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 585, in main
+    m = run_seed(seed, task, graph_data, col_stats, events_df, event_time_col)
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 429, in run_seed
+    for batch in tr_loader:
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 741, in __next__
+    data = self._next_data()
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1518, in _next_data
+    return self._process_data(data, worker_id)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1586, in _process_data
+    data.reraise()
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch/_utils.py", line 785, in reraise
+    raise exception
+AssertionError: Caught AssertionError in DataLoader worker process 3.
+Original Traceback (most recent call last):
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 358, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 57, in fetch
+    return self.collate_fn(data)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_geometric/loader/node_loader.py", line 150, in collate_fn
+    out = self.filter_fn(out)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_geometric/loader/node_loader.py", line 211, in filter_fn
+    data = filter_hetero_data(  #
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_geometric/loader/utils.py", line 185, in filter_hetero_data
+    filter_node_store_(data[node_type], out[node_type],
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_geometric/loader/utils.py", line 98, in filter_node_store_
+    out_store[key] = index_select(value, index, dim=dim)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_geometric/loader/utils.py", line 76, in index_select
+    return value[index]
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/tensor_frame.py", line 296, in __getitem__
+    return self._apply(fn)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/tensor_frame.py", line 347, in _apply
+    out.feat_dict = {stype: fn(x) for stype, x in out.feat_dict.items()}
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/tensor_frame.py", line 347, in <dictcomp>
+    out.feat_dict = {stype: fn(x) for stype, x in out.feat_dict.items()}
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/tensor_frame.py", line 293, in fn
+    return x[index]
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/multi_tensor.py", line 216, in __getitem__
+    return self.select(index, dim=0)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/multi_tensor.py", line 323, in select
+    return self.index_select(index, dim=dim)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/multi_tensor.py", line 232, in index_select
+    return self._row_index_select(idx)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/multi_embedding_tensor.py", line 141, in _row_index_select
+    return MultiEmbeddingTensor(
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/multi_tensor.py", line 26, in __init__
+    self.validate()
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/torch_frame/data/multi_embedding_tensor.py", line 59, in validate
+    assert self.offset[0] == 0
+AssertionError
+

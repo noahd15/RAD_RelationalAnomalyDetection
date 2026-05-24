@@ -42,15 +42,18 @@ from torch_geometric.nn import HeteroConv, SAGEConv
 # --------------------
 # Config
 # --------------------
+_HERE = Path(__file__).resolve().parent
 SEEDS = list(range(10))
 
-PARQUET_PATH = "./data/flat_features.parquet"
-GRAPH_PATH = "./data/sampled_hetero_graph.pt"
-LLM_RULES_CSV = "./data/parsed_rules_df.csv"
+PARQUET_PATH = str(_HERE / "data" / "flat_features.parquet")
+GRAPH_PATH = str(_HERE / "data" / "sampled_hetero_graph.pt")
+LLM_RULES_CSV = str(_HERE / "data" / "parsed_rules_df.csv")
 RESULTS_DIR = "./results"
 BY_SEED_CSV = os.path.join(RESULTS_DIR, "lanl_six_ablations_by_seed.csv")
 MEAN_STD_CSV = os.path.join(RESULTS_DIR, "lanl_six_ablations_mean_std.csv")
 RF_SAMPLED_RULES_CSV = os.path.join(RESULTS_DIR, "lanl_rf_sampled_rules.csv")
+RAW_RESULTS_DIR = os.environ.get("LANL_RAW_RESULTS_DIR", os.path.join(RESULTS_DIR, "lanl_six_ablations_raw"))
+PARTIAL_AUROC_MAX_FPR = float(os.environ.get("LANL_PARTIAL_AUROC_MAX_FPR", "0.1"))
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -121,14 +124,16 @@ def metrics_row(variant: str, seed: int, y_true: np.ndarray, score: np.ndarray) 
     if np.unique(y_true).size > 1:
         auroc = float(roc_auc_score(y_true, score))
         auprc = float(average_precision_score(y_true, score))
+        pauroc = float(roc_auc_score(y_true, score, max_fpr=PARTIAL_AUROC_MAX_FPR)) if 0.0 < PARTIAL_AUROC_MAX_FPR < 1.0 else float("nan")
     else:
-        auroc, auprc = float("nan"), float("nan")
+        auroc, auprc, pauroc = float("nan"), float("nan"), float("nan")
     prev = float(y_true.mean())
     return {
         "variant": variant,
         "seed": seed,
         "auroc": auroc,
         "auprc": auprc,
+        "pauroc": pauroc,
         "p@127": precision_at_k(y_true, score, 127),
         "precision_at_k": precision_at_k(y_true, score, int(max(1, y_true.sum()))),
         "auprc_lift_vs_prev": float(auprc / prev) if prev > 0 else float("nan"),
@@ -142,6 +147,7 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
     metric_cols = [
         "auroc",
         "auprc",
+        "pauroc",
         "p@127",
         "precision_at_k",
         "auprc_lift_vs_prev",
@@ -946,6 +952,8 @@ def run_gae_single(g: HeteroData, seed: int, lambda_struct_override: Optional[fl
 def main() -> None:
     os.makedirs(RESULTS_DIR, exist_ok=True)
     print(f"[init] device={DEVICE}")
+    print(f"[init] partial_auroc_max_fpr={PARTIAL_AUROC_MAX_FPR}")
+    print(f"[init] raw outputs={RAW_RESULTS_DIR}")
 
     base_df = pd.read_parquet(PARQUET_PATH)
     base_df = base_df.sort_values(["time", "auth_id"]).reset_index(drop=True)
@@ -976,7 +984,7 @@ def main() -> None:
     if os.path.exists(BY_SEED_CSV):
         try:
             prev = pd.read_csv(BY_SEED_CSV)
-            need_cols = {"variant", "seed", "auroc", "auprc", "p@127"}
+            need_cols = {"variant", "seed", "auroc", "auprc", "pauroc", "p@127"}
             if need_cols.issubset(set(prev.columns)):
                 prev = prev[prev["variant"].isin(variant_names)].copy()
                 prev = prev.dropna(subset=["variant", "seed"]).copy()
@@ -1004,6 +1012,15 @@ def main() -> None:
             g_aug = augment_graph_for_variant(graph, base_df, source_kind, rf_score_all)
             scores = run_gae_single(g_aug, seed=seed, lambda_struct_override=lambda_struct_override)
             rows.append(metrics_row(variant_name, seed, y_true_test, scores))
+            os.makedirs(RAW_RESULTS_DIR, exist_ok=True)
+            np.savez_compressed(
+                os.path.join(RAW_RESULTS_DIR, f"{variant_name}__seed_{seed:03d}.npz"),
+                variant=np.array(variant_name),
+                seed=np.array(seed, dtype=np.int64),
+                y_true=y_true_test.astype(np.int8),
+                y_score=np.asarray(scores, dtype=np.float32),
+                partial_auroc_max_fpr=np.array(PARTIAL_AUROC_MAX_FPR, dtype=np.float32),
+            )
             done_pairs.add((variant_name, seed))
 
         by_seed_df = pd.DataFrame(rows).sort_values(["variant", "seed"]).reset_index(drop=True)

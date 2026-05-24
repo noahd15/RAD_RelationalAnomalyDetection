@@ -1,0 +1,22 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=amazon | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4]
+partial_auroc_max_fpr=0.1
+output=<REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 36.56 seconds.
+[rdl] masked identity-proxy features: customer.customer_name
+[resume] found 5 completed seeds in <REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost/per_seed.csv
+[skip] seed=0 already completed
+[skip] seed=1 already completed
+[skip] seed=2 already completed
+[skip] seed=3 already completed
+[skip] seed=4 already completed
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auroc_partial_mean  auroc_partial_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+ amazon           True    0.717964   0.001943                 NaN                NaN    0.036419   0.000263  0.060178 0.001532    2.42721  0.017513
+
+Per-seed: <REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost/per_seed.csv
+Summary:  <REPO_ROOT>/results/amazon/rdl_weighted_5seed_rankboost/summary_mean_std.csv

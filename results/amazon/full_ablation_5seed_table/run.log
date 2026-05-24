@@ -1,0 +1,11 @@
+==========================================================================================
+RUNNING 5-SEED TABLE-METHOD EVAL | seeds=[0, 1, 2, 3, 4]
+==========================================================================================
+[baselines] Pending seeds: [0, 1, 2, 3, 4] — loading DB once for all
+[baselines] Running multi-seed: seeds=[0, 1, 2, 3, 4]
+device: cuda:1
+Loading RelBench dataset and task...
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 68.70 seconds.
+train: 4,708,383 | val: 409,792
+Computing train features...

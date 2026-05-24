@@ -1,0 +1,47 @@
+[2026-05-06 14:05:25] START run=1 metric=roc_auc ls=0.2 lr=0.5 af=1.0 as=1.0
+================================================================================
+RAD LATENT DIMENSION SWEEP: Amazon User-Churn at-risk-filtered dataset
+================================================================================
+Device: NVIDIA RTX 6000 Ada Generation (cuda:0)
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 39.24 seconds.
+Dataset loaded (Amazon user-churn)
+Loaded dataset: train=4708383 | val=409792 | test=351885
+At-risk filtered: train=1307705 (0.0150) | val=104770 (0.0150)
+Checkpoint tuning metric: roc_auc
+Using pre-computed rules from cache (skip re-mining).
+Graph cache loaded.
+Rule table loaded from cache: shape=(1850193, 15), n_rules=15
+Creating data loaders (once before sweep)...
+Loaders created: train=1278 batches, val=103 batches
+Ablation config: latent_dims=[32], lambda_struct=0.2, lambda_rank=0.5, alpha_feat=1.0, alpha_struct=1.0, epochs=10
+
+================================================================================
+LATENT_DIM = 32 (channels=128)
+================================================================================
+Model: params=1,421,696
+  Epoch 01/10 | loss=0.4455 | feat=0.0111 | struct=0.6630 | auprc=0.0329 | auroc=0.6491
+  Epoch 02/10 | loss=0.4254 | feat=0.0038 | struct=0.6556 | auprc=0.0413 | auroc=0.6860
+  Epoch 03/10 | loss=0.4218 | feat=0.0024 | struct=0.6506 | auprc=0.0351 | auroc=0.6576
+  Epoch 04/10 | loss=0.4061 | feat=0.0020 | struct=0.5916 | auprc=0.0365 | auroc=0.6529
+  Epoch 05/10 | loss=0.3925 | feat=0.0023 | struct=0.5519 | auprc=0.0395 | auroc=0.6765
+  Early stopping at epoch 5.
+  → Filtered:  auprc=0.0413  auroc=0.6861
+  → Original:  auprc=0.7623  auroc=0.6679
+
+================================================================================
+LATENT DIMENSION ABLATION RESULTS
+================================================================================
+ latent_dim tune_metric  lambda_struct  lambda_rank  alpha_feat  alpha_struct  auprc_filtered  auroc_filtered  auprc_original  auroc_original
+         32     roc_auc            0.2          0.5         1.0           1.0        0.041346        0.686133        0.762254        0.667861
+
+Saved → results/rad_ablation/run_1.csv
+
+================================================================================
+SUMMARY:
+================================================================================
+auprc_filtered      : best @ latent_dim=32  value=0.0413
+auroc_filtered      : best @ latent_dim=32  value=0.6861
+auprc_original      : best @ latent_dim=32  value=0.7623
+auroc_original      : best @ latent_dim=32  value=0.6679
+[2026-05-06 14:13:29] END   run=1

@@ -1,0 +1,102 @@
+[rdl] Device: cpu
+[rdl] weighted_loss=False  seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+[rdl] by-seed csv: <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] summary csv: <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_summary_mean_std.csv
+[rdl] Loading graph from data/sampled_hetero_graph.pt ...
+[rdl] auth.time fixed: min=38, max=5011190
+[rdl] proc.time fixed: 2834/2834 valid, range=[28018, 5001729]
+[rdl] flows.time fixed: 5261/5261 valid, range=[22815, 2306892]
+[rdl] dns.time fixed: 7029/7029 valid, range=[42567, 5010823]
+[rdl] Masked entity ID cols: ['source_user_id', 'destination_user_id', 'source_computer_id', 'destination_computer_id']
+[rdl] Kept behavioral cols:  ['time', 'auth_type', 'logon_type', 'auth_orientation', 'success_failure']
+[rdl] auth nodes=384074  x_dim=5
+[rdl] train=312728  val=7719  test=63627
+[rdl] positives: train=500  val=75  test=127
+[rdl] Node feature dims: {'auth': 5, 'proc': 1, 'flows': 6, 'dns': 2, 'user': 1, 'computer': 1}
+[rdl] Running 10 seeds ...
+
+[rdl] ── Seed 0 ──────────────────────────────────
+    epoch=  20  loss=0.1041  val_AP=0.0086  best_AP=0.0453
+    Early stop at epoch 34
+  → AUROC=0.5581  AUPRC=0.0026  P@127=0.0000
+
+[seed 0] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 1 ──────────────────────────────────
+    epoch=  20  loss=0.0270  val_AP=0.0098  best_AP=0.0945
+    Early stop at epoch 21
+  → AUROC=0.9702  AUPRC=0.0962  P@127=0.2598
+
+[seed 1] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 2 ──────────────────────────────────
+    epoch=  20  loss=0.0680  val_AP=0.0095  best_AP=0.0654
+    Early stop at epoch 21
+  → AUROC=0.8586  AUPRC=0.0113  P@127=0.0000
+
+[seed 2] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 3 ──────────────────────────────────
+    epoch=  20  loss=0.0391  val_AP=0.0121  best_AP=0.0654
+    Early stop at epoch 21
+  → AUROC=0.9140  AUPRC=0.0171  P@127=0.0000
+
+[seed 3] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 4 ──────────────────────────────────
+    epoch=  20  loss=0.0378  val_AP=0.0171  best_AP=0.0761
+    Early stop at epoch 22
+  → AUROC=0.7884  AUPRC=0.0062  P@127=0.0000
+
+[seed 4] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 5 ──────────────────────────────────
+    epoch=  20  loss=0.0454  val_AP=0.0080  best_AP=0.0171
+    Early stop at epoch 28
+  → AUROC=0.6026  AUPRC=0.0027  P@127=0.0000
+
+[seed 5] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 6 ──────────────────────────────────
+    epoch=  20  loss=0.0587  val_AP=0.0096  best_AP=0.0785
+    Early stop at epoch 21
+  → AUROC=0.7703  AUPRC=0.0049  P@127=0.0000
+
+[seed 6] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 7 ──────────────────────────────────
+    epoch=  20  loss=0.0799  val_AP=0.0191  best_AP=0.0235
+    Early stop at epoch 28
+  → AUROC=0.5325  AUPRC=0.0025  P@127=0.0000
+
+[seed 7] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 8 ──────────────────────────────────
+    epoch=  20  loss=0.0218  val_AP=0.0122  best_AP=0.0228
+    Early stop at epoch 37
+  → AUROC=0.5985  AUPRC=0.0031  P@127=0.0000
+
+[seed 8] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[rdl] ── Seed 9 ──────────────────────────────────
+    epoch=  20  loss=0.0254  val_AP=0.0087  best_AP=0.0191
+    Early stop at epoch 22
+  → AUROC=0.2532  AUPRC=0.0014  P@127=0.0000
+
+[seed 9] checkpoint saved -> <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+============================================================
+RDL LANL Results (entity IDs masked, causal edges)
+============================================================
+  weighted_loss: False
+  seeds_ran:      10
+  AUROC:         0.6846 ± 0.2054
+  AUPRC:         0.0148 ± 0.0275
+  Precision@127: 0.0260 ± 0.0780
+
+Per-seed breakdown:
+  seed=0  AUROC=0.5581  AUPRC=0.0026  P@127=0.0000
+  seed=1  AUROC=0.9702  AUPRC=0.0962  P@127=0.2598
+  seed=2  AUROC=0.8586  AUPRC=0.0113  P@127=0.0000
+  seed=3  AUROC=0.9140  AUPRC=0.0171  P@127=0.0000
+  seed=4  AUROC=0.7884  AUPRC=0.0062  P@127=0.0000
+  seed=5  AUROC=0.6026  AUPRC=0.0027  P@127=0.0000
+  seed=6  AUROC=0.7703  AUPRC=0.0049  P@127=0.0000
+  seed=7  AUROC=0.5325  AUPRC=0.0025  P@127=0.0000
+  seed=8  AUROC=0.5985  AUPRC=0.0031  P@127=0.0000
+  seed=9  AUROC=0.2532  AUPRC=0.0014  P@127=0.0000
+
+[done] by-seed: <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_by_seed.csv
+[done] summary: <REPO_ROOT>/results/lanl/lanl_rdl_unweighted_summary_mean_std.csv
+
+Total wall time: 47.2 min

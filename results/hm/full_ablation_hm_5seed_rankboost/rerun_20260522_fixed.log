@@ -1,0 +1,76 @@
+==========================================================================================
+FULL H&M ABLATION (5 SEEDS) | seeds=[0, 1, 2, 3, 4]
+==========================================================================================
+[seed=0] Running H&M baselines script
+device: cuda:1
+seed: 0
+Loading Database object from <RELBENCH_CACHE>/rel-hm/db...
+Done in 0.82 seconds.
+train: 3832692 | val: 76556
+train churn rate: 0.8187 | val churn rate: 0.8128
+Loaded causal price/article cache: 53 timestamps
+Computing train features...
+Computing val features...
+Feature matrix — train: (3832692, 9), val: (76556, 9)
+At-Risk thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02}
+Train — total: 692,038 | positives: 10,381 (0.0150)
+Val   — total: 14,219   | positives: 213 (0.0150)
+Train normal pool: 681,657 | Val positives: 213
+
+Val baseline prevalence: 0.014980
+==================================================
+Baseline 1: Isolation Forest
+==================================================
+IForest: {'auroc': 0.3586630210124568, 'auprc': 0.010535408675918411, 'p@k': 0.0, 'lift': 0.7033003566332576}
+==================================================
+Baseline 2: DRL / PrototypeNet
+==================================================
+  epoch=001 loss=0.257416
+  epoch=005 loss=0.034459
+  epoch=010 loss=0.026856
+DRL: {'auroc': 0.49489940260344495, 'auprc': 0.014466579347909795, 'p@k': 0.009389671361502348, 'lift': 0.9657290692391051}
+==================================================
+Baseline 3: Deep SVDD
+==================================================
+  epoch=001 train_loss=0.006351 val_auprc=0.010871
+  SVDD collapse at epoch 7
+DeepSVDD: {'auroc': 0.37457035515966, 'auprc': 0.010871392695961374, 'p@k': 0.0, 'lift': 0.7257292617083323}
+==================================================
+Baseline 4: Vanilla AE  |  Baseline 5: AE + Rank
+==================================================
+Anomaly pool for AE-rank: 10,381
+  [AE] epoch=001 loss=0.565793 val_auprc=0.010651
+  [AE] epoch=010 loss=0.005894 val_auprc=0.010364
+  [AE-rank] epoch=001 loss=2.020011 val_auprc=0.011400
+  [AE-rank] epoch=010 loss=1.128106 val_auprc=0.011586
+VanillaAE: {'auroc': 0.3641553016514049, 'auprc': 0.01065097944615776, 'p@k': 0.0, 'lift': 0.7110153837789539}
+AE-Rank: {'auroc': 0.40236561929528525, 'auprc': 0.011586195780705896, 'p@k': 0.004694835680751174, 'lift': 0.7734465624688128}
+==================================================
+Baseline 6: Supervised RDL (GNN)
+==================================================
+H&M graph and col-stats loaded from cache.
+Supervised RDL — train: 3,764,521 (3,082,864 pos) | val: 14,219 (213 pos)
+Loaders — train: 3677 batches | val: 14 batches
+SupervisedGNN | params=2,211,201
+  RDL epoch 01 | steps=2000 | loss=0.4472 | val_auprc=0.0376 | val_auroc=0.6969
+  RDL epoch 02 | steps=2000 | loss=0.4428 | val_auprc=0.0391 | val_auroc=0.7102
+  RDL epoch 03 | steps=2000 | loss=0.4415 | val_auprc=0.0349 | val_auroc=0.6980
+  RDL epoch 04 | steps=2000 | loss=0.4403 | val_auprc=0.0381 | val_auroc=0.7139
+  RDL epoch 05 | steps=2000 | loss=0.4394 | val_auprc=0.0365 | val_auroc=0.7166
+  Early stopping at epoch 5
+Supervised RDL: {'auroc': 0.7102206029743121, 'auprc': 0.03917715534465872, 'p@k': 0.07511737089201878, 'lift': 2.6153050321394478}
+
+======================================================================
+Model                   AUROC    AUPRC      P@K     Lift
+----------------------------------------------------------------------
+Random                 0.5000   0.0150   0.0150     1.00
+IForest                0.3587   0.0105   0.0000     0.70
+DRL                    0.4949   0.0145   0.0094     0.97
+DeepSVDD               0.3746   0.0109   0.0000     0.73
+VanillaAE              0.3642   0.0107   0.0000     0.71
+AE-Rank                0.4024   0.0116   0.0047     0.77
+Supervised RDL         0.7102   0.0392   0.0751     2.62
+======================================================================
+[baselines] Wrote raw scores: <REPO_ROOT>/results/hm/full_ablation_hm_5seed/raw_predictions/baselines_seed0.pt
+[baselines] Wrote metrics CSV: <REPO_ROOT>/results/hm/full_ablation_hm/baselines_metrics.csv
+[seed=0] Running H&M RAD variant lambda_struct=0.1

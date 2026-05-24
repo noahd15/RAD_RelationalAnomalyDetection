@@ -1,0 +1,13 @@
+========================================================================================
+Label-sensitivity ablation: RAD vs supervised RDL
+datasets=['amazon', 'hm']
+target_rates=[0.005, 0.01, 0.015, 0.02, 0.03]
+tau_multipliers=[0.6, 0.8, 1.0]
+seeds=[0, 1, 2]
+out_dir=<REPO_ROOT>/results/shared/label_sensitivity
+========================================================================================
+[1/90] dataset=amazon target=0.0050 tau_mult=0.600 seed=0
+Parse failed for dataset=amazon target=0.0050 tau_mult=0.600 seed=0: Could not parse required metrics from run output. Log: <REPO_ROOT>/results/shared/label_sensitivity/logs/amazon__target_0p0050__tau_0p6000__seed_0.log
+[2/90] dataset=amazon target=0.0050 tau_mult=0.600 seed=1
+Parse failed for dataset=amazon target=0.0050 tau_mult=0.600 seed=1: Could not parse required metrics from run output. Log: <REPO_ROOT>/results/shared/label_sensitivity/logs/amazon__target_0p0050__tau_0p6000__seed_1.log
+[3/90] dataset=amazon target=0.0050 tau_mult=0.600 seed=2

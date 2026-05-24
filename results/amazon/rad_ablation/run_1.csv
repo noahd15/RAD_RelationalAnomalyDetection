@@ -1,0 +1,2 @@
+latent_dim,tune_metric,lambda_struct,lambda_rank,alpha_feat,alpha_struct,auprc_filtered,auroc_filtered,auprc_original,auroc_original
+32,roc_auc,0.2,0.5,1.0,1.0,0.04134606849989922,0.6861329424199839,0.7622542626831122,0.6678613236906511

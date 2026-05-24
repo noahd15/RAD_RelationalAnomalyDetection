@@ -1,0 +1,9 @@
+# Large binary files
+*.pt
+*.npz
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env

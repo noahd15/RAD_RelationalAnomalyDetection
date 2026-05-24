@@ -1,0 +1,91 @@
+[lanl-baselines] device=cpu
+[lanl-baselines] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+[lanl-baselines] by-seed csv=<REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+[lanl-baselines] summary csv=<REPO_ROOT>/lanl/results/lanl_tabular_baselines_summary_mean_std.csv
+[lanl-baselines] train=312728 val=7719 test=63627 | train_pos=500 val_pos=75 test_pos=127
+[lanl-baselines] normal train pool=312228 | p@k=127
+
+[seed 0] starting
+  [done] Isolation Forest auprc=0.0064
+  [done] DRL auprc=0.0016
+  [done] Deep SVDD auprc=0.0015
+  [done] AE auprc=0.0061
+  [done] AE+Rank auprc=0.2700
+[seed 0] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 1] starting
+  [done] Isolation Forest auprc=0.0061
+  [done] DRL auprc=0.0040
+  [done] Deep SVDD auprc=0.0024
+  [done] AE auprc=0.0042
+  [done] AE+Rank auprc=0.2708
+[seed 1] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 2] starting
+  [done] Isolation Forest auprc=0.0054
+  [done] DRL auprc=0.0018
+  [done] Deep SVDD auprc=0.0016
+  [done] AE auprc=0.0158
+  [done] AE+Rank auprc=0.2704
+[seed 2] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 3] starting
+  [done] Isolation Forest auprc=0.0053
+  [done] DRL auprc=0.0015
+  [done] Deep SVDD auprc=0.0015
+  [done] AE auprc=0.0044
+  [done] AE+Rank auprc=0.2682
+[seed 3] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 4] starting
+  [done] Isolation Forest auprc=0.0055
+  [done] DRL auprc=0.0040
+  [done] Deep SVDD auprc=0.0038
+  [done] AE auprc=0.0083
+  [done] AE+Rank auprc=0.2618
+[seed 4] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 5] starting
+  [done] Isolation Forest auprc=0.0058
+  [done] DRL auprc=0.0035
+  [done] Deep SVDD auprc=0.0101
+  [done] AE auprc=0.0122
+  [done] AE+Rank auprc=0.2624
+[seed 5] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 6] starting
+  [done] Isolation Forest auprc=0.0063
+  [done] DRL auprc=0.0018
+  [done] Deep SVDD auprc=0.0026
+  [done] AE auprc=0.0034
+  [done] AE+Rank auprc=0.2653
+[seed 6] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 7] starting
+  [done] Isolation Forest auprc=0.0058
+  [done] DRL auprc=0.0017
+  [done] Deep SVDD auprc=0.0032
+  [done] AE auprc=0.0098
+  [done] AE+Rank auprc=0.2723
+[seed 7] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 8] starting
+  [done] Isolation Forest auprc=0.0053
+  [done] DRL auprc=0.0017
+  [done] Deep SVDD auprc=0.0101
+  [done] AE auprc=0.0058
+  [done] AE+Rank auprc=0.2711
+[seed 8] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[seed 9] starting
+  [done] Isolation Forest auprc=0.0056
+  [done] DRL auprc=0.0022
+  [done] Deep SVDD auprc=0.0055
+  [done] AE auprc=0.0081
+  [done] AE+Rank auprc=0.2721
+[seed 9] checkpoint saved -> <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+
+[done] LANL tabular baselines complete
+[done] by-seed: <REPO_ROOT>/lanl/results/lanl_tabular_baselines_by_seed.csv
+[done] summary: <REPO_ROOT>/lanl/results/lanl_tabular_baselines_summary_mean_std.csv
+[done] elapsed: 67.6 min

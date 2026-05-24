@@ -1,0 +1,22 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=hm | weighted_loss=False
+device=cuda:0 | seeds=[0, 1, 2, 3, 4]
+partial_auroc_max_fpr=0.1
+output=<REPO_ROOT>/results/hm/rdl_unweighted_5seed_rankboost/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-hm/db...
+Done in 0.86 seconds.
+[rdl] masked identity-proxy features: customer.postal_code
+[resume] found 5 completed seeds in <REPO_ROOT>/results/hm/rdl_unweighted_5seed_rankboost/per_seed.csv
+[skip] seed=0 already completed
+[skip] seed=1 already completed
+[skip] seed=2 already completed
+[skip] seed=3 already completed
+[skip] seed=4 already completed
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auroc_partial_mean  auroc_partial_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+     hm          False    0.697784   0.006839                 NaN                NaN    0.039087   0.002301  0.076056 0.011209   2.609281  0.153574
+
+Per-seed: <REPO_ROOT>/results/hm/rdl_unweighted_5seed_rankboost/per_seed.csv
+Summary:  <REPO_ROOT>/results/hm/rdl_unweighted_5seed_rankboost/summary_mean_std.csv

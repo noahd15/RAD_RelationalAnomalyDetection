@@ -1,0 +1,19 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=amazon | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+output=<REPO_ROOT>/results/shared/rdl_masked_rerun_20260521/amazon_weighted/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 37.16 seconds.
+[rdl] masked identity-proxy features: customer.customer_name
+
+[seed=0] starting
+  epoch 01 | steps=2000 | loss=0.4766 | val_auprc=0.0356 | val_auroc=0.7148
+  epoch 02 | steps=2000 | loss=0.4706 | val_auprc=0.0344 | val_auroc=0.7160
+  epoch 03 | steps=2000 | loss=0.4692 | val_auprc=0.0354 | val_auroc=0.7175
+  epoch 04 | steps=2000 | loss=0.4684 | val_auprc=0.0352 | val_auroc=0.7183
+  early stop at epoch 4
+[seed=0] auprc=0.0356 auroc=0.7148 p@k=0.0566 lift=2.3701 pos_weight=0.65
+
+[seed=1] starting
+  epoch 01 | steps=2000 | loss=0.4771 | val_auprc=0.0350 | val_auroc=0.7131

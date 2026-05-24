@@ -1,0 +1,37 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=hm | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+output=<REPO_ROOT>/results/hm/rdl_weighted_10seed/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-hm/db...
+Done in 1.21 seconds.
+
+[seed=0] starting
+Traceback (most recent call last):
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 452, in <module>
+    main()
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 422, in main
+    m = run_seed(seed, task, graph_data, col_stats, events_df, event_time_col)
+  File "<REPO_ROOT>/scripts/active/run_10seed_supervised_rdl_weighted.py", line 340, in run_seed
+    val_ap = float(average_precision_score(val_labels, val_scores)) if np.unique(val_labels).size > 1 else float("nan")
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/metrics/_ranking.py", line 263, in average_precision_score
+    return _average_binary_score(
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/metrics/_base.py", line 69, in _average_binary_score
+    return binary_metric(y_true, y_score, sample_weight=sample_weight)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/metrics/_ranking.py", line 224, in _binary_uninterpolated_average_precision
+    precision, recall, _ = precision_recall_curve(
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 189, in wrapper
+    return func(*args, **kwargs)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/metrics/_ranking.py", line 1005, in precision_recall_curve
+    fps, tps, thresholds = _binary_clf_curve(
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/metrics/_ranking.py", line 824, in _binary_clf_curve
+    assert_all_finite(y_score)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/utils/validation.py", line 210, in assert_all_finite
+    _assert_all_finite(
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/utils/validation.py", line 120, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/sklearn/utils/validation.py", line 169, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input contains NaN.

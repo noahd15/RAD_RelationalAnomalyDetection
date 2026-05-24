@@ -1,0 +1,177 @@
+================================================================================
+10-SEED Amazon GAE no-rules | seeds=[0, 1, 2, 3, 4]
+================================================================================
+
+[seed=0] Starting Amazon GAE no-rules run
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 50.07 seconds.
+[warn] test split has no 'churn' labels; using validation split for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   276,759 users | 173,561 anomalies (0.6271)
+  Test:  276,759 users | 173,561 anomalies (0.6271)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 200,000 rows  pos=3,000  features=11
+RF trained.
+Extracted 13,391 unique rule candidates.
+Sampled 30 seed rules for LLM.
+Rule source mode: llm
+Using cached parsed LLM rules from <REPO_ROOT>/data/amazon/amazon_parsed_rules_df.csv (20 rules).
+Parsed 20 rule candidates.
+  pred_10023: 1376 matches
+  pred_12202: 945 matches
+  pred_8627: 272 matches
+  pred_7721: 193 matches
+  pred_8488: 143 matches
+  pred_7847: 88 matches
+  pred_2158: 91 matches
+  pred_2801: 99 matches
+  pred_6577: 144 matches
+  pred_1060: 189 matches
+  pred_1184: 49 matches
+  pred_0771: 121 matches
+  pred_13159: 46 matches
+  pred_11265: 247 matches
+  pred_8324: 53 matches
+  pred_1852: 115 matches
+  pred_10275: 94 matches
+  pred_9395: 46 matches
+  pred_7166: 42 matches
+  pred_11308: 160 matches
+
+Rules with matches: 20/20
+Rule columns: ['pred_10023', 'pred_12202', 'pred_8627', 'pred_7721', 'pred_8488', 'pred_7847', 'pred_2158', 'pred_2801', 'pred_6577', 'pred_1060', 'pred_1184', 'pred_0771', 'pred_13159', 'pred_11265', 'pred_8324', 'pred_1852', 'pred_10275', 'pred_9395', 'pred_7166', 'pred_11308']
+
+Customer nodes: 1,850,193  |  rule features: 20
+Rule coverage: 0.14% of customer nodes
+Rule table saved → <REPO_ROOT>/data/amazon/amazon_customer_rule_table.pt  shape=(1850193, 20)
+
+Loaders — train: 1278 batches | val: 271 batches
+
+======================================================================
+PART 1: SUPERVISED RDL GNN
+  (no rule features — those are exclusive to RAD)
+======================================================================
+Supervised RDL loss: unweighted BCE
+SupervisedGNN | params=1,362,561
+
+  Supervised GNN val (at-risk filtered)  AUPRC=0.6794  AUROC=0.5713
+  Supervised GNN freed from GPU.
+
+======================================================================
+PART 2: RAD AUTOENCODER (with Rule Augmentation)
+======================================================================
+Rule table loaded: (1850193, 20)
+RAD rules disabled via RAD_DISABLE_RULES=1 (rule_dim=0).
+RADAutoencoder | channels=128 | latent=32 | rule_dim=0 | params=1,421,216
+
+  RAD train:   0%|          | 0/1278 [00:00<?, ?it/s]
+  RAD train:   0%|          | 1/1278 [00:00<19:57,  1.07it/s]
+  RAD train:   0%|          | 2/1278 [00:01<14:28,  1.47it/s]
+  RAD train:   0%|          | 3/1278 [00:01<11:57,  1.78it/s]
+  RAD train:   0%|          | 4/1278 [00:02<11:33,  1.84it/s]
+  RAD train:   0%|          | 5/1278 [00:02<10:41,  1.98it/s]
+  RAD train:   0%|          | 6/1278 [00:03<09:51,  2.15it/s]
+  RAD train:   1%|          | 7/1278 [00:03<09:32,  2.22it/s]
+  RAD train:   1%|          | 8/1278 [00:04<09:27,  2.24it/s]
+  RAD train:   1%|          | 9/1278 [00:04<09:13,  2.29it/s]
+  RAD train:   1%|          | 10/1278 [00:04<09:24,  2.25it/s]
+  RAD train:   1%|          | 11/1278 [00:05<09:00,  2.35it/s]
+  RAD train:   1%|          | 12/1278 [00:05<08:52,  2.38it/s]
+  RAD train:   1%|          | 13/1278 [00:06<08:53,  2.37it/s]
+  RAD train:   1%|          | 14/1278 [00:06<09:04,  2.32it/s]
+  RAD train:   1%|          | 15/1278 [00:06<08:50,  2.38it/s]
+  RAD train:   1%|▏         | 16/1278 [00:07<08:45,  2.40it/s]
+  RAD train:   1%|▏         | 17/1278 [00:07<08:39,  2.43it/s]
+  RAD train:   1%|▏         | 18/1278 [00:08<08:14,  2.55it/s]
+  RAD train:   1%|▏         | 19/1278 [00:08<07:58,  2.63it/s]
+  RAD train:   2%|▏         | 20/1278 [00:08<08:03,  2.60it/s]
+  RAD train:   2%|▏         | 21/1278 [00:09<08:05,  2.59it/s]
+  RAD train:   2%|▏         | 22/1278 [00:09<08:08,  2.57it/s]
+  RAD train:   2%|▏         | 23/1278 [00:10<08:17,  2.52it/s]
+  RAD train:   2%|▏         | 24/1278 [00:10<08:31,  2.45it/s]
+  RAD train:   2%|▏         | 25/1278 [00:10<08:16,  2.52it/s]
+  RAD train:   2%|▏         | 26/1278 [00:11<08:12,  2.54it/s]
+  RAD train:   2%|▏         | 27/1278 [00:11<07:59,  2.61it/s]
+  RAD train:   2%|▏         | 28/1278 [00:12<07:58,  2.61it/s]
+  RAD train:   2%|▏         | 29/1278 [00:12<08:03,  2.58it/s]
+  RAD train:   2%|▏         | 30/1278 [00:12<08:22,  2.48it/s]
+  RAD train:   2%|▏         | 31/1278 [00:13<08:35,  2.42it/s]
+  RAD train:   3%|▎         | 32/1278 [00:13<07:59,  2.60it/s]
+  RAD train:   3%|▎         | 33/1278 [00:14<08:09,  2.54it/s]
+  RAD train:   3%|▎         | 34/1278 [00:14<07:52,  2.63it/s]
+  RAD train:   3%|▎         | 35/1278 [00:14<07:56,  2.61it/s]
+  RAD train:   3%|▎         | 36/1278 [00:15<08:14,  2.51it/s]
+  RAD train:   3%|▎         | 37/1278 [00:15<07:54,  2.62it/s]
+  RAD train:   3%|▎         | 38/1278 [00:15<07:59,  2.59it/s]
+  RAD train:   3%|▎         | 39/1278 [00:16<08:29,  2.43it/s]
+  RAD train:   3%|▎         | 40/1278 [00:16<08:23,  2.46it/s]
+  RAD train:   3%|▎         | 41/1278 [00:17<08:20,  2.47it/s]
+  RAD train:   3%|▎         | 42/1278 [00:17<08:33,  2.41it/s]
+  RAD train:   3%|▎         | 43/1278 [00:18<08:31,  2.41it/s]
+  RAD train:   3%|▎         | 44/1278 [00:18<08:20,  2.47it/s]
+  RAD train:   4%|▎         | 45/1278 [00:18<08:24,  2.44it/s]
+  RAD train:   4%|▎         | 46/1278 [00:19<08:46,  2.34it/s]
+  RAD train:   4%|▎         | 47/1278 [00:19<09:03,  2.26it/s]
+  RAD train:   4%|▍         | 48/1278 [00:20<08:41,  2.36it/s]
+  RAD train:   4%|▍         | 49/1278 [00:20<08:23,  2.44it/s]
+  RAD train:   4%|▍         | 50/1278 [00:20<08:24,  2.43it/s]
+  RAD train:   4%|▍         | 51/1278 [00:21<08:26,  2.42it/s]
+  RAD train:   4%|▍         | 52/1278 [00:21<08:40,  2.36it/s]
+  RAD train:   4%|▍         | 53/1278 [00:22<08:33,  2.39it/s]
+  RAD train:   4%|▍         | 54/1278 [00:22<09:00,  2.26it/s]
+  RAD train:   4%|▍         | 55/1278 [00:23<09:07,  2.23it/s]
+  RAD train:   4%|▍         | 56/1278 [00:23<08:47,  2.32it/s]
+  RAD train:   4%|▍         | 57/1278 [00:24<08:43,  2.33it/s]
+  RAD train:   5%|▍         | 58/1278 [00:24<08:51,  2.30it/s]
+  RAD train:   5%|▍         | 59/1278 [00:24<08:45,  2.32it/s]
+  RAD train:   5%|▍         | 60/1278 [00:25<08:59,  2.26it/s]
+  RAD train:   5%|▍         | 61/1278 [00:25<08:46,  2.31it/s]
+  RAD train:   5%|▍         | 62/1278 [00:26<08:26,  2.40it/s]
+  RAD train:   5%|▍         | 63/1278 [00:26<07:03,  2.87it/s]
+  RAD train:   5%|▌         | 64/1278 [00:26<07:26,  2.72it/s]
+  RAD train:   5%|▌         | 65/1278 [00:27<07:38,  2.64it/s]
+  RAD train:   5%|▌         | 66/1278 [00:27<07:27,  2.71it/s]
+  RAD train:   5%|▌         | 67/1278 [00:27<07:28,  2.70it/s]
+  RAD train:   5%|▌         | 68/1278 [00:28<07:31,  2.68it/s]
+  RAD train:   5%|▌         | 69/1278 [00:28<07:34,  2.66it/s]
+  RAD train:   5%|▌         | 70/1278 [00:29<07:31,  2.67it/s]
+  RAD train:   6%|▌         | 71/1278 [00:29<07:34,  2.66it/s]
+  RAD train:   6%|▌         | 72/1278 [00:29<06:05,  3.30it/s]
+  RAD train:   6%|▌         | 73/1278 [00:29<06:42,  2.99it/s]
+  RAD train:   6%|▌         | 74/1278 [00:30<07:04,  2.84it/s]
+  RAD train:   6%|▌         | 75/1278 [00:30<07:22,  2.72it/s]
+  RAD train:   6%|▌         | 76/1278 [00:31<07:25,  2.70it/s]
+  RAD train:   6%|▌         | 77/1278 [00:31<07:35,  2.64it/s]
+  RAD train:   6%|▌         | 78/1278 [00:31<07:14,  2.76it/s]
+  RAD train:   6%|▌         | 79/1278 [00:32<07:19,  2.73it/s]
+  RAD train:   6%|▋         | 80/1278 [00:32<07:08,  2.80it/s]
+  RAD train:   6%|▋         | 81/1278 [00:32<07:12,  2.77it/s]
+  RAD train:   6%|▋         | 82/1278 [00:33<07:29,  2.66it/s]
+  RAD train:   6%|▋         | 83/1278 [00:33<07:57,  2.50it/s]
+  RAD train:   7%|▋         | 84/1278 [00:34<08:13,  2.42it/s]
+  RAD train:   7%|▋         | 85/1278 [00:34<08:10,  2.43it/s]
+  RAD train:   7%|▋         | 86/1278 [00:35<08:17,  2.39it/s]

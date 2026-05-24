@@ -1,0 +1,75 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=amazon | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+partial_auroc_max_fpr=0.1
+output=<REPO_ROOT>/results/shared/rdl_masked_rerun_clean_20260521/amazon_weighted/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 37.27 seconds.
+[rdl] masked identity-proxy features: customer.customer_name
+
+[seed=0] starting
+  epoch 01 | steps=2000 | loss=0.4765 | val_auprc=0.0354 | val_auroc=0.7149
+  epoch 02 | steps=2000 | loss=0.4705 | val_auprc=0.0344 | val_auroc=0.7170
+  epoch 03 | steps=2000 | loss=0.4692 | val_auprc=0.0344 | val_auroc=0.7166
+  epoch 04 | steps=2000 | loss=0.4683 | val_auprc=0.0350 | val_auroc=0.7173
+  early stop at epoch 4
+[seed=0] auprc=0.0354 auroc=0.7148 pauc@fpr<=0.100=0.5541 p@k=0.0585 lift=2.3602 pos_weight=0.65
+
+[seed=1] starting
+  epoch 01 | steps=2000 | loss=0.4771 | val_auprc=0.0350 | val_auroc=0.7148
+  epoch 02 | steps=2000 | loss=0.4706 | val_auprc=0.0352 | val_auroc=0.7174
+  epoch 03 | steps=2000 | loss=0.4691 | val_auprc=0.0346 | val_auroc=0.7185
+  epoch 04 | steps=2000 | loss=0.4680 | val_auprc=0.0352 | val_auroc=0.7186
+  epoch 05 | steps=2000 | loss=0.4677 | val_auprc=0.0359 | val_auroc=0.7194
+  epoch 06 | steps=2000 | loss=0.4670 | val_auprc=0.0357 | val_auroc=0.7201
+  epoch 07 | steps=2000 | loss=0.4664 | val_auprc=0.0347 | val_auroc=0.7173
+  epoch 08 | steps=2000 | loss=0.4658 | val_auprc=0.0354 | val_auroc=0.7174
+  early stop at epoch 8
+[seed=1] auprc=0.0359 auroc=0.7191 pauc@fpr<=0.100=0.5555 p@k=0.0592 lift=2.3899 pos_weight=0.65
+
+[seed=2] starting
+  epoch 01 | steps=2000 | loss=0.4763 | val_auprc=0.0335 | val_auroc=0.7131
+  epoch 02 | steps=2000 | loss=0.4706 | val_auprc=0.0349 | val_auroc=0.7146
+  epoch 03 | steps=2000 | loss=0.4691 | val_auprc=0.0366 | val_auroc=0.7173
+  epoch 04 | steps=2000 | loss=0.4681 | val_auprc=0.0354 | val_auroc=0.7177
+  epoch 05 | steps=2000 | loss=0.4677 | val_auprc=0.0356 | val_auroc=0.7196
+  epoch 06 | steps=2000 | loss=0.4670 | val_auprc=0.0355 | val_auroc=0.7166
+  early stop at epoch 6
+[seed=2] auprc=0.0366 auroc=0.7177 pauc@fpr<=0.100=0.5531 p@k=0.0579 lift=2.4404 pos_weight=0.65
+
+[seed=3] starting
+  epoch 01 | steps=2000 | loss=0.4763 | val_auprc=0.0337 | val_auroc=0.7124
+  epoch 02 | steps=2000 | loss=0.4706 | val_auprc=0.0351 | val_auroc=0.7177
+  epoch 03 | steps=2000 | loss=0.4691 | val_auprc=0.0343 | val_auroc=0.7171
+  epoch 04 | steps=2000 | loss=0.4684 | val_auprc=0.0357 | val_auroc=0.7171
+  epoch 05 | steps=2000 | loss=0.4675 | val_auprc=0.0361 | val_auroc=0.7164
+  epoch 06 | steps=2000 | loss=0.4669 | val_auprc=0.0351 | val_auroc=0.7192
+  epoch 07 | steps=2000 | loss=0.4665 | val_auprc=0.0356 | val_auroc=0.7183
+  epoch 08 | steps=2000 | loss=0.4657 | val_auprc=0.0362 | val_auroc=0.7196
+  epoch 09 | steps=2000 | loss=0.4655 | val_auprc=0.0350 | val_auroc=0.7168
+  epoch 10 | steps=2000 | loss=0.4651 | val_auprc=0.0348 | val_auroc=0.7193
+[seed=3] auprc=0.0362 auroc=0.7194 pauc@fpr<=0.100=0.5533 p@k=0.0592 lift=2.4124 pos_weight=0.65
+
+[seed=4] starting
+  epoch 01 | steps=2000 | loss=0.4763 | val_auprc=0.0349 | val_auroc=0.7140
+  epoch 02 | steps=2000 | loss=0.4705 | val_auprc=0.0348 | val_auroc=0.7166
+  epoch 03 | steps=2000 | loss=0.4693 | val_auprc=0.0352 | val_auroc=0.7169
+  epoch 04 | steps=2000 | loss=0.4678 | val_auprc=0.0355 | val_auroc=0.7184
+  epoch 05 | steps=2000 | loss=0.4677 | val_auprc=0.0355 | val_auroc=0.7196
+  epoch 06 | steps=2000 | loss=0.4668 | val_auprc=0.0361 | val_auroc=0.7211
+  epoch 07 | steps=2000 | loss=0.4664 | val_auprc=0.0363 | val_auroc=0.7199
+  epoch 08 | steps=2000 | loss=0.4659 | val_auprc=0.0355 | val_auroc=0.7193
+  epoch 09 | steps=2000 | loss=0.4654 | val_auprc=0.0359 | val_auroc=0.7206
+  epoch 10 | steps=2000 | loss=0.4645 | val_auprc=0.0363 | val_auroc=0.7228
+  early stop at epoch 10
+[seed=4] auprc=0.0363 auroc=0.7200 pauc@fpr<=0.100=0.5558 p@k=0.0623 lift=2.4184 pos_weight=0.65
+
+[seed=5] starting
+  epoch 01 | steps=2000 | loss=0.4769 | val_auprc=0.0346 | val_auroc=0.7159
+  epoch 02 | steps=2000 | loss=0.4707 | val_auprc=0.0348 | val_auroc=0.7150
+  epoch 03 | steps=2000 | loss=0.4689 | val_auprc=0.0355 | val_auroc=0.7174
+  epoch 04 | steps=2000 | loss=0.4680 | val_auprc=0.0354 | val_auroc=0.7194
+  epoch 05 | steps=2000 | loss=0.4676 | val_auprc=0.0356 | val_auroc=0.7182
+  epoch 06 | steps=2000 | loss=0.4669 | val_auprc=0.0352 | val_auroc=0.7175
+  epoch 07 | steps=2000 | loss=0.4661 | val_auprc=0.0353 | val_auroc=0.7165

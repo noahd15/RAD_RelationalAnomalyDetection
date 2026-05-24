@@ -1,0 +1,64 @@
+========================================================================
+Supervised RDL 10-seed run | dataset=hm | weighted_loss=False
+device=cuda:0 | seeds=[0, 1, 2, 3, 4]
+output=<REPO_ROOT>/results/hm/rdl_unweighted_5seed_rankboost/per_seed.csv
+========================================================================
+Loading Database object from <RELBENCH_CACHE>/rel-hm/db...
+Done in 0.94 seconds.
+
+[seed=0] starting
+  epoch 01 | steps=2000 | loss=0.4470 | val_auprc=0.0360 | val_auroc=0.6957
+  epoch 02 | steps=2000 | loss=0.4429 | val_auprc=0.0401 | val_auroc=0.6998
+  epoch 03 | steps=2000 | loss=0.4412 | val_auprc=0.0390 | val_auroc=0.7042
+  epoch 04 | steps=2000 | loss=0.4396 | val_auprc=0.0390 | val_auroc=0.7049
+  epoch 05 | steps=2000 | loss=0.4390 | val_auprc=0.0393 | val_auroc=0.7155
+  early stop at epoch 5
+[seed=0] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_unweighted_5seed/seed_0__dataset_hm__weighted_0.pt
+[seed=0] auprc=0.0400 auroc=0.6957 p@k=0.0798 lift=2.6679 pos_weight=1.00
+
+[seed=1] starting
+  epoch 01 | steps=2000 | loss=0.4473 | val_auprc=0.0361 | val_auroc=0.6921
+  epoch 02 | steps=2000 | loss=0.4429 | val_auprc=0.0367 | val_auroc=0.6920
+  epoch 03 | steps=2000 | loss=0.4412 | val_auprc=0.0376 | val_auroc=0.6993
+  epoch 04 | steps=2000 | loss=0.4400 | val_auprc=0.0383 | val_auroc=0.6995
+  epoch 05 | steps=2000 | loss=0.4393 | val_auprc=0.0372 | val_auroc=0.7089
+  epoch 06 | steps=2000 | loss=0.4394 | val_auprc=0.0342 | val_auroc=0.6917
+  epoch 07 | steps=2000 | loss=0.4383 | val_auprc=0.0374 | val_auroc=0.7086
+  early stop at epoch 7
+[seed=1] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_unweighted_5seed/seed_1__dataset_hm__weighted_0.pt
+[seed=1] auprc=0.0384 auroc=0.7044 p@k=0.0704 lift=2.5614 pos_weight=1.00
+
+[seed=2] starting
+  epoch 01 | steps=2000 | loss=0.4466 | val_auprc=0.0381 | val_auroc=0.6947
+  epoch 02 | steps=2000 | loss=0.4424 | val_auprc=0.0371 | val_auroc=0.7018
+  epoch 03 | steps=2000 | loss=0.4411 | val_auprc=0.0369 | val_auroc=0.7055
+  epoch 04 | steps=2000 | loss=0.4399 | val_auprc=0.0381 | val_auroc=0.7073
+  early stop at epoch 4
+[seed=2] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_unweighted_5seed/seed_2__dataset_hm__weighted_0.pt
+[seed=2] auprc=0.0382 auroc=0.6969 p@k=0.0657 lift=2.5494 pos_weight=1.00
+
+[seed=3] starting
+  epoch 01 | steps=2000 | loss=0.4469 | val_auprc=0.0363 | val_auroc=0.6875
+  epoch 02 | steps=2000 | loss=0.4425 | val_auprc=0.0346 | val_auroc=0.6991
+  epoch 03 | steps=2000 | loss=0.4407 | val_auprc=0.0343 | val_auroc=0.6981
+  epoch 04 | steps=2000 | loss=0.4403 | val_auprc=0.0341 | val_auroc=0.7027
+  early stop at epoch 4
+[seed=3] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_unweighted_5seed/seed_3__dataset_hm__weighted_0.pt
+[seed=3] auprc=0.0364 auroc=0.6879 p@k=0.0704 lift=2.4291 pos_weight=1.00
+
+[seed=4] starting
+  epoch 01 | steps=2000 | loss=0.4470 | val_auprc=0.0379 | val_auroc=0.6993
+  epoch 02 | steps=2000 | loss=0.4428 | val_auprc=0.0425 | val_auroc=0.7023
+  epoch 03 | steps=2000 | loss=0.4411 | val_auprc=0.0394 | val_auroc=0.6983
+  epoch 04 | steps=2000 | loss=0.4401 | val_auprc=0.0401 | val_auroc=0.7020
+  epoch 05 | steps=2000 | loss=0.4391 | val_auprc=0.0379 | val_auroc=0.7037
+  early stop at epoch 5
+[seed=4] wrote raw scores -> <REPO_ROOT>/results/shared/user_churn_unified_5seed_rankboost_20260520/raw_scores/hm_rdl_unweighted_5seed/seed_4__dataset_hm__weighted_0.pt
+[seed=4] auprc=0.0425 auroc=0.7041 p@k=0.0939 lift=2.8385 pos_weight=1.00
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+     hm          False    0.697784   0.006839    0.039087   0.002301  0.076056 0.011209   2.609281  0.153574
+
+Per-seed: <REPO_ROOT>/results/hm/rdl_unweighted_5seed_rankboost/per_seed.csv
+Summary:  <REPO_ROOT>/results/hm/rdl_unweighted_5seed_rankboost/summary_mean_std.csv

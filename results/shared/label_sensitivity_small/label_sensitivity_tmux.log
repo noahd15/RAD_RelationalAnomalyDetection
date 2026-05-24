@@ -1,0 +1,35 @@
+========================================================================================
+Label-sensitivity ablation: RAD vs supervised RDL
+datasets=['amazon', 'hm']
+target_rates=[0.01, 0.015, 0.03]
+tau_multipliers=[0.6, 1.0]
+seeds=[0, 1]
+out_dir=<REPO_ROOT>/results/shared/label_sensitivity_small
+========================================================================================
+[1/24] dataset=amazon target=0.0100 tau_mult=0.600 seed=0
+[2/24] dataset=amazon target=0.0100 tau_mult=0.600 seed=1
+[3/24] dataset=amazon target=0.0100 tau_mult=1.000 seed=0
+[4/24] dataset=amazon target=0.0100 tau_mult=1.000 seed=1
+[5/24] dataset=amazon target=0.0150 tau_mult=0.600 seed=0
+[6/24] dataset=amazon target=0.0150 tau_mult=0.600 seed=1
+[7/24] dataset=amazon target=0.0150 tau_mult=1.000 seed=0
+[8/24] dataset=amazon target=0.0150 tau_mult=1.000 seed=1
+[9/24] dataset=amazon target=0.0300 tau_mult=0.600 seed=0
+[10/24] dataset=amazon target=0.0300 tau_mult=0.600 seed=1
+[11/24] dataset=amazon target=0.0300 tau_mult=1.000 seed=0
+[12/24] dataset=amazon target=0.0300 tau_mult=1.000 seed=1
+[13/24] dataset=hm target=0.0100 tau_mult=0.600 seed=0
+[14/24] dataset=hm target=0.0100 tau_mult=0.600 seed=1
+[15/24] dataset=hm target=0.0100 tau_mult=1.000 seed=0
+[16/24] dataset=hm target=0.0100 tau_mult=1.000 seed=1
+[17/24] dataset=hm target=0.0150 tau_mult=0.600 seed=0
+[18/24] dataset=hm target=0.0150 tau_mult=0.600 seed=1
+[19/24] dataset=hm target=0.0150 tau_mult=1.000 seed=0
+[20/24] dataset=hm target=0.0150 tau_mult=1.000 seed=1
+[21/24] dataset=hm target=0.0300 tau_mult=0.600 seed=0
+[22/24] dataset=hm target=0.0300 tau_mult=0.600 seed=1
+[23/24] dataset=hm target=0.0300 tau_mult=1.000 seed=0
+[24/24] dataset=hm target=0.0300 tau_mult=1.000 seed=1
+[done] wrote <REPO_ROOT>/results/shared/label_sensitivity_small/per_run_metrics.csv
+[done] wrote <REPO_ROOT>/results/shared/label_sensitivity_small/summary_mean_std.csv
+[done] wrote <REPO_ROOT>/results/shared/label_sensitivity_small/ratio_card.csv

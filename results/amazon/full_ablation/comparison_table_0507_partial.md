@@ -1,0 +1,11 @@
+| Model | AUROC | AUPRC | P@K | Lift | Source |
+|---|---:|---:|---:|---:|---|
+| RAD (rules, BCE) | 0.7003 | 0.0441 | 0.0547 | 2.9399 | logs/rad_single_0507_154753.log |
+| RAD (rules, no BCE) | 0.6968 | 0.0430 | 0.0439 | 2.8641 | logs/full_ablation_0507_140622.log |
+| RAD (no rules, BCE) | 0.6909 | 0.0276 | 0.0375 | 1.8397 | logs/rad_norules_0507_170417.log |
+| RAD (no rules, no BCE) | 0.6948 | 0.0295 | 0.0394 | 1.9647 | logs/rad_norules_nobce_0507_220035.log |
+| AE+Rank (causal, anomaly pool=labeled) | 0.4869 | 0.01457 | 0.01272 | 0.9711 | logs/baselines_apples_causal_0507_214225.log |
+| AE (causal) | 0.4435 | 0.01286 | 0.01018 | 0.8569 | logs/baselines_apples_causal_0507_214225.log |
+| Deep SVDD (causal) | 0.4963 | 0.01395 | 0.00254 | 0.9300 | logs/baselines_apples_causal_0507_214225.log |
+| DRL (causal) | 0.4758 | 0.01356 | 0.00254 | 0.9039 | logs/baselines_apples_causal_0507_214225.log |
+| Isolation Forest (causal) | 0.4421 | 0.01233 | 0.00064 | 0.8221 | logs/baselines_apples_causal_0507_214225.log |

@@ -1,0 +1,48 @@
+Using GPU: NVIDIA RTX 6000 Ada Generation
+Loaded graph cache from disk.
+Loading Database object from <RELBENCH_CACHE>/rel-amazon/db...
+Done in 36.31 seconds.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0050 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.08  b=6.0  alpha=0.05
+  tau multiplier: 0.600 | pos downsample mode: subtle
+  Train: 1,265,030 users | 6,325 anomalies (0.0050)
+  Val:   101,124 users | 506 anomalies (0.0050)
+======================================================================
+Train flat features: (1265030, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1265030, 14)  anomaly_rate=0.0050
+RF training: 200,000 rows  pos=999  features=11
+RF trained.
+Extracted 4,195 unique rule candidates.
+Sampled 30 seed rules for LLM.
+Rule source mode: llm
+
+
+[stderr]
+Traceback (most recent call last):
+  File "<REPO_ROOT>/scripts/active/rad_vs_supervised_rdl.py", line 533, in <module>
+    llm_model = AutoModelForCausalLM.from_pretrained(
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py", line 394, in from_pretrained
+    return model_class.from_pretrained(
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4245, in from_pretrained
+    loading_info, disk_offload_index = cls._load_pretrained_model(model, state_dict, checkpoint_files, load_config)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4326, in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, load_config.hf_quantizer)
+  File "<REPO_ROOT>/rad/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4980, in caching_allocator_warmup
+    _ = torch.empty(int(byte_count // 2), dtype=torch.float16, device=device, requires_grad=False)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 5.21 GiB. GPU 0 has a total capacity of 47.38 GiB of which 3.83 GiB is free. Including non-PyTorch memory, this process has 424.00 MiB memory in use. Process 3330886 has 43.11 GiB memory in use. Of the allocated memory 0 bytes is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
