@@ -1,0 +1,8 @@
+duckdb
+numpy
+pandas
+scikit-learn
+torch
+torch-geometric
+# Needed only if you plan to run rdl_lanl.py
+relbench
