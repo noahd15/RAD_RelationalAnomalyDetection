@@ -304,20 +304,6 @@ python rdl_lanl.py
 
 See `lanl/data/README.md` for dataset setup.
 
-## Citation
-
-If you use RAD in your research, please cite:
-
-```bibtex
-@inproceedings{RAD2026,
-  title={RAD: Rule-Augmented Relational Anomaly Detection},
-  author={Noah D. and Advisor Name},
-  booktitle={Proceedings of the 35th ACM International Conference on Information 
-            and Knowledge Management (CIKM)},
-  year={2026}
-}
-```
-
 ## Key Results
 
 ### Amazon User-Churn (5-seed average)
@@ -333,41 +319,6 @@ If you use RAD in your research, please cite:
 ### H&M User-Churn Results
 
 Comparable improvements observed on H&M; see `results/full_ablation_hm/` for details.
-
-## Troubleshooting
-
-**OOM errors**:
-- Reduce `LATENT_DIM`, `CHANNELS`, or `LOADER_BATCH_SIZE`
-- Example: `LOADER_BATCH_SIZE=256 python scripts/rad_vs_supervised_rdl.py`
-
-**Slow graph construction**:
-- Uses sentence-transformers for text embeddings (~10 min first run)
-- Cached automatically; subsequent runs are faster
-- Cache location: `~/.cache/huggingface/...`
-
-**LLM rule generation timeout**:
-- Set `USE_CACHED_LLM_RULES=1` to use pre-cached rules
-- Or set larger timeout in `rad_vs_supervised_rdl.py` (SECTION 8)
-
-**Missing datasets**:
-- Ensure internet connectivity for auto-download
-- Or download manually per `data/README.md`
-
-## Contributing
-
-Issues, questions, and pull requests are welcome!
-
-## License
-
-Academic and research use.
-
-## References
-
-See the paper for comprehensive citations to:
-- Heterogeneous graph neural networks
-- Anomaly detection in relational data
-- Rule-based learning and symbolic reasoning
-- LLM-based feature/rule mining
 
 ---
 
