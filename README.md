@@ -174,7 +174,7 @@ class RADAutoencoder(torch.nn.Module):
 
 | Dataset | Task | Entities | Anomalies | Relational Graph |
 |---------|------|----------|-----------|------------------|
-| **Amazon** (rel-amazon) | User churn prediction | 182K customers | ~0.6% | customer → order → product, customer → rating |
+| **Amazon** (rel-amazon) | User churn prediction | 182K customers | ~1.5% | customer → order → product, customer → rating |
 | **H&M** (rel-hm) | Customer churn | 66K customers | ~1.5% | customer → transaction → product, customer → article |
 | **LANL** | Insider threat detection | 4.9K users | ~0.8% | user → host → event (cyber logs) |
 
