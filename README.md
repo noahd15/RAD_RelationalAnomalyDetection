@@ -304,21 +304,6 @@ python rdl_lanl.py
 
 See `lanl/data/README.md` for dataset setup.
 
-## Key Results
-
-### Amazon User-Churn (5-seed average)
-
-| Model | AUROC | AUPRC | P@K | Lift |
-|-------|-------|-------|-----|------|
-| Isolation Forest | 0.614 | 0.028 | 0.29 | 1.09 |
-| AE | 0.635 | 0.032 | 0.32 | 1.15 |
-| AE+Rank | 0.681 | 0.041 | 0.41 | 1.52 |
-| Deep SVDD | 0.699 | 0.054 | 0.47 | 1.89 |
-| **RAD (rules + BCE)** | **0.752** | **0.089** | **0.58** | **2.41** |
-
-### H&M User-Churn Results
-
-Comparable improvements observed on H&M; see `results/full_ablation_hm/` for details.
 
 ---
 
