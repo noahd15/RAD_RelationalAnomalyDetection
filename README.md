@@ -1,6 +1,6 @@
 # RAD: Rule-Augmented Relational Anomaly Detection
 
-[![Conference](https://img.shields.io/badge/CIKM%2726-Link-blue)](https://www.cikm2026.org/)
+[![Conference](https://img.shields.io/badge/CIKM%2726-Link-blue)](https://cikm2026.diag.uniroma1.it/)
 
 This is the official implementation of **RAD: Rule-Augmented Relational Anomaly Detection** from the CIKM'26 paper.
 
