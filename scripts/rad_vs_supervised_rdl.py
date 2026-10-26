@@ -27,6 +27,8 @@ from torch_frame.config.text_embedder import TextEmbedderConfig
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics import average_precision_score, roc_auc_score
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
 from relbench.datasets import get_dataset
@@ -34,13 +36,17 @@ from relbench.modeling.graph import get_node_train_table_input, make_pkey_fkey_g
 from relbench.modeling.nn import HeteroEncoder, HeteroGraphSAGE, HeteroTemporalEncoder
 from relbench.modeling.utils import get_stype_proposal
 from relbench.tasks import get_task
-from path_helpers import amazon_data
+from path_helpers import amazon_data, append_results_jsonl
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 os.chdir(ROOT_DIR)
 
 RUN_SEED = int(os.environ.get("SEED", "42"))
 POS_DOWNSAMPLE_MODE = os.environ.get("POS_DOWNSAMPLE_MODE", "random").strip().lower()
+# Exit right after the RF/MLP supervised-detector rows are scored, skipping graph
+# encoding and GNN training entirely -- useful for getting just those two baselines
+# without paying for the expensive (GPU, multi-hour) RAD/Supervised-RDL training.
+RF_MLP_ONLY = os.environ.get("RF_MLP_ONLY", "0").strip() == "1"
 
 IDENTITY_PROXY_FEATURES = {"customer": {"customer_name"}}
 
@@ -115,17 +121,38 @@ rdl_train_table = rdl_task.get_table("train")
 rdl_val_table   = rdl_task.get_table("val")
 rdl_test_table  = rdl_task.get_table("test")
 
-_rdl_orig_val_table   = copy.deepcopy(rdl_val_table)
-_rdl_orig_train_table = copy.deepcopy(rdl_train_table)
-_rdl_orig_test_table  = copy.deepcopy(rdl_test_table)
+# Partition the validation table: an early portion drives early stopping and model selection,
+# a disjoint portion is held out for reporting when RelBench hides test labels. Without this
+# split, "held-out target entities" is not true of the code -- the same rows would both tune
+# the model and score it. RelBench assigns a single static cutoff timestamp to the *entire*
+# val split (all rows share one "timestamp" value here), so there is no per-row temporal signal
+# to split on -- partition by row instead, via a seeded random permutation.
+VAL_FIT_FRAC = float(os.environ.get("VAL_FIT_FRAC", "0.6"))
+_val_df = rdl_val_table.df.reset_index(drop=True)
+_val_perm = np.random.default_rng(RUN_SEED).permutation(len(_val_df))
+_n_val_fit = int(round(VAL_FIT_FRAC * len(_val_df)))
+_val_fit_idx = np.sort(_val_perm[:_n_val_fit])
+_val_report_idx = np.sort(_val_perm[_n_val_fit:])
+rdl_val_table.df = _val_df.iloc[_val_fit_idx].copy()
+rdl_val_report_table = copy.deepcopy(rdl_val_table)
+rdl_val_report_table.df = _val_df.iloc[_val_report_idx].copy()
+assert set(rdl_val_table.df.index).isdisjoint(set(rdl_val_report_table.df.index)), (
+    "val-fit and val-report partitions must not share rows"
+)
+
+_rdl_orig_val_table        = copy.deepcopy(rdl_val_table)
+_rdl_orig_val_report_table = copy.deepcopy(rdl_val_report_table)
+_rdl_orig_train_table      = copy.deepcopy(rdl_train_table)
+_rdl_orig_test_table       = copy.deepcopy(rdl_test_table)
 
 _eval_split_name = "Test"
 if "churn" not in rdl_test_table.df.columns:
-    # RelBench test labels are hidden for leaderboard usage; fallback to val for local evaluation.
+    # RelBench test labels are hidden for leaderboard usage; fall back to the held-out
+    # validation partition (disjoint from the rows used for early stopping) for final evaluation.
     _eval_split_name = "Val"
-    rdl_test_table = copy.deepcopy(rdl_val_table)
-    _rdl_orig_test_table = copy.deepcopy(_rdl_orig_val_table)
-    print("[warn] test split has no 'churn' labels; using validation split for final evaluation.")
+    rdl_test_table = copy.deepcopy(rdl_val_report_table)
+    _rdl_orig_test_table = copy.deepcopy(_rdl_orig_val_report_table)
+    print("[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.")
 
 rdl_entity_table = rdl_task.entity_table   # "customer"
 _tune_metric_env = os.environ.get("TUNE_METRIC", "auprc").strip().lower()
@@ -307,10 +334,20 @@ if 0.0 < _target_anom_rate < 1.0 and len(_rdl_val_pos_df) > 0 and len(_rdl_val_n
         rdl_val_table.df = rdl_val_table.df.loc[
             np.sort(np.concatenate([_rdl_val_neg_df.index.to_numpy(), _kp_idx_vl]))].copy()
 
-# When test labels are hidden in RelBench and we evaluate on validation,
-# keep final-eval split aligned with the same filtered/downsampled val regime.
-if _eval_split_name == "Val":
-    rdl_test_table = copy.deepcopy(rdl_val_table)
+# Downsample the reporting split to the same target rate. Without this, the held-out
+# report partition retains its natural post-at-risk-filter prevalence (which can be far
+# higher than the rate the model is tuned on), making AUPRC there dominated by base rate
+# rather than by ranking quality.
+_rdl_test_pos_df = rdl_test_table.df[rdl_test_table.df["churn"] == 1]
+_rdl_test_neg_df = rdl_test_table.df[rdl_test_table.df["churn"] == 0]
+if 0.0 < _target_anom_rate < 1.0 and len(_rdl_test_pos_df) > 0 and len(_rdl_test_neg_df) > 0:
+    _n_pos_tgt_te = int(round((_target_anom_rate / (1.0 - _target_anom_rate)) * len(_rdl_test_neg_df)))
+    _n_pos_tgt_te = min(_n_pos_tgt_te, len(_rdl_test_pos_df))
+    if _n_pos_tgt_te < len(_rdl_test_pos_df):
+        _rng_te = np.random.default_rng(RUN_SEED)
+        _kp_idx_te = _rng_te.choice(_rdl_test_pos_df.index.to_numpy(), size=_n_pos_tgt_te, replace=False)
+        rdl_test_table.df = rdl_test_table.df.loc[
+            np.sort(np.concatenate([_rdl_test_neg_df.index.to_numpy(), _kp_idx_te]))].copy()
 
 _val_labels = rdl_val_table.df["churn"].astype(np.int64).to_numpy()
 _test_labels = rdl_test_table.df["churn"].astype(np.int64).to_numpy()
@@ -468,10 +505,144 @@ if len(X) > RF_MAX_TRAIN:
 else:
     X_fit, y_fit = X, y_rf
 
-print(f"RF training: {len(X_fit):,} rows  pos={int(y_fit.sum()):,}  features={X.shape[1]}")
+# Carve a rule-selection slice out of the RF training rows: the forest fits on the
+# remainder, and leaf purity/support are scored on the held-out slice only, so rule
+# statistics are not in-sample on the same rows that grew the leaves.
+RULE_SELECTION_FRAC = float(os.environ.get("RULE_SELECTION_FRAC", "0.2"))
+_rs_rng = np.random.default_rng(RUN_SEED)
+_rs_perm = _rs_rng.permutation(len(X_fit))
+_n_rule_sel = max(1, int(round(RULE_SELECTION_FRAC * len(X_fit))))
+_rule_sel_idx = _rs_perm[:_n_rule_sel]
+_rf_fit_idx = _rs_perm[_n_rule_sel:]
+X_rf_fit, y_rf_fit = X_fit[_rf_fit_idx], y_fit[_rf_fit_idx]
+X_rule_sel, y_rule_sel = X_fit[_rule_sel_idx], y_fit[_rule_sel_idx]
+_rule_sel_base_rate = float(y_rule_sel.mean()) if len(y_rule_sel) else float("nan")
+
+print(f"RF training: {len(X_rf_fit):,} rows  pos={int(y_rf_fit.sum()):,}  features={X.shape[1]}  "
+      f"| rule-selection holdout: {len(X_rule_sel):,} rows  pos={int(y_rule_sel.sum()):,}")
 clf = RandomForestClassifier(**RF_PARAMS)
-clf.fit(X_fit, y_fit)
+clf.fit(X_rf_fit, y_rf_fit)
 print("RF trained.")
+
+# RF_MLP_TUNE (only under RF_MLP_ONLY): small cross-validated grid search for the
+# supervised-detector rows specifically. Does not touch `clf` (still the fixed-params
+# forest whose leaves become RAD's rules) -- this only searches a *separate* detector.
+_det_clf, _det_mlp = clf, None  # placeholders reassigned below if tuning is on
+if RF_MLP_ONLY and os.environ.get("RF_MLP_FIXED_TUNED", "0").strip() == "1":
+    # Reapply an already-found best config (skip the CV search) so a multi-seed sweep
+    # doesn't re-tune on every seed.
+    _det_clf = RandomForestClassifier(
+        n_estimators=int(os.environ.get("RF_TUNED_N_ESTIMATORS", "400")),
+        max_depth=None if os.environ.get("RF_TUNED_MAX_DEPTH", "none").lower() == "none" else int(os.environ["RF_TUNED_MAX_DEPTH"]),
+        min_samples_leaf=int(os.environ.get("RF_TUNED_MIN_SAMPLES_LEAF", "1")),
+        class_weight="balanced_subsample", n_jobs=-1, random_state=RUN_SEED,
+    )
+    _det_clf.fit(X_rf_fit, y_rf_fit)
+    _mlp_tune_scaler = StandardScaler().fit(X_rf_fit)
+    _hidden = tuple(int(h) for h in os.environ.get("MLP_TUNED_HIDDEN", "128,64,32").split(","))
+    _mlp_fixed = MLPClassifier(
+        hidden_layer_sizes=_hidden, alpha=float(os.environ.get("MLP_TUNED_ALPHA", "1e-5")),
+        activation="relu", learning_rate_init=1e-3, max_iter=200,
+        early_stopping=True, n_iter_no_change=10, random_state=RUN_SEED,
+    )
+    _mlp_fixed.fit(_mlp_tune_scaler.transform(X_rf_fit), y_rf_fit)
+
+    class _ScaledMLP:
+        def __init__(self, scaler, mlp):
+            self.scaler, self.mlp = scaler, mlp
+        def predict_proba(self, Xv):
+            return self.mlp.predict_proba(self.scaler.transform(Xv))
+    _det_mlp = _ScaledMLP(_mlp_tune_scaler, _mlp_fixed)
+    print(f"[fixed-tuned] RF n_estimators={_det_clf.n_estimators} max_depth={_det_clf.max_depth} "
+          f"min_samples_leaf={_det_clf.min_samples_leaf} | MLP hidden={_hidden} alpha={_mlp_fixed.alpha}")
+elif RF_MLP_ONLY and os.environ.get("RF_MLP_TUNE", "0").strip() == "1":
+    from sklearn.model_selection import GridSearchCV
+
+    print("[tune] Grid-searching RF (cv=3, scoring=average_precision)...")
+    _rf_grid = GridSearchCV(
+        RandomForestClassifier(class_weight="balanced_subsample", n_jobs=-1, random_state=RUN_SEED),
+        param_grid={"n_estimators": [100, 200, 400], "max_depth": [6, 10, 15, None], "min_samples_leaf": [1, 5, 10]},
+        scoring="average_precision", cv=3, n_jobs=-1,
+    )
+    _rf_grid.fit(X_rf_fit, y_rf_fit)
+    _det_clf = _rf_grid.best_estimator_
+    print(f"[tune] RF best params: {_rf_grid.best_params_}  cv_auprc={_rf_grid.best_score_:.4f}")
+
+    print("[tune] Grid-searching MLP (cv=3, scoring=average_precision)...")
+    _mlp_tune_scaler = StandardScaler().fit(X_rf_fit)
+    _mlp_grid = GridSearchCV(
+        MLPClassifier(activation="relu", learning_rate_init=1e-3, max_iter=200,
+                      early_stopping=True, n_iter_no_change=10, random_state=RUN_SEED),
+        param_grid={"hidden_layer_sizes": [(32,), (64, 32), (128, 64, 32)], "alpha": [1e-5, 1e-4, 1e-3]},
+        scoring="average_precision", cv=3, n_jobs=-1,
+    )
+    _mlp_grid.fit(_mlp_tune_scaler.transform(X_rf_fit), y_rf_fit)
+    print(f"[tune] MLP best params: {_mlp_grid.best_params_}  cv_auprc={_mlp_grid.best_score_:.4f}")
+
+    class _ScaledMLP:
+        def __init__(self, scaler, mlp):
+            self.scaler, self.mlp = scaler, mlp
+        def predict_proba(self, Xv):
+            return self.mlp.predict_proba(self.scaler.transform(Xv))
+    _det_mlp = _ScaledMLP(_mlp_tune_scaler, _mlp_grid.best_estimator_)
+
+# Forest-as-detector row (E1): same supervision and features as the rules, minus the
+# graph and minus the injection — answers "is this just the RF, not the graph?". Scores are
+# computed now (clf is in scope) but metrics are reported in Section 15 alongside the others.
+# When RF_MLP_TUNE is on, _det_clf/_det_mlp are the tuned models from the grid search above
+# instead of the fixed-hyperparameter clf/_mlp_clf.
+_report_act_rf = _activity_features_for_targets(rdl_test_table.df, lookback_days=30)
+_report_flat_rf = _build_customer_flat(rdl_test_table.df, _report_act_rf)
+_report_X_rf_df = _report_flat_rf.reindex(columns=feature_names, fill_value=0).apply(pd.to_numeric, errors="coerce")
+_report_X_rf_df = _report_X_rf_df.fillna(X_df.median(numeric_only=True)).fillna(0.0)
+_report_X_rf = _report_X_rf_df.to_numpy(dtype=np.float32)
+rf_detector_scores = _det_clf.predict_proba(_report_X_rf)[:, 1]
+
+# MLP-as-detector row (E1): same supervision, features, and reporting split as the RF
+# row, minus the tree ensemble -- a second, simple flattened-supervised baseline.
+if _det_mlp is None:
+    _mlp_scaler = StandardScaler().fit(X_rf_fit)
+    _mlp_clf = MLPClassifier(
+        hidden_layer_sizes=(64, 32),
+        activation="relu",
+        alpha=1e-4,
+        learning_rate_init=1e-3,
+        max_iter=200,
+        early_stopping=True,
+        n_iter_no_change=10,
+        random_state=RUN_SEED,
+    )
+    _mlp_clf.fit(_mlp_scaler.transform(X_rf_fit), y_rf_fit)
+    mlp_detector_scores = _mlp_clf.predict_proba(_mlp_scaler.transform(_report_X_rf))[:, 1]
+else:
+    mlp_detector_scores = _det_mlp.predict_proba(_report_X_rf)[:, 1]
+
+if RF_MLP_ONLY:
+    def _rf_mlp_only_pak(y_true, scores):
+        y = np.asarray(y_true).astype(int)
+        s = np.asarray(scores, dtype=np.float64)
+        k = int(max(1, y.sum()))
+        return float(y[np.argsort(-s)[:k]].mean())
+
+    def _rf_mlp_only_lift(auprc, y_true):
+        prev = float(np.asarray(y_true).mean())
+        return float(auprc / prev) if prev > 0 else float("nan")
+
+    print("\n" + "=" * 70)
+    print(f"RF/MLP SUPERVISED-DETECTOR ROWS ONLY ({_eval_split_name} Set)")
+    print("=" * 70)
+    for _name, _scores in [("RF (supervised detector)", rf_detector_scores), ("MLP (supervised detector)", mlp_detector_scores)]:
+        _auprc = float(average_precision_score(_test_labels, _scores)) if np.unique(_test_labels).size > 1 else float("nan")
+        _auroc = float(roc_auc_score(_test_labels, _scores)) if np.unique(_test_labels).size > 1 else float("nan")
+        _pak = _rf_mlp_only_pak(_test_labels, _scores)
+        _lift_v = _rf_mlp_only_lift(_auprc, _test_labels)
+        print(f"{_name:<30}  auprc={_auprc:.4f}  auroc={_auroc:.4f}  p@k={_pak:.4f}  lift={_lift_v:.4f}")
+        append_results_jsonl({
+            "task": "amazon-user-churn", "seed": RUN_SEED, "split": _eval_split_name,
+            "method": _name, "auprc": _auprc, "auroc": _auroc, "p@k": _pak, "lift": _lift_v,
+        })
+    print("=" * 70)
+    raise SystemExit(0)
 
 
 def _parent_map(tree_):
@@ -504,7 +675,7 @@ MIN_POS_PROB = 0.50
 POOL_TREES = 100
 
 all_rows = []
-leaf_assignments = np.stack([est.apply(X_fit) for est in clf.estimators_[:POOL_TREES]], axis=1)
+leaf_assignments = np.stack([est.apply(X_rule_sel) for est in clf.estimators_[:POOL_TREES]], axis=1)
 
 for tid, tree_est in enumerate(clf.estimators_[:POOL_TREES]):
     tree_ = tree_est.tree_
@@ -517,16 +688,22 @@ for tid, tree_est in enumerate(clf.estimators_[:POOL_TREES]):
         sql = _leaf_sql(tree_est, leaf_id, feature_names)
         if not sql: continue
         mask = row_leaf == leaf_id
+        val_support = int(mask.sum())
+        val_precision = float(y_rule_sel[mask].mean()) if mask.any() else 0.0
+        val_lift = (
+            (val_precision / _rule_sel_base_rate)
+            if _rule_sel_base_rate and _rule_sel_base_rate > 0 else np.nan
+        )
         all_rows.append({
             "rule_id": f"rule_{len(all_rows)+1:04d}", "tree_id": tid,
-            "pos_prob": pos_prob, "val_support": int(mask.sum()),
-            "val_precision": float(y_fit[mask].mean()) if mask.any() else 0.0,
+            "pos_prob": pos_prob, "val_support": val_support,
+            "val_precision": val_precision, "val_lift": val_lift,
             "sql_predicate": sql,
         })
 
 rule_paths_df = (
     pd.DataFrame(all_rows)
-    .sort_values(["val_precision", "val_support"], ascending=False)
+    .sort_values(["val_precision", "val_support", "val_lift"], ascending=False)
     .drop_duplicates(subset=["sql_predicate"])
     .reset_index(drop=True)
 )
@@ -536,7 +713,11 @@ print(f"Extracted {len(rule_paths_df):,} unique rule candidates.")
 def _sample_rules(df, n=30, seed=42):
     pool = df[df["val_support"] >= 1].head(2000).copy()
     if pool.empty: return []
-    w = (np.sqrt(pool["val_precision"].clip(0)) * np.log1p(pool["val_support"].clip(0))).to_numpy() + 1e-9
+    w = (
+        np.sqrt(pool["val_precision"].clip(0))
+        * np.log1p(pool["val_support"].clip(0))
+        * np.sqrt(pool["val_lift"].fillna(1.0).clip(lower=1.0))
+    ).to_numpy() + 1e-9
     w /= w.sum()
     pick = np.random.default_rng(seed).choice(len(pool), size=min(n, len(pool)), replace=False, p=w)
     return pool.iloc[sorted(pick)].to_dict(orient="records")
@@ -1355,6 +1536,7 @@ save_obj = {
     "test_labels": _test_labels,
     "orig_test_scores": orig_val_pred,
     "orig_test_labels": _orig_lbl,
+    "rf_detector_scores": rf_detector_scores,
 }
 if "_final_sup_scores" in locals():
     save_obj["sup_val_scores"] = _final_sup_scores
@@ -1369,6 +1551,16 @@ print(f"Saved → {save_path}")
 rad_pak  = _p_at_k(_test_labels, val_pred)
 rad_lift = _lift(rad_auprc, _test_labels)
 
+rf_det_auprc = float(average_precision_score(_test_labels, rf_detector_scores)) if np.unique(_test_labels).size > 1 else float("nan")
+rf_det_auroc = float(roc_auc_score(_test_labels, rf_detector_scores))           if np.unique(_test_labels).size > 1 else float("nan")
+rf_det_pak   = _p_at_k(_test_labels, rf_detector_scores) if np.unique(_test_labels).size > 1 else float("nan")
+rf_det_lift  = _lift(rf_det_auprc, _test_labels)
+
+mlp_det_auprc = float(average_precision_score(_test_labels, mlp_detector_scores)) if np.unique(_test_labels).size > 1 else float("nan")
+mlp_det_auroc = float(roc_auc_score(_test_labels, mlp_detector_scores))           if np.unique(_test_labels).size > 1 else float("nan")
+mlp_det_pak   = _p_at_k(_test_labels, mlp_detector_scores) if np.unique(_test_labels).size > 1 else float("nan")
+mlp_det_lift  = _lift(mlp_det_auprc, _test_labels)
+
 print("\n" + "=" * 70)
 print(f"FINAL COMPARISON ({_eval_split_name} Set — At-Risk Filtered Labels)")
 print("=" * 70)
@@ -1378,6 +1570,8 @@ print()
 print(f"{'Model':<30}  {'AUPRC':>8}  {'AUROC':>8}  {'P@K':>8}  {'Lift':>8}")
 print("-" * 72)
 print(f"{'Supervised RDL GNN':<30}  {sup_auprc:>8.4f}  {sup_auroc:>8.4f}  {sup_pak:>8.4f}  {sup_lift:>8.4f}  (graph only — no rules)")
+print(f"{'RF (supervised detector)':<30}  {rf_det_auprc:>8.4f}  {rf_det_auroc:>8.4f}  {rf_det_pak:>8.4f}  {rf_det_lift:>8.4f}  (same features/supervision as rules — no graph)")
+print(f"{'MLP (supervised detector)':<30}  {mlp_det_auprc:>8.4f}  {mlp_det_auroc:>8.4f}  {mlp_det_pak:>8.4f}  {mlp_det_lift:>8.4f}  (same features/supervision as rules — no graph)")
 print(f"{'RAD (rule-augmented)':<30}  {rad_auprc:>8.4f}  {rad_auroc:>8.4f}  {rad_pak:>8.4f}  {rad_lift:>8.4f}  (graph + {n_rules} rule features)")
 print("=" * 70)
 print(f"FINAL COMPARISON ({_eval_split_name} Set — Original Unfiltered Labels)")
@@ -1394,3 +1588,15 @@ print(f"Latent dimension: {_hp['latent_dim']}")
 print(f"At-risk thresholds: {rdl_at_risk_thresholds}")
 print(f"Rule features used: {n_rules}")
 print("=" * 70)
+
+_common = {"task": "amazon-user-churn", "seed": RUN_SEED, "split": _eval_split_name, "rule_source": RF_RULE_MODE, "n_rules": n_rules}
+for _method, _auprc, _auroc, _pak, _lift_v in [
+    ("Supervised RDL GNN", sup_auprc, sup_auroc, sup_pak, sup_lift),
+    ("RF (supervised detector)", rf_det_auprc, rf_det_auroc, rf_det_pak, rf_det_lift),
+    ("MLP (supervised detector)", mlp_det_auprc, mlp_det_auroc, mlp_det_pak, mlp_det_lift),
+    ("RAD (rule-augmented)", rad_auprc, rad_auroc, rad_pak, rad_lift),
+]:
+    append_results_jsonl({
+        **_common, "method": _method,
+        "auprc": _auprc, "auroc": _auroc, "p@k": _pak, "lift": _lift_v,
+    })

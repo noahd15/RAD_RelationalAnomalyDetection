@@ -35,6 +35,8 @@ import torch.nn.functional as F
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, roc_auc_score
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
 from torch_geometric.data import HeteroData
 from torch_geometric.nn import HeteroConv, SAGEConv
 
@@ -279,11 +281,16 @@ def _score_rules(rule_rows, X_all, y_all, val_idx, test_idx) -> pd.DataFrame:
         return out
     out = out[out["val_support"] >= int(MIN_VAL_SUPPORT)].copy()
     out = out[out["val_precision"] >= float(MIN_VAL_CONFIDENCE)].copy()
+    # Selection is validation-only: test_precision/test_support/test_lift are kept in the
+    # frame for post-hoc reporting but must never be read by ranking, filtering, or sampling.
     out = out.sort_values(
-        ["val_precision", "val_support", "test_precision", "test_support"],
+        ["val_precision", "val_support", "val_lift"],
         ascending=False,
     ).reset_index(drop=True)
     return out
+
+
+SELECTION_KEYS = ["val_precision", "val_support", "val_lift"]
 
 
 def _sample_rules_for_prompt(
@@ -294,9 +301,10 @@ def _sample_rules_for_prompt(
     weighted: bool = True,
     min_val_precision: float = 0.0,
     max_val_precision: float = 0.98,
-    min_test_support: int = 1,
+    min_val_support: int = 1,
     diversify_bins: int = 5,
 ) -> List[Dict]:
+    assert not any("test" in c for c in SELECTION_KEYS), "test statistics in rule selection"
     if rule_paths_df.empty:
         return []
 
@@ -304,7 +312,7 @@ def _sample_rules_for_prompt(
     pool = pool[pool["val_precision"].fillna(0.0) >= float(min_val_precision)]
     if max_val_precision is not None:
         pool = pool[pool["val_precision"].fillna(0.0) <= float(max_val_precision)]
-    pool = pool[pool["test_support"].fillna(0.0) >= float(min_test_support)]
+    pool = pool[pool["val_support"].fillna(0.0) >= float(min_val_support)]
     if pool.empty:
         return []
 
@@ -313,21 +321,21 @@ def _sample_rules_for_prompt(
 
     if weighted:
         w = (
-            np.sqrt(pool["test_precision"].fillna(0.0).clip(lower=0.0))
-            * np.log1p(pool["test_support"].fillna(0.0).clip(lower=0.0))
+            np.sqrt(pool["val_precision"].fillna(0.0).clip(lower=0.0))
+            * np.log1p(pool["val_support"].fillna(0.0).clip(lower=0.0))
         )
-        if "test_lift" in pool.columns:
-            w = w * np.sqrt(pool["test_lift"].fillna(1.0).clip(lower=1.0))
+        if "val_lift" in pool.columns:
+            w = w * np.sqrt(pool["val_lift"].fillna(1.0).clip(lower=1.0))
         w = w.astype(float)
         pool = pool.assign(_w=(w / float(w.sum())) if float(w.sum()) > 0 else (1.0 / len(pool)))
     else:
         pool = pool.assign(_w=1.0 / len(pool))
 
-    if int(diversify_bins) > 1 and "test_precision" in pool.columns:
+    if int(diversify_bins) > 1 and "val_precision" in pool.columns:
         try:
             pool = pool.assign(
                 _bin=pd.qcut(
-                    pool["test_precision"].rank(method="first"),
+                    pool["val_precision"].rank(method="first"),
                     q=min(int(diversify_bins), max(1, pool.shape[0])),
                     labels=False,
                     duplicates="drop",
@@ -363,7 +371,7 @@ def _sample_rules_for_prompt(
             break
 
     sampled = pool.loc[picks].copy().drop(columns=[c for c in ["_w", "_bin"] if c in pool.columns])
-    sampled = sampled.sort_values(["test_precision", "test_support"], ascending=[False, False]).reset_index(drop=True)
+    sampled = sampled.sort_values(["val_precision", "val_support"], ascending=[False, False]).reset_index(drop=True)
 
     rules = []
     for i, row in sampled.iterrows():
@@ -408,7 +416,7 @@ def _prepare_rf_training_matrix(df: pd.DataFrame) -> pd.DataFrame:
     return x
 
 
-def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData) -> Tuple[np.ndarray, str]:
+def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData, seed: int = 42) -> Tuple[np.ndarray, np.ndarray, str]:
     auth_ids = graph["auth"].auth_id.view(-1).cpu().numpy().astype(np.int64)
     g_train = graph["auth"].train_mask.view(-1).cpu().numpy().astype(bool)
     g_val = graph["auth"].val_mask.view(-1).cpu().numpy().astype(bool)
@@ -439,7 +447,9 @@ def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData) -> Tuple[np.
     val_idx = np.where(merged["g_val"].to_numpy(dtype=bool))[0]
     test_idx = np.where(merged["g_test"].to_numpy(dtype=bool))[0]
 
-    clf = RandomForestClassifier(**RF_PARAMS)
+    rf_params = dict(RF_PARAMS)
+    rf_params["random_state"] = int(seed)
+    clf = RandomForestClassifier(**rf_params)
     clf.fit(X_df.iloc[train_idx], y[train_idx])
 
     rf_score_all = np.zeros(len(df), dtype=np.float32)
@@ -448,6 +458,23 @@ def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData) -> Tuple[np.
     pos = idx_by_auth.reindex(merged["auth_id"].to_numpy(dtype=np.int64)).to_numpy()
     valid = ~pd.isna(pos)
     rf_score_all[pos[valid].astype(int)] = proba[valid]
+
+    # MLP-as-detector (E1): same supervision/features as RF, minus the tree ensemble.
+    mlp_scaler = StandardScaler().fit(X_df.iloc[train_idx])
+    mlp_clf = MLPClassifier(
+        hidden_layer_sizes=(64, 32),
+        activation="relu",
+        alpha=1e-4,
+        learning_rate_init=1e-3,
+        max_iter=200,
+        early_stopping=True,
+        n_iter_no_change=10,
+        random_state=int(seed),
+    )
+    mlp_clf.fit(mlp_scaler.transform(X_df.iloc[train_idx]), y[train_idx])
+    mlp_proba = mlp_clf.predict_proba(mlp_scaler.transform(X_df))[:, 1].astype(np.float32)
+    mlp_score_all = np.zeros(len(df), dtype=np.float32)
+    mlp_score_all[pos[valid].astype(int)] = mlp_proba[valid]
 
     selected_tree_ids = list(range(min(PATH_TOP_TREES, len(clf.estimators_))))
     raw_rule_rows = []
@@ -466,12 +493,12 @@ def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData) -> Tuple[np.
     sampled_rules = _sample_rules_for_prompt(
         rule_paths_df,
         n_rules=SAMPLED_RULE_COUNT,
-        random_state=42,
+        random_state=int(seed),
         top_k_pool=2000,
         weighted=True,
         min_val_precision=0.0,
         max_val_precision=0.98,
-        min_test_support=1,
+        min_val_support=1,
         diversify_bins=5,
     )
 
@@ -493,7 +520,7 @@ def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData) -> Tuple[np.
         )
     os.makedirs(RESULTS_DIR, exist_ok=True)
     rf_rules_df.to_csv(RF_SAMPLED_RULES_CSV, index=False)
-    return rf_score_all, RF_SAMPLED_RULES_CSV
+    return rf_score_all, mlp_score_all, RF_SAMPLED_RULES_CSV
 
 
 # --------------------
@@ -798,6 +825,15 @@ def _rule_matrix_for_auth_ids(base_df: pd.DataFrame, auth_ids_np: np.ndarray, ru
     return mat, rule_cols
 
 
+def _align_scores_to_auth_ids(auth_ids_np: np.ndarray, base_df: pd.DataFrame, score_all: np.ndarray) -> np.ndarray:
+    idx_by_auth = pd.Series(np.arange(len(base_df)), index=base_df["auth_id"].to_numpy(dtype=np.int64))
+    pos = idx_by_auth.reindex(auth_ids_np).to_numpy()
+    aligned = np.zeros(len(auth_ids_np), dtype=np.float32)
+    valid = ~pd.isna(pos)
+    aligned[valid] = score_all[pos[valid].astype(int)]
+    return aligned
+
+
 def augment_graph_for_variant(base_graph: HeteroData, base_df: pd.DataFrame, variant: str, rf_score_all: np.ndarray) -> HeteroData:
     g = copy.deepcopy(base_graph)
 
@@ -813,11 +849,7 @@ def augment_graph_for_variant(base_graph: HeteroData, base_df: pd.DataFrame, var
 
     if variant == "rf_decision":
         auth_ids_np = g["auth"].auth_id.view(-1).cpu().numpy().astype(np.int64)
-        idx_by_auth = pd.Series(np.arange(len(base_df)), index=base_df["auth_id"].to_numpy(dtype=np.int64))
-        pos = idx_by_auth.reindex(auth_ids_np).to_numpy()
-        score_aligned = np.zeros(len(auth_ids_np), dtype=np.float32)
-        valid = ~pd.isna(pos)
-        score_aligned[valid] = rf_score_all[pos[valid].astype(int)]
+        score_aligned = _align_scores_to_auth_ids(auth_ids_np, base_df, rf_score_all)
         x_old = g["auth"].x.float()
         score_t = torch.from_numpy(score_aligned).view(-1, 1)
         g["auth"].x = torch.cat([x_old, score_t], dim=1)
@@ -965,10 +997,6 @@ def main() -> None:
     auth = graph["auth"]
     y_true_test = auth.y.view(-1).cpu().numpy().astype(np.int8)[auth.test_mask.view(-1).cpu().numpy().astype(bool)]
 
-    print("[rf] training RF and building RF source artifacts...")
-    rf_score_all, rf_rules_csv = train_rf_and_build_sources(base_df, graph)
-    print(f"[rf] sampled rule csv: {rf_rules_csv}")
-
     variants = [
         ("rad_llm_rules_no_bce", "llm", 0.0),
         ("llm_rules_with_bce", "llm", None),
@@ -979,6 +1007,7 @@ def main() -> None:
     ]
 
     variant_names = [v[0] for v in variants]
+    known_names = variant_names + ["rf_supervised_detector", "mlp_supervised_detector"]
     rows: List[Dict] = []
     done_pairs = set()
     if os.path.exists(BY_SEED_CSV):
@@ -986,7 +1015,7 @@ def main() -> None:
             prev = pd.read_csv(BY_SEED_CSV)
             need_cols = {"variant", "seed", "auroc", "auprc", "pauroc", "p@127"}
             if need_cols.issubset(set(prev.columns)):
-                prev = prev[prev["variant"].isin(variant_names)].copy()
+                prev = prev[prev["variant"].isin(known_names)].copy()
                 prev = prev.dropna(subset=["variant", "seed"]).copy()
                 prev["seed"] = prev["seed"].astype(int)
                 prev = prev.sort_values(["variant", "seed"]).drop_duplicates(subset=["variant", "seed"], keep="last")
@@ -1004,6 +1033,33 @@ def main() -> None:
 
     for seed in SEEDS:
         print(f"\n[seed {seed}] starting")
+        if all((vn, seed) in done_pairs for vn in variant_names + ["rf_supervised_detector", "mlp_supervised_detector"]):
+            print(f"  [skip] all variants already completed for seed={seed}")
+            continue
+
+        # Rule construction (RF fit + rule mining/selection/sampling) is seed-dependent, so
+        # the reported std across seeds captures rule-selection variance, not just GAE init variance.
+        print(f"  [rf] training RF and building RF source artifacts for seed={seed}...")
+        rf_score_all, mlp_score_all, rf_rules_csv = train_rf_and_build_sources(base_df, graph, seed=seed)
+        print(f"  [rf] sampled rule csv: {rf_rules_csv}")
+
+        auth_ids_np = graph["auth"].auth_id.view(-1).cpu().numpy().astype(np.int64)
+        test_mask_np = auth.test_mask.view(-1).cpu().numpy().astype(bool)
+
+        rf_detector_name = "rf_supervised_detector"
+        if (rf_detector_name, seed) not in done_pairs:
+            rf_scores_aligned = _align_scores_to_auth_ids(auth_ids_np, base_df, rf_score_all)
+            rf_scores_test = rf_scores_aligned[test_mask_np]
+            rows.append(metrics_row(rf_detector_name, seed, y_true_test, rf_scores_test))
+            done_pairs.add((rf_detector_name, seed))
+
+        mlp_detector_name = "mlp_supervised_detector"
+        if (mlp_detector_name, seed) not in done_pairs:
+            mlp_scores_aligned = _align_scores_to_auth_ids(auth_ids_np, base_df, mlp_score_all)
+            mlp_scores_test = mlp_scores_aligned[test_mask_np]
+            rows.append(metrics_row(mlp_detector_name, seed, y_true_test, mlp_scores_test))
+            done_pairs.add((mlp_detector_name, seed))
+
         for variant_name, source_kind, lambda_struct_override in variants:
             if (variant_name, seed) in done_pairs:
                 print(f"  [skip] {variant_name} already completed for seed={seed}")

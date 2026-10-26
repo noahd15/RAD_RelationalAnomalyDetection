@@ -19,13 +19,16 @@ Outputs:
 
 from __future__ import annotations
 
+import json
 import os
-import re
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 import pandas as pd
+
+from path_helpers import RESULTS_JSONL_PATH
 
 ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
@@ -40,12 +43,6 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 PER_SEED_OUT = OUT_DIR / "per_seed_metrics.csv"
 MEAN_STD_OUT = OUT_DIR / "mean_std_metrics.csv"
 PRETTY_OUT = OUT_DIR / "mean_std_metrics_pretty.csv"
-
-METRIC_RE = re.compile(
-    r"FINAL COMPARISON \(Val Set.*?At-Risk Filtered Labels\).*?"
-    r"RAD \(rule-augmented\)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)",
-    flags=re.S,
-)
 
 
 def _run_and_stream(cmd: list[str], env: dict[str, str]) -> str:
@@ -109,16 +106,21 @@ def _save_outputs(per_seed: pd.DataFrame) -> None:
     pretty.to_csv(PRETTY_OUT, index=False)
 
 
-def _parse_metrics(output: str) -> dict[str, float]:
-    m = METRIC_RE.search(output)
-    if not m:
-        raise RuntimeError("Could not parse RAD metrics from script output")
-    return {
-        "auprc": float(m.group(1)),
-        "auroc": float(m.group(2)),
-        "p@k": float(m.group(3)),
-        "lift": float(m.group(4)),
-    }
+def _read_last_jsonl_record(run_tag: str, method: str) -> dict:
+    if not RESULTS_JSONL_PATH.exists():
+        raise RuntimeError(f"results.jsonl not found: {RESULTS_JSONL_PATH}")
+    record = None
+    with open(RESULTS_JSONL_PATH) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            if rec.get("run_tag") == run_tag and rec.get("method") == method:
+                record = rec
+    if record is None:
+        raise RuntimeError(f"No results.jsonl record for run_tag={run_tag!r} method={method!r}")
+    return record
 
 
 def _run_one(
@@ -130,11 +132,13 @@ def _run_one(
     use_cached_llm_rules: bool,
 ) -> dict[str, float]:
     script = DATASET_TO_SCRIPT[dataset]
+    run_tag = f"rulesource_{dataset}_seed{seed}_{rf_rule_mode}_ls{lambda_struct}_{uuid.uuid4().hex[:8]}"
     env = os.environ.copy()
     env.update(
         {
             "PYTHONUNBUFFERED": "1",
             "SEED": str(seed),
+            "RUN_TAG": run_tag,
             "LAMBDA_STRUCT": str(lambda_struct),
             "RF_RULE_MODE": rf_rule_mode,
             "RF_DECISION_TREES": str(rf_decision_trees),
@@ -152,8 +156,14 @@ def _run_one(
         f"lambda_struct={lambda_struct} rf_decision_trees={rf_decision_trees}",
         flush=True,
     )
-    out = _run_and_stream([sys.executable, str(script)], env)
-    return _parse_metrics(out)
+    _run_and_stream([sys.executable, str(script)], env)
+    rec = _read_last_jsonl_record(run_tag, "RAD (rule-augmented)")
+    return {
+        "auprc": float(rec["auprc"]),
+        "auroc": float(rec["auroc"]),
+        "p@k": float(rec["p@k"]),
+        "lift": float(rec["lift"]),
+    }
 
 
 def main() -> None:
