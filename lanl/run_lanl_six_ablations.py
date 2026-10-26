@@ -57,6 +57,10 @@ MEAN_STD_CSV = os.path.join(RESULTS_DIR, "lanl_six_ablations_mean_std.csv")
 RF_SAMPLED_RULES_CSV = os.path.join(RESULTS_DIR, "lanl_rf_sampled_rules.csv")
 RAW_RESULTS_DIR = os.environ.get("LANL_RAW_RESULTS_DIR", os.path.join(RESULTS_DIR, "lanl_six_ablations_raw"))
 PARTIAL_AUROC_MAX_FPR = float(os.environ.get("LANL_PARTIAL_AUROC_MAX_FPR", "0.1"))
+# Supervised-MLP detector config; defaults are the untuned values. tune_rf_mlp.py picks
+# tuned values (train-only CV), passed as e.g. LANL_MLP_HIDDEN=128,64,32 LANL_MLP_ALPHA=1e-5.
+MLP_HIDDEN = tuple(int(h) for h in os.environ.get("LANL_MLP_HIDDEN", "64,32").split(","))
+MLP_ALPHA = float(os.environ.get("LANL_MLP_ALPHA", "1e-4"))
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -470,9 +474,9 @@ def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData, seed: int = 
     # MLP-as-detector (E1): same supervision/features as RF, minus the tree ensemble.
     mlp_scaler = StandardScaler().fit(X_df.iloc[train_idx])
     mlp_clf = MLPClassifier(
-        hidden_layer_sizes=(64, 32),
+        hidden_layer_sizes=MLP_HIDDEN,
         activation="relu",
-        alpha=1e-4,
+        alpha=MLP_ALPHA,
         learning_rate_init=1e-3,
         max_iter=200,
         early_stopping=True,
@@ -994,6 +998,15 @@ def main() -> None:
     print(f"[init] device={DEVICE}")
     print(f"[init] partial_auroc_max_fpr={PARTIAL_AUROC_MAX_FPR}")
     print(f"[init] raw outputs={RAW_RESULTS_DIR}")
+    print(f"[init] seeds={SEEDS} mlp_hidden={MLP_HIDDEN} mlp_alpha={MLP_ALPHA}")
+    run_config = {
+        "seeds": SEEDS,
+        "mlp_supervised_detector": {"hidden_layer_sizes": list(MLP_HIDDEN), "alpha": MLP_ALPHA,
+                                    "source": os.environ.get("LANL_MLP_SOURCE", "default (untuned)")},
+        "rad_hyperparameters_source": os.environ.get("LANL_RAD_HP_SOURCE"),
+    }
+    with open(os.path.join(RESULTS_DIR, "run_config.json"), "w") as f:
+        json.dump(run_config, f, indent=2)
 
     base_df = pd.read_parquet(PARQUET_PATH)
     base_df = base_df.sort_values(["time", "auth_id"]).reset_index(drop=True)

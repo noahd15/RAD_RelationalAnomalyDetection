@@ -42,6 +42,14 @@ OUT_DIR = ROOT_DIR / "results" / os.environ.get("OUT_SUBDIR", "amazon/full_ablat
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
+RAD_HP = {"LAMBDA_RANK": "2.0", "ALPHA_FEAT": "1.0", "ALPHA_STRUCT": "1.0"}
+RAD_BCE_LAMBDA_STRUCT = 0.1
+RAD_HP_SOURCE = (
+    'scripts/optuna_rad32_tune.py, study rad32_optuna_postfix (30 trials, TPE seed 42, objective: val AUPRC, latent_dim 32 fixed); best trial #6 value 0.028929 = {lambda_struct: 0.1, lambda_rank: 2.0, alpha_feat: 1.0, alpha_struct: 1.0}. Record: results/amazon/optuna_rad32_postfix/{best_trial.txt,trials.csv,study.db} and results/amazon_optuna_postfix_run.log in commit e8c5a5e (branch wip/main-local-changes-20261026). Caveat: the tuner scored the full RelBench val table, which includes the report partition used here.'
+)
+RAD_HP_NOTE = 'LATENT_DIM 32 fixed (not tuned); EPOCHS/PATIENCE/WARMUP defaults date from 6574b66 with no tuning record.'
+
+
 def _run_baselines(seed: int) -> pd.DataFrame:
     env = os.environ.copy()
     env.pop("CUDA_VISIBLE_DEVICES", None)
@@ -78,12 +86,8 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
             "CUDA_VISIBLE_DEVICES": env.get("CUDA_VISIBLE_DEVICES", "1"),
             "LATENT_DIM": "32",
             "LAMBDA_STRUCT": str(lambda_struct),
-            # Retuned via scripts/optuna_rad32_tune.py against the post-C1-C9-fix rule
-            # table and val split (best trial: val AUPRC 0.0289). Old frozen values were
-            # tuned against a since-replaced rule set (pre C4/C7 rule-mining fixes).
-            "LAMBDA_RANK": "2.0",
-            "ALPHA_FEAT": "1.0",
-            "ALPHA_STRUCT": "1.0",
+            # Source of these values: RAD_HP_SOURCE (recorded in run_config.json).
+            **RAD_HP,
             "TUNE_METRIC": tune_metric,
             "EPOCHS": env.get("EPOCHS", "60"),
             "PATIENCE": env.get("PATIENCE", "10"),
@@ -172,14 +176,19 @@ def main() -> None:
     print(f"FULL ABLATION OVER SEEDS | n_seeds={n_seeds} | seeds={seeds}")
     print("=" * 90)
 
-    write_run_config(OUT_DIR, seeds)
+    write_run_config(OUT_DIR, seeds, extra={
+        "rad_hyperparameters": {**RAD_HP, "BCE_arm_LAMBDA_STRUCT": RAD_BCE_LAMBDA_STRUCT},
+        "rad_hyperparameter_source": RAD_HP_SOURCE,
+        "rad_hyperparameter_note": RAD_HP_NOTE,
+        "use_cached_llm_rules": os.environ.get("USE_CACHED_LLM_RULES", "0 (default: LLM regenerates rules)"),
+    })
     all_rows: list[dict] = []
     for seed in seeds:
         baselines = _run_baselines(seed)
         baselines = _alias_models(baselines)
         baselines["source"] = "baselines_script"
 
-        rad_bce, _ = _run_rad_variant(seed=seed, lambda_struct=0.1)
+        rad_bce, _ = _run_rad_variant(seed=seed, lambda_struct=RAD_BCE_LAMBDA_STRUCT)
         rad_no_bce, final_no_bce = _run_rad_variant(seed=seed, lambda_struct=0.0)
         mlp = final_no_bce["MLP (supervised detector)"]
 

@@ -45,6 +45,7 @@ sys.path.insert(0, str(ROOT))
 
 from path_helpers import ROOT_DIR, amazon_data, hm_data  # noqa: E402
 from eval_split import check_disjoint, downsample_positions, eval_fingerprint, partition_val  # noqa: E402
+from ablation_provenance import write_run_config  # noqa: E402
 
 
 DATASET = os.environ.get("DATASET", "amazon").strip().lower()
@@ -567,6 +568,13 @@ def main() -> None:
     print(f"partial_auroc_max_fpr={PARTIAL_AUROC_MAX_FPR}")
     print(f"output={PER_SEED_CSV}")
     print("=" * 72)
+    write_run_config(OUT_DIR, SEEDS, extra={
+        "dataset": DATASET,
+        "weighted_loss": WEIGHTED_LOSS,
+        "rdl_hyperparameters": {"RDL_EPOCHS": RDL_EPOCHS, "RDL_MAX_STEPS": RDL_MAX_STEPS,
+                                "RDL_PATIENCE": RDL_PATIENCE, "RDL_GRAD_CLIP": RDL_GRAD_CLIP},
+        "rdl_hyperparameter_source": "script defaults; no tuning record",
+    })
 
     task, graph_data, col_stats, events_df, event_time_col = load_dataset_assets(DATASET)
 

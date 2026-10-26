@@ -101,11 +101,12 @@ def check_same_eval_set(rows: pd.DataFrame, seed: int) -> None:
         )
 
 
-def write_run_config(out_dir: Path, seeds: list[int]) -> Path:
+def write_run_config(out_dir: Path, seeds: list[int], extra: dict | None = None) -> Path:
     """Record the label-defining settings next to the metrics so results can be traced to their config."""
     cfg = {
         "seeds": seeds,
         "label_env": {k: os.environ.get(k) for k in LABEL_ENV_VARS},
+        **(extra or {}),
     }
     path = Path(out_dir) / "run_config.json"
     path.write_text(json.dumps(cfg, indent=2))
