@@ -20,14 +20,17 @@ Outputs:
 
 from __future__ import annotations
 
+import json
 import os
-import re
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from path_helpers import RESULTS_JSONL_PATH
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -37,6 +40,23 @@ BASELINES_SCRIPT = ROOT_DIR / "scripts" / "amazon_user_churn_baselines.py"
 RAD_SCRIPT = ROOT_DIR / "scripts" / "rad_vs_supervised_rdl.py"
 OUT_DIR = ROOT_DIR / "results" / "amazon" / "full_ablation_10seed"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _read_last_jsonl_record(run_tag: str, method: str) -> dict:
+    if not RESULTS_JSONL_PATH.exists():
+        raise RuntimeError(f"results.jsonl not found: {RESULTS_JSONL_PATH}")
+    record = None
+    with open(RESULTS_JSONL_PATH) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            if rec.get("run_tag") == run_tag and rec.get("method") == method:
+                record = rec
+    if record is None:
+        raise RuntimeError(f"No results.jsonl record for run_tag={run_tag!r} method={method!r}")
+    return record
 
 
 def _run_baselines(seed: int) -> pd.DataFrame:
@@ -52,7 +72,9 @@ def _run_baselines(seed: int) -> pd.DataFrame:
     if proc.stderr:
         print(proc.stderr, end="", file=sys.stderr)
 
-    csv_path = ROOT_DIR / "results" / "amazon" / "full_ablation" / "baselines_metrics.csv"
+    # Seed-specific path: the baselines script also writes an un-seeded path for
+    # backward compatibility, but that one is overwritten every seed.
+    csv_path = ROOT_DIR / "results" / "amazon" / "full_ablation" / f"baselines_metrics_seed{seed}.csv"
     if not csv_path.exists():
         raise RuntimeError(f"Baselines script did not produce expected file: {csv_path}")
 
@@ -62,16 +84,21 @@ def _run_baselines(seed: int) -> pd.DataFrame:
 
 
 def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc") -> pd.Series:
+    run_tag = f"amazon10seed_seed{seed}_ls{lambda_struct}_{uuid.uuid4().hex[:8]}"
     env = os.environ.copy()
     env.update(
         {
             "SEED": str(seed),
+            "RUN_TAG": run_tag,
             "CUDA_VISIBLE_DEVICES": env.get("CUDA_VISIBLE_DEVICES", "1"),
             "LATENT_DIM": "32",
             "LAMBDA_STRUCT": str(lambda_struct),
-            "LAMBDA_RANK": "4.0",
-            "ALPHA_FEAT": "0.5",
-            "ALPHA_STRUCT": "2.0",
+            # Retuned via scripts/optuna_rad32_tune.py against the post-C1-C9-fix rule
+            # table and val split (best trial: val AUPRC 0.0289). Old frozen values were
+            # tuned against a since-replaced rule set (pre C4/C7 rule-mining fixes).
+            "LAMBDA_RANK": "2.0",
+            "ALPHA_FEAT": "1.0",
+            "ALPHA_STRUCT": "1.0",
             "TUNE_METRIC": tune_metric,
             "EPOCHS": env.get("EPOCHS", "60"),
             "PATIENCE": env.get("PATIENCE", "10"),
@@ -89,22 +116,13 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
     if proc.stderr:
         print(proc.stderr, end="", file=sys.stderr)
 
-    txt = proc.stdout or ""
-    m = re.search(
-        r"FINAL COMPARISON \(Val Set.*?At-Risk Filtered Labels\).*?"
-        r"RAD \(rule-augmented\)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)",
-        txt,
-        flags=re.S,
-    )
-    if not m:
-        raise RuntimeError("Could not parse RAD at-risk filtered metrics from output")
-
+    rec = _read_last_jsonl_record(run_tag, "RAD (rule-augmented)")
     return pd.Series(
         {
-            "auprc": float(m.group(1)),
-            "auroc": float(m.group(2)),
-            "p@k": float(m.group(3)),
-            "lift": float(m.group(4)),
+            "auprc": float(rec["auprc"]),
+            "auroc": float(rec["auroc"]),
+            "p@k": float(rec["p@k"]),
+            "lift": float(rec["lift"]),
             "seed": int(seed),
         }
     )
@@ -128,7 +146,6 @@ def _mean_std_report(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     agg = (
         df.groupby("model", as_index=False)[metrics]
         .agg(["mean", "std"])
-        .reset_index()
     )
     agg.columns = [
         "model",

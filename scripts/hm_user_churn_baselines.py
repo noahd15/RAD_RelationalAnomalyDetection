@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 from relbench.datasets import get_dataset
 from relbench.tasks import get_task
-from path_helpers import hm_data
+from path_helpers import hm_data, append_results_jsonl
 
 RANDOM_STATE = int(os.environ.get("SEED", os.environ.get("RANDOM_STATE", "42")))
 _device_env = os.environ.get("BASELINES_DEVICE", "auto").strip().lower()
@@ -334,9 +334,18 @@ def _persist_results_csv(results: dict) -> None:
                 "source": "baselines_script",
             })
     df = pd.DataFrame(rows)
-    csv_path = out_dir / "baselines_metrics.csv"
+    # Seed-specific path: a fixed overwritten path loses every prior seed's raw output.
+    csv_path = out_dir / f"baselines_metrics_seed{RANDOM_STATE}.csv"
     df.to_csv(csv_path, index=False)
+    # Also keep writing the un-seeded path for backward compatibility with existing consumers.
+    (out_dir / "baselines_metrics.csv").write_text(df.to_csv(index=False))
     print(f"[baselines] Wrote metrics CSV: {csv_path}")
+    for row in rows:
+        append_results_jsonl({
+            "task": "hm-user-churn", "seed": RANDOM_STATE, "split": "Val",
+            "method": row["model"],
+            "auprc": row["auprc"], "auroc": row["auroc"], "p@k": row["p@k"], "lift": row["lift"],
+        })
 
 
 def _persist_raw_results(raw_results: dict[str, dict[str, object]]) -> None:

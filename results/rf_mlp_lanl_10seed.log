@@ -1,0 +1,19 @@
+train=312,728 pos=500 | test=63,627 pos=127
+[seed 0] done
+[seed 1] done
+[seed 2] done
+[seed 3] done
+[seed 4] done
+[seed 5] done
+[seed 6] done
+[seed 7] done
+[seed 8] done
+[seed 9] done
+======================================================================
+              auroc           auprc             p@k             lift        
+               mean     std    mean     std    mean     std     mean     std
+model                                                                       
+MLP_default  0.9668  0.0033  0.0454  0.0061  0.0709  0.0000  22.7327  3.0786
+MLP_tuned    0.9651  0.0029  0.0502  0.0107  0.0929  0.0350  25.1598  5.3563
+RF_default   0.9726  0.0004  0.0562  0.0045  0.0780  0.0069  28.1569  2.2312
+RF_tuned     0.9770  0.0006  0.0482  0.0004  0.0559  0.0025  24.1328  0.2008

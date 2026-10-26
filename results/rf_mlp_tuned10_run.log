@@ -1,0 +1,853 @@
+=== AMAZON tuned RF: n_estimators=400 max_depth=none min_samples_leaf=1 ===
+=== AMAZON seed=0 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 42.89 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,729 users | 941 anomalies (0.0150)
+  Test:  42,041 users | 631 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,399  features=11  | rule-selection holdout: 40,000 rows  pos=601
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2537  auroc=0.7255  p@k=0.2504  lift=16.9028
+MLP (supervised detector)       auprc=0.0404  auroc=0.7086  p@k=0.0681  lift=2.6933
+======================================================================
+=== AMAZON seed=1 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 42.65 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,839 users | 943 anomalies (0.0150)
+  Test:  41,931 users | 629 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,403  features=11  | rule-selection holdout: 40,000 rows  pos=597
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2036  auroc=0.7301  p@k=0.2019  lift=13.5713
+MLP (supervised detector)       auprc=0.0326  auroc=0.6942  p@k=0.0413  lift=2.1737
+======================================================================
+=== AMAZON seed=2 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 41.14 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,852 users | 943 anomalies (0.0150)
+  Test:  41,918 users | 629 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,403  features=11  | rule-selection holdout: 40,000 rows  pos=597
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2482  auroc=0.7383  p@k=0.2464  lift=16.5419
+MLP (supervised detector)       auprc=0.0260  auroc=0.6674  p@k=0.0318  lift=1.7346
+======================================================================
+=== AMAZON seed=3 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 41.62 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,727 users | 941 anomalies (0.0150)
+  Test:  42,043 users | 631 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,372  features=11  | rule-selection holdout: 40,000 rows  pos=628
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2356  auroc=0.7341  p@k=0.2314  lift=15.6948
+MLP (supervised detector)       auprc=0.0326  auroc=0.6993  p@k=0.0444  lift=2.1753
+======================================================================
+=== AMAZON seed=4 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 40.49 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,774 users | 942 anomalies (0.0150)
+  Test:  41,996 users | 630 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,394  features=11  | rule-selection holdout: 40,000 rows  pos=606
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2435  auroc=0.7296  p@k=0.2397  lift=16.2289
+MLP (supervised detector)       auprc=0.0343  auroc=0.6989  p@k=0.0492  lift=2.2887
+======================================================================
+=== AMAZON seed=5 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 41.18 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,681 users | 940 anomalies (0.0150)
+  Test:  42,088 users | 631 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,377  features=11  | rule-selection holdout: 40,000 rows  pos=623
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2211  auroc=0.7227  p@k=0.2171  lift=14.7501
+MLP (supervised detector)       auprc=0.0290  auroc=0.6822  p@k=0.0444  lift=1.9330
+======================================================================
+=== AMAZON seed=6 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 41.97 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   63,083 users | 946 anomalies (0.0150)
+  Test:  41,686 users | 625 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,412  features=11  | rule-selection holdout: 40,000 rows  pos=588
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2274  auroc=0.7185  p@k=0.2272  lift=15.1671
+MLP (supervised detector)       auprc=0.0763  auroc=0.7360  p@k=0.1328  lift=5.0878
+======================================================================
+=== AMAZON seed=7 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 42.68 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,997 users | 945 anomalies (0.0150)
+  Test:  41,773 users | 627 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,410  features=11  | rule-selection holdout: 40,000 rows  pos=590
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2178  auroc=0.7294  p@k=0.2233  lift=14.5076
+MLP (supervised detector)       auprc=0.0344  auroc=0.6903  p@k=0.0542  lift=2.2940
+======================================================================
+=== AMAZON seed=8 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 41.73 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,844 users | 943 anomalies (0.0150)
+  Test:  41,926 users | 629 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,416  features=11  | rule-selection holdout: 40,000 rows  pos=584
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2432  auroc=0.7310  p@k=0.2401  lift=16.2124
+MLP (supervised detector)       auprc=0.0401  auroc=0.7164  p@k=0.0636  lift=2.6755
+======================================================================
+=== AMAZON seed=9 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.customer_name
+Loaded graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 41.62 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  trend filter params: a=0.05  b=10.0  alpha=0.02
+  tau multiplier: 1.000 | pos downsample mode: random
+  Train: 1,307,705 users | 19,616 anomalies (0.0150)
+  Val:   62,685 users | 940 anomalies (0.0150)
+  Test:  42,084 users | 631 anomalies (0.0150)
+======================================================================
+Train flat features: (1307705, 13)
+Using preloaded cached graph artifacts.
+HeteroData(
+  review={
+    tf=TensorFrame([12644508, 5]),
+    time=[12644508],
+  },
+  product={ tf=TensorFrame([506012, 5]) },
+  customer={ tf=TensorFrame([1850193, 1]) },
+  (review, f2p_customer_id, customer)={ edge_index=[2, 12644508] },
+  (customer, rev_f2p_customer_id, review)={ edge_index=[2, 12644508] },
+  (review, f2p_product_id, product)={ edge_index=[2, 12644508] },
+  (product, rev_f2p_product_id, review)={ edge_index=[2, 12644508] }
+)
+
+RF table: (1307705, 14)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,429  features=11  | rule-selection holdout: 40,000 rows  pos=571
+RF trained.
+[fixed-tuned] RF n_estimators=400 max_depth=None min_samples_leaf=1 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.2363  auroc=0.7114  p@k=0.2298  lift=15.7630
+MLP (supervised detector)       auprc=0.0733  auroc=0.7302  p@k=0.1141  lift=4.8871
+======================================================================
+=== HM tuned RF: n_estimators=100 max_depth=6 min_samples_leaf=5 ===
+=== HM seed=0 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.85 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,525 users | 128 anomalies (0.0150)
+  Test:  5,694 users | 85 anomalies (0.0149)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,379  features=8  | rule-selection holdout: 40,000 rows  pos=621
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0346  auroc=0.6937  p@k=0.0471  lift=2.3204
+MLP (supervised detector)       auprc=0.0280  auroc=0.6764  p@k=0.0118  lift=1.8731
+======================================================================
+=== HM seed=1 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.82 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,513 users | 128 anomalies (0.0150)
+  Test:  5,707 users | 86 anomalies (0.0151)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,429  features=8  | rule-selection holdout: 40,000 rows  pos=571
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0463  auroc=0.6709  p@k=0.0698  lift=3.0704
+MLP (supervised detector)       auprc=0.0295  auroc=0.6693  p@k=0.0349  lift=1.9570
+======================================================================
+=== HM seed=2 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.86 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,565 users | 128 anomalies (0.0149)
+  Test:  5,654 users | 85 anomalies (0.0150)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,386  features=8  | rule-selection holdout: 40,000 rows  pos=614
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0290  auroc=0.6924  p@k=0.0353  lift=1.9320
+MLP (supervised detector)       auprc=0.0262  auroc=0.6807  p@k=0.0118  lift=1.7397
+======================================================================
+=== HM seed=3 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.88 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,550 users | 128 anomalies (0.0150)
+  Test:  5,669 users | 85 anomalies (0.0150)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,391  features=8  | rule-selection holdout: 40,000 rows  pos=609
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0299  auroc=0.7030  p@k=0.0235  lift=1.9964
+MLP (supervised detector)       auprc=0.0242  auroc=0.6596  p@k=0.0000  lift=1.6157
+======================================================================
+=== HM seed=4 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.90 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,477 users | 127 anomalies (0.0150)
+  Test:  5,742 users | 86 anomalies (0.0150)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,439  features=8  | rule-selection holdout: 40,000 rows  pos=561
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0279  auroc=0.6120  p@k=0.0465  lift=1.8658
+MLP (supervised detector)       auprc=0.0253  auroc=0.6216  p@k=0.0581  lift=1.6861
+======================================================================
+=== HM seed=5 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.91 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,552 users | 128 anomalies (0.0150)
+  Test:  5,667 users | 85 anomalies (0.0150)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,377  features=8  | rule-selection holdout: 40,000 rows  pos=623
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0325  auroc=0.6930  p@k=0.0471  lift=2.1660
+MLP (supervised detector)       auprc=0.0248  auroc=0.6469  p@k=0.0000  lift=1.6557
+======================================================================
+=== HM seed=6 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.88 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,502 users | 128 anomalies (0.0151)
+  Test:  5,718 users | 86 anomalies (0.0150)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,397  features=8  | rule-selection holdout: 40,000 rows  pos=603
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0253  auroc=0.6335  p@k=0.0233  lift=1.6809
+MLP (supervised detector)       auprc=0.0263  auroc=0.6199  p@k=0.0581  lift=1.7503
+======================================================================
+=== HM seed=7 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.85 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,586 users | 129 anomalies (0.0150)
+  Test:  5,634 users | 85 anomalies (0.0151)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,440  features=8  | rule-selection holdout: 40,000 rows  pos=560
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0379  auroc=0.6846  p@k=0.0588  lift=2.5146
+MLP (supervised detector)       auprc=0.0437  auroc=0.6852  p@k=0.0941  lift=2.8945
+======================================================================
+=== HM seed=8 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.83 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,478 users | 127 anomalies (0.0150)
+  Test:  5,741 users | 86 anomalies (0.0150)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,407  features=8  | rule-selection holdout: 40,000 rows  pos=593
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0342  auroc=0.7045  p@k=0.0581  lift=2.2844
+MLP (supervised detector)       auprc=0.0261  auroc=0.6505  p@k=0.0116  lift=1.7440
+======================================================================
+=== HM seed=9 ===
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.81 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,536 users | 128 anomalies (0.0150)
+  Test:  5,683 users | 85 anomalies (0.0150)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,375  features=8  | rule-selection holdout: 40,000 rows  pos=625
+RF trained.
+[fixed-tuned] RF n_estimators=100 max_depth=6 min_samples_leaf=5 | MLP hidden=(128, 64, 32) alpha=1e-05
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0253  auroc=0.6438  p@k=0.0471  lift=1.6910
+MLP (supervised detector)       auprc=0.0250  auroc=0.6256  p@k=0.0235  lift=1.6728
+======================================================================
+RF_MLP_TUNED_10SEED_ALL_DONE

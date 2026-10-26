@@ -1,0 +1,10 @@
+Train rows: 312,728  pos=500  features=12
+[tune] Grid-searching RF (cv=3, scoring=average_precision)...
+[tune] RF best params: {'max_depth': 20, 'min_samples_leaf': 5, 'n_estimators': 800}  cv_auprc=0.0292
+[tune] Grid-searching MLP (cv=3, scoring=average_precision)...
+[tune] MLP best params: {'alpha': 1e-05, 'hidden_layer_sizes': (128, 64, 32)}  cv_auprc=0.0216
+======================================================================
+LANL RF/MLP TUNING SUMMARY
+  RF  best: {'max_depth': 20, 'min_samples_leaf': 5, 'n_estimators': 800}  cv_auprc=0.0292
+  MLP best: {'alpha': 1e-05, 'hidden_layer_sizes': (128, 64, 32)}  cv_auprc=0.0216
+======================================================================

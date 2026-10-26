@@ -1,0 +1,4 @@
+best_value=0.02892853288952182
+best_trial=6
+params={'lambda_struct': 0.1, 'lambda_rank': 2.0, 'alpha_feat': 1.0, 'alpha_struct': 1.0}
+user_attrs={'auprc_filtered': 0.02893007145233297, 'auprc_original': 0.7602467416460055, 'auroc_filtered': 0.6859351211611444, 'auroc_original': 0.6719126251852524, 'latent_dim': 32}

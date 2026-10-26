@@ -1,0 +1,372 @@
+<title>RAD Poster</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Code+Pro:wght@500&display=swap">
+<style>
+/* Layout: one A0 portrait sheet (841 × 1189 mm). Narrow left column carries the argument
+   (problem → definition → contributions → benchmark); the wide right region carries the
+   method figure and the results. Vanderbilt gold is the only structural accent; blue
+   appears only inside data and figures, where it already lives. */
+:root {
+  --stage: #d9d7d0;           /* floor behind the sheet when viewed on screen */
+  --paper: #fdfdfb;           /* the sheet */
+  --panel: #f3f1ea;           /* quiet inset panels */
+  --ink: #1b1a17;
+  --ink-2: #4a4843;
+  --ink-3: #7b776e;
+  --rule: #d7d3c8;
+  --gold: #a98743;            /* Vanderbilt gold, darkened for text contrast */
+  --gold-soft: #e9dcbd;
+  --blue: #1f6fd6;            /* graph/target blue used in the figures */
+  --blue-soft: #dce9fa;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "Source Sans 3", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "Source Code Pro", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+html, body { margin: 0; padding: 0; }
+body { background: var(--stage); color: var(--ink); font-family: var(--font-body); }
+
+.stage { width: 100%; overflow: hidden; }
+.poster {
+  width: 841mm; height: 1189mm; box-sizing: border-box;
+  padding: 16mm 20mm 14mm;
+  background: var(--paper); color: var(--ink);
+  display: grid; grid-template-rows: auto 1fr; row-gap: 11mm;
+  transform-origin: top left;
+  font-size: 23pt; line-height: 1.32;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+}
+@media screen { .poster { box-shadow: 0 2mm 12mm rgba(0,0,0,.18); } }
+
+/* ---------- header ---------- */
+.head { display: grid; grid-template-columns: 1fr auto; column-gap: 16mm; align-items: center;
+  padding-bottom: 9mm; border-bottom: 1.2mm solid var(--gold); }
+.eyebrow { font-size: 21pt; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 86pt; line-height: 1.02; margin: 4mm 0 6mm;
+  letter-spacing: -.01em; text-wrap: balance; }
+h1 .acr { color: var(--gold); }
+.authors { font-size: 31pt; font-weight: 600; margin: 0 0 2mm; }
+.authors .sep { color: var(--gold); margin: 0 3mm; font-weight: 400; }
+.affil { font-size: 25pt; color: var(--ink-2); margin: 0; }
+.affil .contact { color: var(--ink-3); }
+.qrs { display: flex; gap: 10mm; }
+.qr { display: grid; grid-template-rows: auto auto; justify-items: center; row-gap: 3mm; width: 62mm; }
+.qr img { width: 56mm; height: 56mm; display: block; }
+.qr .lab { font-size: 18pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); text-align: center; line-height: 1.15; }
+.qr .lab small { display: block; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ink-3); font-size: 15pt; margin-top: 1mm; }
+
+/* ---------- body grid ---------- */
+.body { display: grid; grid-template-columns: 252mm 1fr; column-gap: 16mm; min-height: 0; }
+.col { display: flex; flex-direction: column; gap: 9mm; min-width: 0; }
+
+section { min-width: 0; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 35pt; line-height: 1.1; margin: 0 0 4mm;
+  display: flex; align-items: baseline; gap: 5mm; text-wrap: balance; }
+h2 .n { font-family: var(--font-body); font-weight: 700; font-size: 22pt; color: var(--gold); letter-spacing: .06em; flex: none; }
+h3 { font-size: 24pt; font-weight: 700; margin: 0 0 2mm; color: var(--ink); }
+p { margin: 0 0 3.5mm; }
+p:last-child { margin-bottom: 0; }
+ul { margin: 0; padding-left: 9mm; }
+li { margin-bottom: 2.5mm; }
+li::marker { color: var(--gold); }
+strong { font-weight: 700; }
+em.v { font-style: italic; font-family: var(--font-display); }
+.muted { color: var(--ink-3); }
+.small { font-size: 19pt; line-height: 1.3; }
+
+.panel { background: var(--panel); border-radius: 3mm; padding: 6mm 7mm; }
+.callout { border-left: 2.2mm solid var(--gold); padding: 2mm 0 2mm 6mm; margin: 4mm 0; color: var(--ink-2); font-style: italic; }
+.callout b { color: var(--ink); font-style: normal; }
+
+.math { font-family: var(--font-display); font-size: 25pt; text-align: center; margin: 3mm 0; line-height: 1.5; }
+.math i { font-style: italic; }
+.math .op { font-style: normal; }
+sub, sup { font-size: 70%; line-height: 0; }
+
+/* ---------- stages (method) ---------- */
+.method { display: grid; grid-template-columns: 300mm 1fr; column-gap: 12mm; align-items: start; }
+.method .fig { margin: 0; }
+.method .fig img { width: 100%; height: auto; display: block; }
+.fig figcaption, .caption { font-size: 18.5pt; color: var(--ink-3); line-height: 1.3; margin-top: 2.5mm; }
+.stages { display: grid; grid-template-columns: 1fr; row-gap: 5mm; }
+.stage-item { display: grid; grid-template-columns: 15mm 1fr; column-gap: 4mm; }
+.stage-item .k { width: 13mm; height: 13mm; border-radius: 50%; background: var(--gold); color: var(--paper);
+  font-weight: 700; font-size: 21pt; display: grid; place-items: center; margin-top: 1.2mm; }
+.stage-item h3 { margin-bottom: 1.5mm; }
+.design { background: var(--gold-soft); border-radius: 3mm; padding: 5mm 7mm; font-size: 24pt; line-height: 1.3; }
+.design b { font-family: var(--font-display); font-size: 27pt; }
+
+/* ---------- tables ---------- */
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: 1.8mm 2.2mm; text-align: right; vertical-align: baseline; }
+th { font-weight: 700; font-size: 19pt; color: var(--ink-2); border-bottom: .5mm solid var(--ink-2); }
+td { border-bottom: .25mm solid var(--rule); }
+th:first-child, td:first-child { text-align: left; }
+.bench { font-size: 19.5pt; }
+.bench td { padding: 2.4mm 2mm; }
+.bench th { font-size: 17pt; }
+
+.results { font-size: 20pt; line-height: 1.15; }
+.results th.grp { text-align: center; border-bottom: .3mm solid var(--rule); font-size: 20pt; color: var(--ink); padding-bottom: 1mm; }
+.results th.grp.hi { color: var(--gold); }
+.results td { padding: 2.1mm 1.6mm; white-space: nowrap; }
+.results td .sd { font-size: 13.5pt; color: var(--ink-3); margin-left: .6mm; }
+.results td.b { font-weight: 700; }
+.results tr.rad td { background: var(--blue-soft); }
+.results tr.rad td:first-child { font-weight: 700; }
+.results td.rk { text-align: center; }
+.results td.rk.b { color: var(--blue); }
+.results tr.sup td { border-top: .5mm solid var(--ink-2); color: var(--ink-2); }
+.results .ref { color: var(--ink-3); font-size: 15pt; }
+
+/* ---------- lower results row ---------- */
+.lower { display: grid; grid-template-columns: 215mm 1fr; column-gap: 14mm; align-items: start; }
+.rankchart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.rankchart .bar { fill: var(--ink-3); opacity: .55; }
+.rankchart .bar.rad { fill: var(--blue); opacity: 1; }
+.rankchart .lbl { font-family: var(--font-body); font-size: 19px; fill: var(--ink); }
+.rankchart .lbl.rad { font-weight: 700; }
+.rankchart .val { font-family: var(--font-body); font-size: 18px; fill: var(--ink-2); font-weight: 600; }
+.rankchart .ax { font-family: var(--font-body); font-size: 15px; fill: var(--ink-3); }
+.rankchart .grid { stroke: var(--rule); stroke-width: 1; }
+.rankchart .base { stroke: var(--ink-2); stroke-width: 1.5; }
+.ablation img { width: 100%; height: auto; display: block; }
+
+.takeaways { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14mm; align-items: start; }
+.takeaways ul { padding-left: 8mm; }
+.takeaways .panel ul li { margin-bottom: 3mm; }
+.foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 10mm; border-top: .5mm solid var(--rule);
+  padding-top: 4mm; font-size: 17pt; color: var(--ink-3); line-height: 1.3; }
+.foot .ack { max-width: 560mm; }
+.rules code { display: block; font-family: var(--font-mono); font-size: 19pt; line-height: 1.35; background: var(--paper);
+  border: .3mm solid var(--rule); border-radius: 2mm; padding: 3mm 4mm; margin: 1.5mm 0 2mm; white-space: normal; overflow-wrap: anywhere; }
+.rules .tag { font-size: 17pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); }
+.rules .note { font-size: 18.5pt; color: var(--ink-2); line-height: 1.3; }
+.rule-arrow { font-size: 18.5pt; color: var(--ink-3); margin: 3mm 0 3mm 2mm; font-weight: 600; }
+.col.right { justify-content: space-between; }
+.col.left { font-size: 24.5pt; justify-content: space-between; }
+.churn { margin: 4mm 0 0; }
+.churn img { width: 100%; height: auto; display: block; border-radius: 2mm; }
+
+@media print {
+  @page { size: 841mm 1189mm; margin: 0; }
+  body { background: var(--paper); }
+  .poster { transform: none !important; box-shadow: none; }
+  .stage { height: auto !important; overflow: visible; }
+}
+</style>
+
+<div class="stage" id="stage">
+<div class="poster" id="poster">
+
+  <header class="head">
+    <div>
+      <div class="eyebrow">CIKM ’26 &nbsp;·&nbsp; Rome, Italy &nbsp;·&nbsp; November 2026</div>
+      <h1><span class="acr">RAD:</span> Rule-Augmented Relational Anomaly Detection</h1>
+      <p class="authors">Noah Dahle<span class="sep">·</span>Anne Tumlin<span class="sep">·</span>Ngoc Tran<span class="sep">·</span>Xenofon Koutsoukos<span class="sep">·</span>Tyler Derr</p>
+      <p class="affil">Vanderbilt University, Nashville, Tennessee, USA &nbsp;<span class="contact">·&nbsp; noah.dahle@vanderbilt.edu</span></p>
+    </div>
+    <div class="qrs">
+      <div class="qr"><img src="qr_paper.svg" alt="QR code linking to the paper on arXiv"><div class="lab">Paper<small>arXiv:2608.23468</small></div></div>
+      <div class="qr"><img src="qr_code.svg" alt="QR code linking to the code repository"><div class="lab">Code &amp; data<small>github.com/noahd15</small></div></div>
+    </div>
+  </header>
+
+  <div class="body">
+
+    <!-- ===================== LEFT COLUMN ===================== -->
+    <div class="col left">
+
+      <section>
+        <h2><span class="n">01</span>Anomalies live in relations, not rows</h2>
+        <p>In cybersecurity, fraud, and e-commerce the data is a <strong>multi-table relational database</strong>: users, machines, products, and the events that link them. Most anomaly detectors still require one flat feature matrix, so practitioners join and aggregate the tables into row-level summaries.</p>
+        <p>Flattening discards exactly what makes many anomalies anomalous: <strong>entity identity, schema roles, multi-hop dependencies, and temporal context</strong>.</p>
+        <div class="callout">An authentication event can look unremarkable on its own yet be anomalous because <b>this user–machine pair never co-occurred</b>, the machine is otherwise touched only by service accounts, and the user authenticated to four other machines in the previous ten minutes. Recovering those facts needs joins across history and neighbors.</div>
+        <p>Relational deep learning preserves structure but has no anomaly objective. Symbolic behavioral rules capture analyst-style evidence but are typically bolted on after scoring. <strong>RAD puts symbolic evidence inside the learned relational representation.</strong></p>
+      </section>
+
+      <section class="panel">
+        <h2><span class="n">02</span>Problem: relational anomaly detection</h2>
+        <p class="small">Given a database <em class="v">𝒟</em> with schema <em class="v">𝒮</em>, a target table <em class="v">T</em><sub>target</sub>, its heterogeneous graph <em class="v">𝒢</em> = (<em class="v">V</em>, <em class="v">E</em>, <em class="v">τ</em>), and labels on a training subset <em class="v">V</em><sub>train</sub> ⊂ <em class="v">V</em><sub>target</sub>, learn a scoring function</p>
+        <div class="math"><i>s</i> : <i>V</i><sub>target</sub> → ℝ &nbsp; with &nbsp; <i>s</i>(<i>v<sub>i</sub></i>) &gt; <i>s</i>(<i>v<sub>j</sub></i>) &nbsp;whenever&nbsp; <i>y<sub>i</sub></i> = 1, <i>y<sub>j</sub></i> = 0</div>
+        <p class="small">evaluated by <strong>ranking</strong> held-out nodes <em class="v">V</em><sub>test</sub> (disjoint from training). With timestamps, <em class="v">s</em>(<em class="v">v</em>) may only use structure and attributes at or before <em class="v">t<sub>v</sub></em>, so no future information leaks into a score. The goal is a ranking under severe class imbalance, not a calibrated label.</p>
+      </section>
+
+      <section>
+        <h2><span class="n">03</span>Contributions</h2>
+        <ul>
+          <li><strong>Formalize</strong> relational anomaly detection as distinct from tabular and graph anomaly detection: anomalousness can depend on cross-table, multi-hop, temporal, and schema-dependent interactions.</li>
+          <li><strong>RAD</strong>, a detector that mines rules from a flattened view, injects them into target nodes <em>before</em> message passing, and trains a heterogeneous graph autoencoder with reconstruction and pairwise-ranking objectives.</li>
+          <li><strong>A benchmark</strong> of three tasks (LANL cybersecurity, Amazon and H&amp;M unexpected churn) with unified target construction and a ranking-based protocol.</li>
+          <li><strong>Evidence</strong> that direct rule injection and ranking supervision drive the gains, while edge reconstruction is not uniformly beneficial.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2><span class="n">04</span>Benchmark</h2>
+        <table class="bench">
+          <thead><tr><th>Task</th><th>Target</th><th>Tables</th><th>Records</th><th>Targets</th><th style="text-align:left">Anomaly</th></tr></thead>
+          <tbody>
+            <tr><td><strong>LANL</strong></td><td>Auth event</td><td>7</td><td>1.65B</td><td>1.64B</td><td style="text-align:left">Red-team authentication</td></tr>
+            <tr><td><strong>Amazon</strong></td><td>Customer</td><td>3</td><td>15.0M</td><td>1.85M</td><td style="text-align:left">Unexpected review churn</td></tr>
+            <tr><td><strong>H&amp;M</strong></td><td>Customer</td><td>3</td><td>16.7M</td><td>1.37M</td><td style="text-align:left">Unexpected purchase churn</td></tr>
+          </tbody>
+        </table>
+        <p class="small" style="margin-top:4mm"><strong>LANL</strong> scores authentication events in sampled relational subgraphs (users, source and destination computers, process, DNS, and flow records) with red-team labels as ground truth.</p>
+        <p class="small"><strong>Unexpected churn</strong> (Amazon, H&amp;M; RelBench databases) treats churn as anomalous only when it is <em>not</em> preceded by an expected activity decline. A churned user <em class="v">u</em> is removed when its recent activity change <em class="v">g<sub>u</sub></em> ≤ −<em class="v">θ</em>(<em class="v">μ<sub>u</sub></em>), with a threshold that adapts to the baseline activity level <em class="v">μ<sub>u</sub></em>. Default prevalence 1.5%; a sweep over 0.5%, 1.5%, and 3.0% tests sensitivity to this choice.</p>
+        <figure class="churn">
+          <img src="churn.png" alt="Pipeline: raw churn labels, compute activity decline, flag expected versus unexpected, keep unexpected churn as anomalies">
+          <figcaption class="caption">Unexpected-churn filtering: churned users with an expected prior decline are dropped; the rest become anomalies.</figcaption>
+        </figure>
+      </section>
+
+      <section class="panel rules">
+        <h2><span class="n">05</span>What a mined rule looks like</h2>
+        <p class="small">From the released LANL rule files. A random-forest path is a long conjunction of split thresholds; refinement keeps the behavioral core.</p>
+        <div class="rule-step"><div class="tag">Random-forest path</div>
+          <code>auth_type &gt; 4.5 ∧ auth_type ≤ 5.5 ∧ new_src_dst_user_pair &gt; 0.5 ∧ user_auth_count_24h ≤ 0.5 ∧ success_failure &gt; 0.5</code>
+          <div class="note">5 conjuncts; sampled paths in this run carry 5–19 conjuncts each.</div></div>
+        <div class="rule-arrow">↓ &nbsp;LLM proposes · same support / confidence / lift filter re-validates</div>
+        <div class="rule-step"><div class="tag">Compact predicate</div>
+          <code>new_src_dst_user_pair = 1 ∧ user_auth_count_24h &gt; 10</code>
+          <div class="note">A never-before-seen user→machine pair from a user with more than ten authentications in the past 24 hours. Each such predicate becomes one binary feature on the target node.</div></div>
+      </section>
+
+    </div>
+
+    <!-- ===================== RIGHT REGION ===================== -->
+    <div class="col right">
+
+      <section>
+        <h2><span class="n">06</span>RAD in four stages</h2>
+        <div class="method">
+          <figure class="fig">
+            <img src="fig1.svg" alt="Overview of RAD: relational database to flattened view for random-forest rule mining with optional LLM refinement; rules injected into target nodes of the relational graph; heterogeneous graph autoencoder produces anomaly scores and ranking">
+            <figcaption>A relational database is viewed two ways: a flattened view for rule mining and a heterogeneous graph for representation learning. Random-forest paths become predicates, predicates become binary node features, and a heterogeneous GAE scores and ranks target nodes.</figcaption>
+          </figure>
+          <div class="stages">
+            <div class="stage-item"><div class="k">1</div><div>
+              <h3>Relational graph construction</h3>
+              <p>Rows become typed nodes, primary–foreign keys become typed edges. Type-specific input projections handle different feature spaces; construction respects the temporal constraint.</p></div></div>
+            <div class="stage-item"><div class="k">2</div><div>
+              <h3>Rule mining &amp; validation</h3>
+              <p>A random forest is trained on an auxiliary flattened view of the target entities. Each root-to-leaf path is a conjunctive predicate <em class="v">q</em>(<em class="v">v</em>) = <em class="v">c</em><sub>1</sub> ∧ ⋯ ∧ <em class="v">c<sub>m</sub></em>. Predicates touching identifiers, labels, or future columns are dropped; the rest are ranked by <strong>support, confidence, and lift</strong> computed on training/validation data only.</p>
+              <p>Optionally, an LLM proposes SQL <code>WHERE</code> predicates that prune, tighten, or combine seed rules. Every proposal is re-executed and re-scored by the same support/confidence/lift filter; the LLM never sees test labels and never assigns scores. The rule set is frozen before testing.</p></div></div>
+            <div class="stage-item"><div class="k">3</div><div>
+              <h3>Rule-augmented node features</h3>
+              <p>Each retained rule is a binary feature; the rule vector <em class="v">r</em>(<em class="v">v</em>) ∈ {0,1}<sup><em class="v">K</em></sup> is concatenated onto the target node: <em class="v">x̃<sub>v</sub></em> = [<em class="v">x<sub>v</sub></em> ‖ <em class="v">r</em>(<em class="v">v</em>)]. Non-target nodes keep their original features.</p></div></div>
+            <div class="stage-item"><div class="k">4</div><div>
+              <h3>Heterogeneous GAE &amp; ranking objective</h3>
+              <p>A two-layer relation-aware GraphSAGE encoder (mean aggregation, hidden size 128) yields <em class="v">z<sub>v</sub></em>; a decoder reconstructs <em class="v">x̃<sub>v</sub></em>. The anomaly score is the reconstruction error, optionally combined with an edge-reconstruction score.</p>
+              <div class="math"><i>ℒ</i> = <i>ℒ</i><sub>attr</sub> + <i>α</i> <i>ℒ</i><sub>struct</sub> + <i>β</i> <i>ℒ</i><sub>rank</sub>, &nbsp;&nbsp; <i>ℒ</i><sub>rank</sub> = 𝔼<sub>(<i>i</i>,<i>j</i>) ∼ <i>P</i>×<i>N</i></sub> softplus(<i>s<sub>j</sub></i> − <i>s<sub>i</sub></i>)</div></div></div>
+            <div class="design"><b>Design choice:</b> rules enter <em>before</em> message passing, so symbolic evidence shapes the learned embeddings and interacts with relational context, rather than adjusting scores after the fact (post-hoc fusion).</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2><span class="n">07</span>Results: 10 seeds, mean ± std, best per column in bold</h2>
+        <table class="results">
+          <thead>
+            <tr><th></th><th class="grp" colspan="3">LANL</th><th class="grp" colspan="3">Amazon</th><th class="grp" colspan="3">H&amp;M</th><th class="grp hi" colspan="3">Avg. rank ↓</th></tr>
+            <tr><th>Model</th><th>AUROC</th><th>AUPRC</th><th>P@k</th><th>AUROC</th><th>AUPRC</th><th>P@k</th><th>AUROC</th><th>AUPRC</th><th>P@k</th><th>AUROC</th><th>AUPRC</th><th>P@k</th></tr>
+          </thead>
+          <tbody>
+            <tr class="rad"><td>RAD (rules, no BCE)</td><td class="b">0.996<span class="sd">±.001</span></td><td class="b">0.659<span class="sd">±.053</span></td><td class="b">0.601<span class="sd">±.012</span></td><td>0.693<span class="sd">±.010</span></td><td class="b">0.043<span class="sd">±.003</span></td><td>0.050<span class="sd">±.007</span></td><td class="b">0.828<span class="sd">±.071</span></td><td class="b">0.143<span class="sd">±.017</span></td><td class="b">0.129<span class="sd">±.022</span></td><td class="rk b">2.0</td><td class="rk b">1.2</td><td class="rk b">2.0</td></tr>
+            <tr class="rad"><td>RAD (rules, BCE)</td><td>0.860<span class="sd">±.155</span></td><td>0.557<span class="sd">±.029</span></td><td>0.572<span class="sd">±.008</span></td><td>0.695<span class="sd">±.010</span></td><td class="b">0.043<span class="sd">±.004</span></td><td>0.051<span class="sd">±.004</span></td><td>0.787<span class="sd">±.074</span></td><td>0.110<span class="sd">±.020</span></td><td>0.125<span class="sd">±.022</span></td><td class="rk">3.3</td><td class="rk">1.8</td><td class="rk">2.3</td></tr>
+            <tr><td>RDL weighted <span class="ref">[Fey et al.]</span></td><td>0.553<span class="sd">±.158</span></td><td>0.007<span class="sd">±.014</span></td><td>0.021<span class="sd">±.064</span></td><td class="b">0.720<span class="sd">±.002</span></td><td>0.037<span class="sd">±.000</span></td><td class="b">0.062<span class="sd">±.004</span></td><td>0.700<span class="sd">±.005</span></td><td>0.035<span class="sd">±.001</span></td><td>0.064<span class="sd">±.013</span></td><td class="rk">4.7</td><td class="rk">4.8</td><td class="rk">3.7</td></tr>
+            <tr><td>RDL unweighted <span class="ref">[Fey et al.]</span></td><td>0.685<span class="sd">±.205</span></td><td>0.015<span class="sd">±.028</span></td><td>0.026<span class="sd">±.078</span></td><td>0.713<span class="sd">±.002</span></td><td>0.037<span class="sd">±.001</span></td><td class="b">0.062<span class="sd">±.005</span></td><td>0.693<span class="sd">±.019</span></td><td>0.039<span class="sd">±.004</span></td><td>0.064<span class="sd">±.016</span></td><td class="rk">4.3</td><td class="rk">3.8</td><td class="rk">3.3</td></tr>
+            <tr><td>AE + Rank</td><td>0.943<span class="sd">±.035</span></td><td>0.525<span class="sd">±.078</span></td><td>0.540<span class="sd">±.065</span></td><td>0.518<span class="sd">±.014</span></td><td>0.016<span class="sd">±.001</span></td><td>0.015<span class="sd">±.003</span></td><td>0.456<span class="sd">±.024</span></td><td>0.013<span class="sd">±.000</span></td><td>0.005<span class="sd">±.004</span></td><td class="rk">5.2</td><td class="rk">5.2</td><td class="rk">5.7</td></tr>
+            <tr><td>DRL <span class="ref">[Ye et al.]</span></td><td>0.673<span class="sd">±.159</span></td><td>0.004<span class="sd">±.002</span></td><td>0.005<span class="sd">±.004</span></td><td>0.463<span class="sd">±.022</span></td><td>0.013<span class="sd">±.001</span></td><td>0.003<span class="sd">±.000</span></td><td>0.456<span class="sd">±.012</span></td><td>0.013<span class="sd">±.001</span></td><td>0.009<span class="sd">±.009</span></td><td class="rk">7.5</td><td class="rk">8.2</td><td class="rk">7.2</td></tr>
+            <tr><td>AE</td><td>0.888<span class="sd">±.046</span></td><td>0.009<span class="sd">±.003</span></td><td>0.000<span class="sd">±.000</span></td><td>0.474<span class="sd">±.013</span></td><td>0.014<span class="sd">±.001</span></td><td>0.014<span class="sd">±.009</span></td><td>0.408<span class="sd">±.020</span></td><td>0.012<span class="sd">±.000</span></td><td>0.007<span class="sd">±.005</span></td><td class="rk">6.7</td><td class="rk">7.3</td><td class="rk">7.8</td></tr>
+            <tr><td>Deep SVDD</td><td>0.736<span class="sd">±.073</span></td><td>0.005<span class="sd">±.002</span></td><td>0.001<span class="sd">±.003</span></td><td>0.458<span class="sd">±.031</span></td><td>0.013<span class="sd">±.001</span></td><td>0.003<span class="sd">±.001</span></td><td>0.412<span class="sd">±.023</span></td><td>0.012<span class="sd">±.001</span></td><td>0.002<span class="sd">±.003</span></td><td class="rk">7.7</td><td class="rk">8.7</td><td class="rk">8.8</td></tr>
+            <tr><td>Isolation Forest</td><td>0.644<span class="sd">±.018</span></td><td>0.003<span class="sd">±.000</span></td><td>0.000<span class="sd">±.000</span></td><td>0.450<span class="sd">±.002</span></td><td>0.013<span class="sd">±.000</span></td><td>0.001<span class="sd">±.000</span></td><td>0.402<span class="sd">±.014</span></td><td>0.012<span class="sd">±.000</span></td><td>0.004<span class="sd">±.005</span></td><td class="rk">9.7</td><td class="rk">9.3</td><td class="rk">9.5</td></tr>
+            <tr class="sup"><td>Supervised MLP <span class="ref">(full labels)</span></td><td>0.965<span class="sd">±.003</span></td><td>0.050<span class="sd">±.011</span></td><td>0.093<span class="sd">±.035</span></td><td>0.659<span class="sd">±.024</span></td><td>0.027<span class="sd">±.003</span></td><td>0.041<span class="sd">±.009</span></td><td>0.642<span class="sd">±.028</span></td><td>0.027<span class="sd">±.005</span></td><td>0.039<span class="sd">±.023</span></td><td class="rk">4.0</td><td class="rk">4.7</td><td class="rk">4.7</td></tr>
+          </tbody>
+        </table>
+        <p class="caption">RDL = relational deep learning GNN on the same heterogeneous graph without rules. AE, Deep SVDD, Isolation Forest, DRL operate on the flattened view. P@k uses <em class="v">k</em> = number of positives in the test split. Avg. rank is per metric across the three datasets (lower is better).</p>
+
+        <div class="lower" style="margin-top:7mm">
+          <div class="rankchart">
+            <h3>Average AUPRC rank across datasets</h3>
+            <svg viewBox="0 0 520 372" role="img" aria-label="Horizontal bar chart of average AUPRC rank for ten models; RAD without BCE ranks 1.2, RAD with BCE 1.8, then RDL unweighted 3.8, supervised MLP 4.7, RDL weighted 4.8, AE plus Rank 5.2, AE 7.3, DRL 8.2, Deep SVDD 8.7, Isolation Forest 9.3">
+              <!-- x scale: rank 0..10 -> 190..510 (32 px per rank); rows 32 px apart -->
+              <g class="gridlines">
+                <line class="grid" x1="254" y1="6" x2="254" y2="330"/><line class="grid" x1="318" y1="6" x2="318" y2="330"/>
+                <line class="grid" x1="382" y1="6" x2="382" y2="330"/><line class="grid" x1="446" y1="6" x2="446" y2="330"/><line class="grid" x1="510" y1="6" x2="510" y2="330"/>
+              </g>
+              <line class="base" x1="190" y1="6" x2="190" y2="330"/>
+              <g transform="translate(0,8)">
+                <text class="lbl rad" x="182" y="21" text-anchor="end">RAD (no BCE)</text><rect class="bar rad" x="190" y="6" width="38.4" height="22" rx="2"/><text class="val" x="236" y="21">1.2</text>
+                <text class="lbl rad" x="182" y="53" text-anchor="end">RAD (BCE)</text><rect class="bar rad" x="190" y="38" width="57.6" height="22" rx="2"/><text class="val" x="255" y="53">1.8</text>
+                <text class="lbl" x="182" y="85" text-anchor="end">RDL unweighted</text><rect class="bar" x="190" y="70" width="121.6" height="22" rx="2"/><text class="val" x="319" y="85">3.8</text>
+                <text class="lbl" x="182" y="117" text-anchor="end">Supervised MLP</text><rect class="bar" x="190" y="102" width="150.4" height="22" rx="2"/><text class="val" x="348" y="117">4.7</text>
+                <text class="lbl" x="182" y="149" text-anchor="end">RDL weighted</text><rect class="bar" x="190" y="134" width="153.6" height="22" rx="2"/><text class="val" x="351" y="149">4.8</text>
+                <text class="lbl" x="182" y="181" text-anchor="end">AE + Rank</text><rect class="bar" x="190" y="166" width="166.4" height="22" rx="2"/><text class="val" x="364" y="181">5.2</text>
+                <text class="lbl" x="182" y="213" text-anchor="end">AE</text><rect class="bar" x="190" y="198" width="233.6" height="22" rx="2"/><text class="val" x="431" y="213">7.3</text>
+                <text class="lbl" x="182" y="245" text-anchor="end">DRL</text><rect class="bar" x="190" y="230" width="262.4" height="22" rx="2"/><text class="val" x="460" y="245">8.2</text>
+                <text class="lbl" x="182" y="277" text-anchor="end">Deep SVDD</text><rect class="bar" x="190" y="262" width="278.4" height="22" rx="2"/><text class="val" x="476" y="277">8.7</text>
+                <text class="lbl" x="182" y="309" text-anchor="end">Isolation Forest</text><rect class="bar" x="190" y="294" width="297.6" height="22" rx="2"/><text class="val" x="495" y="309">9.3</text>
+              </g>
+              <g class="axis">
+                <text class="ax" x="190" y="352" text-anchor="middle">1 (best)</text><text class="ax" x="254" y="352" text-anchor="middle">2</text><text class="ax" x="318" y="352" text-anchor="middle">4</text>
+                <text class="ax" x="382" y="352" text-anchor="middle">6</text><text class="ax" x="446" y="352" text-anchor="middle">8</text><text class="ax" x="510" y="352" text-anchor="middle">10</text>
+                <text class="ax" x="350" y="370" text-anchor="middle">mean rank over LANL, Amazon, H&amp;M</text>
+              </g>
+            </svg>
+            <p class="small" style="margin-top:4mm"><strong>RQ1.</strong> RAD has the best average AUPRC rank. On LANL it dominates every baseline on AUPRC and P@k. On Amazon, supervised RDL wins AUROC and P@k while RAD wins AUPRC; on H&amp;M, RAD wins all three metrics.</p>
+            <p class="small"><strong>RQ5.</strong> Sweeping the unexpected-churn prevalence over 0.5%, 1.5%, and 3.0% leaves the picture intact: RAD stays competitive with or ahead of supervised RDL on AUPRC at every level, so the conclusions do not hinge on one labeling threshold.</p>
+          </div>
+          <figure class="ablation" style="margin:0">
+            <h3>Ablations: rule construction and edge reconstruction (10 seeds)</h3>
+            <img src="ablation.svg" alt="Grouped bar charts for LANL, Amazon, and H&amp;M comparing RAD LLM no BCE, RAD LLM plus BCE, GAE without rules, GAE with random-forest sampled rules, and GAE with raw random-forest features on AUROC, AUPRC and P@k">
+            <figcaption>Broken y-axis separates AUROC from the much smaller AUPRC and P@k. <strong>RQ2:</strong> rule-augmented variants beat the no-rule GAE on AUPRC and P@k; compact predicates beat raw random-forest features. <strong>RQ3:</strong> dropping edge reconstruction (no BCE) is clearly better on LANL and H&amp;M and tied on Amazon. <strong>RQ4:</strong> LLM refinement helps most on LANL; elsewhere it acts as a rule-compaction step rather than a new signal.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="takeaways">
+        <div class="panel">
+          <h2><span class="n">08</span>Takeaways</h2>
+          <ul>
+            <li>Relational anomaly detection is a joint problem of <strong>representation, scoring, and behavioral evidence</strong>; solving one piece is not enough.</li>
+            <li>Mined rules are most useful when <strong>injected into the graph before message passing</strong>, not fused with scores afterwards.</li>
+            <li><strong>Pairwise ranking supervision</strong> is what turns a reconstruction model into a strong retriever of rare anomalies.</li>
+            <li>Edge reconstruction is an <strong>optional auxiliary</strong>: it can overemphasize sampled topology that is only loosely tied to the anomaly label.</li>
+          </ul>
+        </div>
+        <div>
+          <h2><span class="n">09</span>Limitations &amp; next steps</h2>
+          <ul>
+            <li>Rule mining is bounded by the flattened view and needs labels for the random forest and the support/confidence/lift ranking; RAD does not yet apply to unlabeled settings.</li>
+            <li>Amazon and H&amp;M results use a held-out partition of the validation split, since RelBench withholds test labels; LANL uses sampled subgraphs around anchor events.</li>
+            <li>Next: unsupervised rule discovery, rules defined over multi-hop relational structure rather than flattened summaries, richer relational backbones, and rules as human-readable explanations for flagged anomalies.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="foot">
+        <div class="ack">Supported by the National Security Agency (grant H98230-23-C-0279) and the National Science Foundation (IIS-2239881, ECCS-2325417, IIS-2524380, DGE-2622415). Generative AI tools assisted with code and manuscript drafting; all design, implementation, and analysis decisions were made by the authors.</div>
+        <div>doi:10.1145/3799682.3841086</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// On screen, scale the fixed-size sheet to the viewport width; print media uses the true A0 size.
+(function () {
+  var poster = document.getElementById('poster'), stage = document.getElementById('stage');
+  function fit() {
+    if (window.matchMedia && window.matchMedia('print').matches) return;
+    var w = poster.offsetWidth, h = poster.offsetHeight;
+    var s = Math.min(1, stage.clientWidth / w);
+    poster.style.transform = 'scale(' + s + ')';
+    stage.style.height = (h * s) + 'px';
+  }
+  fit(); window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>

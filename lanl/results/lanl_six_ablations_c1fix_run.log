@@ -1,0 +1,118 @@
+[init] device=cuda
+[init] partial_auroc_max_fpr=0.1
+[init] raw outputs=./results/lanl_six_ablations_raw
+
+[seed 0] starting
+  [rf] training RF and building RF source artifacts for seed=0...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 0] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 1] starting
+  [rf] training RF and building RF source artifacts for seed=1...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 1] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 2] starting
+  [rf] training RF and building RF source artifacts for seed=2...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 2] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 3] starting
+  [rf] training RF and building RF source artifacts for seed=3...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 3] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 4] starting
+  [rf] training RF and building RF source artifacts for seed=4...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 4] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 5] starting
+  [rf] training RF and building RF source artifacts for seed=5...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 5] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 6] starting
+  [rf] training RF and building RF source artifacts for seed=6...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 6] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 7] starting
+  [rf] training RF and building RF source artifacts for seed=7...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 7] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 8] starting
+  [rf] training RF and building RF source artifacts for seed=8...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 8] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[seed 9] starting
+  [rf] training RF and building RF source artifacts for seed=9...
+  [rf] sampled rule csv: ./results/lanl_rf_sampled_rules.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 9] checkpoint saved -> ./results/lanl_six_ablations_by_seed.csv
+
+[done] LANL six ablations complete
+[done] by-seed:  ./results/lanl_six_ablations_by_seed.csv
+[done] summary:  ./results/lanl_six_ablations_mean_std.csv
+[done] elapsed:  456.3 min

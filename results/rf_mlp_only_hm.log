@@ -1,0 +1,41 @@
+Using GPU: NVIDIA RTX 6000 Ada Generation
+[rdl] masked identity-proxy features: customer.postal_code
+Loaded H&M graph cache from disk.
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.81 seconds.
+[warn] test split has no 'churn' labels; using held-out validation partition (disjoint from tuning rows) for final evaluation.
+Loaded causal price/article cache: 53 timestamps
+======================================================================
+AT-RISK USER FILTERING (TARGET 0.0150 ANOMALY RATE)
+======================================================================
+  thresholds: {'a': 0.05, 'b': 10.0, 'alpha': 0.02, 'tau_multiplier': 1.0}
+  pos downsample mode: random
+  Train: 692,038 users | 10,381 anomalies (0.0150)
+  Val:   8,542 users | 128 anomalies (0.0150)
+  Test:  5,677 users | 85 anomalies (0.0150)
+======================================================================
+Train flat features: (692038, 12)
+Using preloaded cached graph artifacts.
+HeteroData(
+  transactions={
+    tf=TensorFrame([15187287, 3]),
+    time=[15187287],
+  },
+  customer={ tf=TensorFrame([1371980, 6]) },
+  article={ tf=TensorFrame([105542, 24]) },
+  (transactions, f2p_customer_id, customer)={ edge_index=[2, 15187287] },
+  (customer, rev_f2p_customer_id, transactions)={ edge_index=[2, 15187287] },
+  (transactions, f2p_article_id, article)={ edge_index=[2, 15187287] },
+  (article, rev_f2p_article_id, transactions)={ edge_index=[2, 15187287] }
+)
+
+RF table: (692038, 13)  anomaly_rate=0.0150
+RF training: 160,000 rows  pos=2,416  features=8  | rule-selection holdout: 40,000 rows  pos=584
+RF trained.
+
+======================================================================
+RF/MLP SUPERVISED-DETECTOR ROWS ONLY (Val Set)
+======================================================================
+RF (supervised detector)        auprc=0.0257  auroc=0.6354  p@k=0.0471  lift=1.7138
+MLP (supervised detector)       auprc=0.0252  auroc=0.6115  p@k=0.0588  lift=1.6798
+======================================================================
