@@ -37,6 +37,7 @@ from relbench.modeling.nn import HeteroEncoder, HeteroGraphSAGE, HeteroTemporalE
 from relbench.modeling.utils import get_stype_proposal
 from relbench.tasks import get_task
 from path_helpers import amazon_data, append_results_jsonl
+from eval_split import check_disjoint, eval_fingerprint
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 os.chdir(ROOT_DIR)
@@ -139,6 +140,7 @@ rdl_val_report_table.df = _val_df.iloc[_val_report_idx].copy()
 assert set(rdl_val_table.df.index).isdisjoint(set(rdl_val_report_table.df.index)), (
     "val-fit and val-report partitions must not share rows"
 )
+check_disjoint(rdl_val_table.df, rdl_val_report_table.df, "val fit vs report")
 
 _rdl_orig_val_table        = copy.deepcopy(rdl_val_table)
 _rdl_orig_val_report_table = copy.deepcopy(rdl_val_report_table)
@@ -1566,6 +1568,7 @@ print(f"FINAL COMPARISON ({_eval_split_name} Set — At-Risk Filtered Labels)")
 print("=" * 70)
 print(f"  {_eval_split_name}:  {len(rdl_test_table.df):,} users  |  {int(_test_labels.sum()):,} anomalies  "
     f"({_test_labels.mean():.4f} rate)")
+print(f"  eval_fingerprint: {eval_fingerprint(rdl_test_table.df, _test_labels)}")
 print()
 print(f"{'Model':<30}  {'AUPRC':>8}  {'AUROC':>8}  {'P@K':>8}  {'Lift':>8}")
 print("-" * 72)

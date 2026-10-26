@@ -21,6 +21,7 @@ Optional env vars:
 
 from __future__ import annotations
 
+import copy
 import gc
 import os
 import random
@@ -43,6 +44,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from path_helpers import ROOT_DIR, amazon_data, hm_data  # noqa: E402
+from eval_split import check_disjoint, downsample_positions, eval_fingerprint, partition_val  # noqa: E402
 
 
 DATASET = os.environ.get("DATASET", "amazon").strip().lower()
@@ -365,31 +367,31 @@ def run_seed(seed: int, task, graph_data, col_stats, events_df, event_time_col: 
     use_val_for_eval = "churn" not in raw_test_table.df.columns
     eval_split = "val" if use_val_for_eval else "test"
     if use_val_for_eval:
-        print(f"[seed={seed}] test split has no labels; using val split for final evaluation.", flush=True)
-        test_table = None
+        # Same fit/report partition of val as the RAD scripts: early stopping uses the fit
+        # rows, final metrics use the disjoint report rows.
+        print(f"[seed={seed}] test split has no labels; using held-out val partition for final evaluation.", flush=True)
+        fit_df, report_df = partition_val(val_table.df, seed)
+        check_disjoint(fit_df, report_df, f"seed={seed} val fit vs report")
+        test_table = copy.deepcopy(val_table)
+        val_table.df = fit_df
+        test_table.df = report_df
     else:
         test_table = raw_test_table
 
     act_tr = compute_activity(train_table.df, events_df, event_time_col)
     act_vl = compute_activity(val_table.df, events_df, event_time_col)
-    act_te = None if use_val_for_eval else compute_activity(test_table.df, events_df, event_time_col)
+    act_te = compute_activity(test_table.df, events_df, event_time_col)
 
     labels_tr, keep_tr, thresholds = label_with_atrisk(train_table.df, act_tr)
     labels_vl, keep_vl, _ = label_with_atrisk(val_table.df, act_vl, thresholds=thresholds)
-    if use_val_for_eval:
-        labels_te, keep_te = labels_vl, keep_vl
-    else:
-        labels_te, keep_te, _ = label_with_atrisk(test_table.df, act_te, thresholds=thresholds)
+    labels_te, keep_te, _ = label_with_atrisk(test_table.df, act_te, thresholds=thresholds)
 
     train_table.df = train_table.df.loc[keep_tr].copy()
     train_table.df["churn"] = labels_tr[keep_tr]
     val_table.df = val_table.df.loc[keep_vl].copy()
     val_table.df["churn"] = labels_vl[keep_vl]
-    if use_val_for_eval:
-        test_table = val_table
-    else:
-        test_table.df = test_table.df.loc[keep_te].copy()
-        test_table.df["churn"] = labels_te[keep_te]
+    test_table.df = test_table.df.loc[keep_te].copy()
+    test_table.df["churn"] = labels_te[keep_te]
 
     # Match train prevalence to TARGET_ANOM_RATE while keeping val/test fixed for holdout evaluation.
     rng = np.random.default_rng(seed)
@@ -400,6 +402,12 @@ def run_seed(seed: int, task, graph_data, col_stats, events_df, event_time_col: 
     if n_tgt_tr < len(tp):
         keep_pos_tr = rng.choice(tp.index.to_numpy(), size=n_tgt_tr, replace=False)
         train_table.df = train_table.df.loc[np.sort(np.concatenate([tn.index.to_numpy(), keep_pos_tr]))].copy()
+
+    if use_val_for_eval:
+        # Downsample both val partitions to TARGET_ANOM_RATE, as the RAD scripts do, so the
+        # report rows are exactly the rows RAD and the baselines are scored on.
+        for tbl in (val_table, test_table):
+            tbl.df = tbl.df.iloc[downsample_positions(tbl.df["churn"].to_numpy(), TARGET_ANOM_RATE, seed)].copy()
 
     val_labels = val_table.df["churn"].astype(np.int64).to_numpy()
     test_labels = test_table.df["churn"].astype(np.int64).to_numpy()
@@ -532,6 +540,11 @@ def run_seed(seed: int, task, graph_data, col_stats, events_df, event_time_col: 
     metrics["val_pos"] = float(val_labels.sum())
     metrics["test_rows"] = float(len(test_table.df))
     metrics["test_pos"] = float(test_labels.sum())
+    metrics["n_eval"] = int(len(test_table.df))
+    metrics["n_pos"] = int(test_labels.sum())
+    metrics["eval_fp"] = eval_fingerprint(test_table.df, test_labels)
+    print(f"[seed={seed}] eval set: {metrics['n_eval']:,} rows | {metrics['n_pos']:,} positives | "
+          f"eval_fingerprint: {metrics['eval_fp']}", flush=True)
     metrics["eval_split"] = eval_split
     metrics["pos_weight"] = float(pos_weight_scalar)
     return metrics

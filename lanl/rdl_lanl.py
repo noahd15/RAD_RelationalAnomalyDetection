@@ -343,6 +343,8 @@ def run_one_seed(g, in_dims: dict, seed: int) -> dict:
         "auprc": auprc,
         "pauroc": pauc,
         "p@127": p127,
+        "test_rows": int(y_test.size),
+        "test_pos": int(y_test.sum()),
         "train_pos_weight": float(pos_weight_scalar),
         "raw_path": raw_path,
     }
@@ -389,6 +391,11 @@ def main():
     print(f"[rdl] positives: train={int(auth.y[auth.train_mask].sum())}  "
           f"val={int(auth.y[auth.val_mask].sum())}  "
           f"test={int(auth.y[auth.test_mask].sum())}")
+    _tr, _va, _te = (auth.train_mask.view(-1).bool(), auth.val_mask.view(-1).bool(), auth.test_mask.view(-1).bool())
+    print(f"[split-check] train&val={int((_tr & _va).sum())} train&test={int((_tr & _te).sum())} "
+          f"val&test={int((_va & _te).sum())}", flush=True)
+    if int((_tr & _va).sum()) or int((_tr & _te).sum()) or int((_va & _te).sum()):
+        raise RuntimeError("LANL train/val/test masks overlap")
 
     in_dims = {
         nt: int(g[nt].x.size(1))

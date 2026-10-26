@@ -45,12 +45,13 @@ from torch_geometric.nn import HeteroConv, SAGEConv
 # Config
 # --------------------
 _HERE = Path(__file__).resolve().parent
-SEEDS = list(range(10))
+SEEDS = list(range(int(os.environ.get("START_SEED", "0")),
+                   int(os.environ.get("START_SEED", "0")) + int(os.environ.get("N_SEEDS", "10"))))
 
 PARQUET_PATH = str(_HERE / "data" / "flat_features.parquet")
 GRAPH_PATH = str(_HERE / "data" / "sampled_hetero_graph.pt")
 LLM_RULES_CSV = str(_HERE / "data" / "parsed_rules_df.csv")
-RESULTS_DIR = "./results"
+RESULTS_DIR = os.environ.get("LANL_RESULTS_DIR", "./results")
 BY_SEED_CSV = os.path.join(RESULTS_DIR, "lanl_six_ablations_by_seed.csv")
 MEAN_STD_CSV = os.path.join(RESULTS_DIR, "lanl_six_ablations_mean_std.csv")
 RF_SAMPLED_RULES_CSV = os.path.join(RESULTS_DIR, "lanl_rf_sampled_rules.csv")
@@ -446,6 +447,13 @@ def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData, seed: int = 
     train_idx = np.where(merged["g_train"].to_numpy(dtype=bool))[0]
     val_idx = np.where(merged["g_val"].to_numpy(dtype=bool))[0]
     test_idx = np.where(merged["g_test"].to_numpy(dtype=bool))[0]
+    print(f"[split-check] train={len(train_idx):,} val={len(val_idx):,} test={len(test_idx):,} | "
+          f"train&val={len(np.intersect1d(train_idx, val_idx))} train&test={len(np.intersect1d(train_idx, test_idx))} "
+          f"val&test={len(np.intersect1d(val_idx, test_idx))}", flush=True)
+    if len(np.intersect1d(train_idx, val_idx)) or len(np.intersect1d(train_idx, test_idx)) or len(np.intersect1d(val_idx, test_idx)):
+        raise RuntimeError("LANL train/val/test masks overlap")
+    print(f"[rule-selection] ranking/filter/sampling keys={SELECTION_KEYS} (no test statistics); "
+          f"RF fit on train only; test_support_eval is written for reporting and never read back", flush=True)
 
     rf_params = dict(RF_PARAMS)
     rf_params["random_state"] = int(seed)

@@ -5,8 +5,9 @@ Rebuild per-seed and mean/std ablation tables from a full-ablation run log.
 The run log (stdout of run_full_ablation_hm_*.py / run_full_ablation_*.py) is the
 authoritative record of a run: it contains the baselines output and both RAD
 variants for every seed. This script re-derives the metric tables from it and
-records the evaluation-set size on every row, failing if any seed mixes
-evaluation sets.
+records the evaluation-set size (and, for runs that print it, the eval-set
+fingerprint) on every row, failing if any seed mixes evaluation sets. The
+Supervised MLP row is taken from the RAD (no BCE) section's FINAL COMPARISON.
 
 Usage:
   python scripts/rebuild_ablation_from_log.py results/hm/full_ablation_hm_10seed/run.log
@@ -22,7 +23,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ablation_provenance import check_same_eval_set, parse_rad_final
+from ablation_provenance import check_same_eval_set, parse_final_rows, parse_rad_final
 
 ALIAS_MAP = {
     "IForest": "Isolation Forest",
@@ -62,15 +63,21 @@ def rebuild(log_path: Path) -> pd.DataFrame:
             for name, metrics in BASELINE_RE.findall(body):
                 met = ast.literal_eval(metrics)
                 row = {"model": ALIAS_MAP.get(name, name), **{k: float(met[k]) for k in ("auroc", "auprc", "p@k", "lift")},
-                       "n_eval": n_eval, "n_pos": n_pos, "seed": seed, "source": "baselines_script"}
+                       "n_eval": int(met.get("n_eval", n_eval)), "n_pos": int(met.get("n_pos", n_pos)),
+                       "eval_fp": met.get("eval_fp"), "seed": seed, "source": "baselines_script"}
                 _check_pak_granularity(row)
                 rows.append(row)
         else:
             parsed = parse_rad_final(body)
             name = "RAD (no BCE)" if float(lam) == 0.0 else "RAD (with BCE)"
             rows.append({"model": name, **parsed, "seed": seed, "source": "rad_vs_script"})
+            if float(lam) == 0.0 and parsed["eval_fp"] is not None:
+                mlp = parse_final_rows(body)["MLP (supervised detector)"]
+                row = {"model": "Supervised MLP", **mlp, "seed": seed, "source": "rad_vs_script"}
+                _check_pak_granularity(row)
+                rows.append(row)
 
-    per_seed = pd.DataFrame(rows)[["model", "auroc", "auprc", "p@k", "lift", "n_eval", "n_pos", "seed", "source"]]
+    per_seed = pd.DataFrame(rows)[["model", "auroc", "auprc", "p@k", "lift", "n_eval", "n_pos", "eval_fp", "seed", "source"]]
     for seed, grp in per_seed.groupby("seed"):
         check_same_eval_set(grp, seed)
     return per_seed

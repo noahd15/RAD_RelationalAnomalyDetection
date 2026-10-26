@@ -76,6 +76,8 @@ def eval_metrics(y_true: np.ndarray, scores: np.ndarray) -> dict[str, float]:
         "auroc": float(roc_auc_score(y_true, scores)),
         "auprc": float(average_precision_score(y_true, scores)),
         "p@127": precision_at_k(y_true, scores, P_AT_K),
+        "test_rows": int(y_true.size),
+        "test_pos": int(y_true.sum()),
     }
 
 
@@ -99,6 +101,10 @@ def load_split_data() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, n
     train_mask = auth.train_mask.view(-1).detach().cpu().numpy().astype(bool)
     val_mask = auth.val_mask.view(-1).detach().cpu().numpy().astype(bool)
     test_mask = auth.test_mask.view(-1).detach().cpu().numpy().astype(bool)
+    print(f"[split-check] train&val={int((train_mask & val_mask).sum())} train&test={int((train_mask & test_mask).sum())} "
+          f"val&test={int((val_mask & test_mask).sum())}", flush=True)
+    if (train_mask & val_mask).any() or (train_mask & test_mask).any() or (val_mask & test_mask).any():
+        raise RuntimeError("LANL train/val/test masks overlap")
 
     x_train = x[train_mask]
     x_val = x[val_mask]

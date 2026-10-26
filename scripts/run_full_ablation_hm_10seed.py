@@ -11,6 +11,7 @@ Models included:
 - Supervised RDL
 - RAD (with BCE)
 - RAD (no BCE)
+- Supervised MLP (MLP supervised detector, scored inside the RAD (no BCE) run)
 
 Outputs:
 - results/full_ablation_hm_10seed/per_seed_metrics.csv
@@ -23,12 +24,13 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from ablation_provenance import check_same_eval_set, parse_rad_final, write_run_config
+from ablation_provenance import check_same_eval_set, parse_final_rows, parse_rad_final, write_run_config
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -67,17 +69,22 @@ def _run_baselines(seed: int) -> pd.DataFrame:
     return df
 
 
-def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc") -> pd.Series:
+def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc") -> tuple[pd.Series, dict]:
+    run_tag = f"hm10seed_seed{seed}_ls{lambda_struct}_{uuid.uuid4().hex[:8]}"
     env = os.environ.copy()
     env.update(
         {
             "SEED": str(seed),
+            "RUN_TAG": run_tag,
             "CUDA_VISIBLE_DEVICES": env.get("CUDA_VISIBLE_DEVICES", "1"),
             "LATENT_DIM": env.get("LATENT_DIM", "48"),
             "LAMBDA_STRUCT": str(lambda_struct),
-            "LAMBDA_RANK": "1.0",
-            "ALPHA_FEAT": "1.0",
-            "ALPHA_STRUCT": "1.0",
+            # Retuned via scripts/optuna_hm_tune.py against the post-C1-C9-fix rule
+            # table and val split (best trial: val AUPRC 0.0441). Old frozen values were
+            # tuned against a since-replaced rule set (pre C3/C4/C7 rule-mining fixes).
+            "LAMBDA_RANK": "2.0",
+            "ALPHA_FEAT": "0.5",
+            "ALPHA_STRUCT": "2.0",
             "TUNE_METRIC": tune_metric,
             "EPOCHS": env.get("EPOCHS", "30"),
             "PATIENCE": env.get("PATIENCE", "5"),
@@ -109,9 +116,10 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
             "lift": parsed["lift"],
             "n_eval": parsed["n_eval"],
             "n_pos": parsed["n_pos"],
+            "eval_fp": parsed["eval_fp"],
             "seed": int(seed),
         }
-    )
+    ), parse_final_rows(txt)
 
 
 def _alias_models(df: pd.DataFrame) -> pd.DataFrame:
@@ -162,8 +170,9 @@ def main() -> None:
         baselines = _alias_models(baselines)
         baselines["source"] = "baselines_script"
 
-        rad_bce    = _run_rad_variant(seed=seed, lambda_struct=0.1)
-        rad_no_bce = _run_rad_variant(seed=seed, lambda_struct=0.0)
+        rad_bce, _              = _run_rad_variant(seed=seed, lambda_struct=1.0)  # tuned alpha_struct for the BCE arm
+        rad_no_bce, final_no_bce = _run_rad_variant(seed=seed, lambda_struct=0.0)
+        mlp = final_no_bce["MLP (supervised detector)"]
 
         rad_rows = pd.DataFrame(
             [
@@ -175,6 +184,7 @@ def main() -> None:
                     "lift":  float(rad_bce["lift"]),
                     "n_eval": int(rad_bce["n_eval"]),
                     "n_pos": int(rad_bce["n_pos"]),
+                    "eval_fp": rad_bce["eval_fp"],
                     "seed":  int(seed),
                     "source": "rad_vs_script",
                 },
@@ -186,6 +196,13 @@ def main() -> None:
                     "lift":  float(rad_no_bce["lift"]),
                     "n_eval": int(rad_no_bce["n_eval"]),
                     "n_pos": int(rad_no_bce["n_pos"]),
+                    "eval_fp": rad_no_bce["eval_fp"],
+                    "seed":  int(seed),
+                    "source": "rad_vs_script",
+                },
+                {
+                    "model": "Supervised MLP",
+                    **{k: mlp[k] for k in ("auroc", "auprc", "p@k", "lift", "n_eval", "n_pos", "eval_fp")},
                     "seed":  int(seed),
                     "source": "rad_vs_script",
                 },
@@ -194,7 +211,7 @@ def main() -> None:
 
         combined = pd.concat(
             [
-                baselines[["model", "auroc", "auprc", "p@k", "lift", "n_eval", "n_pos", "seed", "source"]],
+                baselines[["model", "auroc", "auprc", "p@k", "lift", "n_eval", "n_pos", "eval_fp", "seed", "source"]],
                 rad_rows,
             ],
             ignore_index=True,

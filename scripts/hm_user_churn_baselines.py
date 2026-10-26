@@ -15,7 +15,8 @@ from tqdm import tqdm
 
 from relbench.datasets import get_dataset
 from relbench.tasks import get_task
-from path_helpers import hm_data
+from path_helpers import hm_data, append_results_jsonl
+from eval_split import check_disjoint, downsample_positions, eval_fingerprint, partition_val
 
 RANDOM_STATE = int(os.environ.get("SEED", os.environ.get("RANDOM_STATE", "42")))
 _device_env = os.environ.get("BASELINES_DEVICE", "auto").strip().lower()
@@ -50,7 +51,12 @@ db      = dataset.get_db()
 
 train_table = task.get_table("train")
 val_table   = task.get_table("val")
-print("train:", len(train_table.df), "| val:", len(val_table.df))
+# Same fit/report partition of val as the RAD scripts: fit rows drive early stopping,
+# report rows are the only ones scored.
+_val_fit_df, _val_report_df = partition_val(val_table.df, RANDOM_STATE)
+check_disjoint(_val_fit_df, _val_report_df, "val fit vs report")
+val_table.df = _val_report_df
+print("train:", len(train_table.df), "| val (report):", len(val_table.df), "| val (fit):", len(_val_fit_df))
 print("train churn rate:", train_table.df["churn"].mean().round(4),
       "| val churn rate:", val_table.df["churn"].mean().round(4))
 
@@ -227,6 +233,7 @@ print("Computing train features...")
 X_train_all, act_train = build_X(train_table.df)
 print("Computing val features...")
 X_val_all,   act_val   = build_X(val_table.df)
+X_fit_all,   act_fit   = build_X(_val_fit_df)
 print(f"Feature matrix — train: {X_train_all.shape}, val: {X_val_all.shape}")
 
 # ── At-Risk labeling (quantile-based for H&M) ─────────────────────────────────
@@ -264,16 +271,10 @@ def atrisk_labels(target_df, activity_df, thresholds=None):
 
 
 y_train_raw, train_keep, atrisk_thresholds = atrisk_labels(train_table.df, act_train)
-y_val_raw,   val_keep,   _                 = atrisk_labels(val_table.df, act_val,
-                                                            thresholds=atrisk_thresholds)
 
 X_train_all  = X_train_all[train_keep]
 act_train    = act_train.iloc[train_keep].reset_index(drop=True)
 y_train_heur = y_train_raw[train_keep]
-
-X_val_all = X_val_all[val_keep]
-act_val   = act_val.iloc[val_keep].reset_index(drop=True)
-y_val_raw = y_val_raw[val_keep]
 
 if TRAIN_EQ_RATE:
     _tr_neg_idx      = np.where(y_train_heur == 0)[0]
@@ -287,31 +288,38 @@ if TRAIN_EQ_RATE:
     X_train_all      = X_train_all[_tr_mask]
     act_train        = act_train.iloc[_tr_mask].reset_index(drop=True)
 
-_val_neg_idx  = np.where(y_val_raw == 0)[0]
-_val_pos_idx  = np.where(y_val_raw == 1)[0]
-_n_pos_target = int(round(TARGET_ANOM_RATE / (1.0 - TARGET_ANOM_RATE) * len(_val_neg_idx)))
-_n_pos_target = min(_n_pos_target, len(_val_pos_idx))
-_rng_eq       = np.random.default_rng(RANDOM_STATE)
-_keep_pos     = _rng_eq.choice(_val_pos_idx, size=_n_pos_target, replace=False)
-_val_mask     = np.sort(np.concatenate([_val_neg_idx, _keep_pos]))
-y_val_heur    = y_val_raw[_val_mask]
-X_val_all     = X_val_all[_val_mask]
-act_val       = act_val.iloc[_val_mask].reset_index(drop=True)
+
+
+def _atrisk_and_downsample(target_df, X, act):
+    """At-risk filter, then downsample positives to TARGET_ANOM_RATE (as the RAD scripts do)."""
+    y_raw, keep, _ = atrisk_labels(target_df, act, thresholds=atrisk_thresholds)
+    keep_pos = np.where(keep)[0]
+    m = downsample_positions(y_raw[keep_pos], TARGET_ANOM_RATE, RANDOM_STATE)
+    rows = keep_pos[m]
+    return X[rows], act.iloc[rows].reset_index(drop=True), y_raw[rows], target_df.iloc[rows]
+
+
+X_val_all, act_val, y_val_heur, _val_scored_df = _atrisk_and_downsample(val_table.df, X_val_all, act_val)
+X_fit_all, act_fit, y_fit_heur, _              = _atrisk_and_downsample(_val_fit_df, X_fit_all, act_fit)
 
 print("At-Risk thresholds:", atrisk_thresholds)
 print(f"Train — total: {len(X_train_all):,} | positives: {int(y_train_heur.sum()):,} ({y_train_heur.mean():.4f})")
 print(f"Val   — total: {len(y_val_heur):,}   | positives: {int(y_val_heur.sum()):,} ({y_val_heur.mean():.4f})")
+print(f"Val fit (early stopping) — total: {len(y_fit_heur):,} | positives: {int(y_fit_heur.sum()):,}")
+VAL_EVAL_FP = eval_fingerprint(_val_scored_df, y_val_heur)
+print(f"  eval_fingerprint: {VAL_EVAL_FP}")
 
 train_normal_mask = y_train_heur == 0
 X_mu    = X_train_all[train_normal_mask].mean(axis=0, keepdims=True)
 X_sigma = X_train_all[train_normal_mask].std(axis=0, keepdims=True)
 X_train_n = (X_train_all - X_mu) / (X_sigma + 1e-6)
 X_val_n   = (X_val_all   - X_mu) / (X_sigma + 1e-6)
+X_fit_n   = (X_fit_all   - X_mu) / (X_sigma + 1e-6)
 X_norm    = X_train_n[train_normal_mask]
 print(f"Train normal pool: {len(X_norm):,} | Val positives: {int(y_val_heur.sum()):,}")
 
 
-def eval_metrics(y_true, scores):
+def eval_metrics(y_true, scores, eval_fp=None):
     y_true = y_true.astype(int)
     scores = scores.astype(float)
     auroc  = float(roc_auc_score(y_true, scores))
@@ -322,7 +330,8 @@ def eval_metrics(y_true, scores):
     prev   = float(y_true.mean())
     lift   = auprc / prev if prev > 0 else float("nan")
     return {"auroc": auroc, "auprc": auprc, "p@k": p_at_k, "lift": lift,
-            "n_eval": int(len(y_true)), "n_pos": int(y_true.sum())}
+            "n_eval": int(len(y_true)), "n_pos": int(y_true.sum()),
+            "eval_fp": eval_fp or VAL_EVAL_FP}
 
 
 RESULTS: dict[str, dict] = {}
@@ -343,12 +352,22 @@ def _persist_results_csv(results: dict) -> None:
                 "lift":  float(met.get("lift",  float("nan"))),
                 "n_eval": met.get("n_eval"),
                 "n_pos": met.get("n_pos"),
+                "eval_fp": met.get("eval_fp"),
                 "source": "baselines_script",
             })
     df = pd.DataFrame(rows)
-    csv_path = out_dir / "baselines_metrics.csv"
+    # Seed-specific path: a fixed overwritten path loses every prior seed's raw output.
+    csv_path = out_dir / f"baselines_metrics_seed{RANDOM_STATE}.csv"
     df.to_csv(csv_path, index=False)
+    # Also keep writing the un-seeded path for backward compatibility with existing consumers.
+    (out_dir / "baselines_metrics.csv").write_text(df.to_csv(index=False))
     print(f"[baselines] Wrote metrics CSV: {csv_path}")
+    for row in rows:
+        append_results_jsonl({
+            "task": "hm-user-churn", "seed": RANDOM_STATE, "split": "Val",
+            "method": row["model"],
+            "auprc": row["auprc"], "auroc": row["auroc"], "p@k": row["p@k"], "lift": row["lift"],
+        })
 
 
 def _persist_raw_results(raw_results: dict[str, dict[str, object]]) -> None:
@@ -488,9 +507,11 @@ rng_svdd     = np.random.default_rng(RANDOM_STATE)
 hold_idx     = rng_svdd.choice(len(X_norm), size=max(1, len(X_norm)//10), replace=False)
 X_t_sub      = torch.tensor(np.delete(X_norm, hold_idx, axis=0), dtype=torch.float32)
 X_val_t_svdd = torch.tensor(X_val_n, dtype=torch.float32)
+X_fit_t_svdd = torch.tensor(X_fit_n, dtype=torch.float32)
 
 tr_loader_sub   = DataLoader(TensorDataset(X_t_sub),      batch_size=SVDD_BATCH_SIZE, shuffle=True)
 val_loader_svdd = DataLoader(TensorDataset(X_val_t_svdd), batch_size=SVDD_BATCH_SIZE, shuffle=False)
+fit_loader_svdd = DataLoader(TensorDataset(X_fit_t_svdd), batch_size=SVDD_BATCH_SIZE, shuffle=False)
 
 best_svdd_ap = -1.0; best_svdd_sd = None; patience_cnt = 0
 svdd_model.train()
@@ -510,9 +531,9 @@ for epoch in range(SVDD_EPOCHS):
         with torch.no_grad():
             vs = np.concatenate([
                 torch.sum((svdd_model(xb.to(DEVICE)) - c)**2, dim=1).detach().cpu().numpy()
-                for (xb,) in val_loader_svdd
+                for (xb,) in fit_loader_svdd
             ])
-        val_ap = float(average_precision_score(y_val_heur, vs)) if np.unique(y_val_heur).size > 1 else float("nan")
+        val_ap = float(average_precision_score(y_fit_heur, vs)) if np.unique(y_fit_heur).size > 1 else float("nan")
         print(f"  epoch={epoch+1:03d} train_loss={tr_loss:.6f} val_auprc={val_ap:.6f}")
         if np.isfinite(val_ap) and val_ap > best_svdd_ap + 1e-8:
             best_svdd_ap = val_ap; best_svdd_sd = copy.deepcopy(svdd_model.state_dict()); patience_cnt = 0
@@ -590,6 +611,8 @@ def train_ae(use_rank=False, seed=RANDOM_STATE):
     tr_loader_ae  = DataLoader(TensorDataset(torch.tensor(X_norm, dtype=torch.float32)),
                                batch_size=AE_BATCH_SIZE, shuffle=True)
     val_loader_ae = DataLoader(TensorDataset(X_val_t), batch_size=AE_BATCH_SIZE, shuffle=False)
+    fit_loader_ae = DataLoader(TensorDataset(torch.tensor(X_fit_n, dtype=torch.float32)),
+                               batch_size=AE_BATCH_SIZE, shuffle=False)
     anom_t = torch.tensor(X_anom_pool, dtype=torch.float32) if (use_rank and len(X_anom_pool) > 0) else None
 
     best_ap = -1.0; best_sd = None; pat = 0
@@ -620,9 +643,9 @@ def train_ae(use_rank=False, seed=RANDOM_STATE):
             with torch.no_grad():
                 vs = np.concatenate([
                     ((model(xb.to(DEVICE)) - xb.to(DEVICE))**2).mean(dim=1).detach().cpu().numpy()
-                    for (xb,) in val_loader_ae
+                    for (xb,) in fit_loader_ae
                 ])
-            val_ap  = float(average_precision_score(y_val_heur, vs)) if np.unique(y_val_heur).size > 1 else float("nan")
+            val_ap  = float(average_precision_score(y_fit_heur, vs)) if np.unique(y_fit_heur).size > 1 else float("nan")
             tr_loss = running / max(1, n_b)
             label   = "AE-rank" if use_rank else "AE"
             print(f"  [{label}] epoch={epoch+1:03d} loss={tr_loss:.6f} val_auprc={val_ap:.6f}")
@@ -714,6 +737,11 @@ else:
 _rdl_task        = get_task("rel-hm", "user-churn", download=True)
 _rdl_train_table = _rdl_task.get_table("train")
 _rdl_val_table   = _rdl_task.get_table("val")
+_rdl_val_fit_df, _rdl_val_report_df = partition_val(_rdl_val_table.df, RANDOM_STATE)
+check_disjoint(_rdl_val_fit_df, _rdl_val_report_df, "Supervised RDL val fit vs report")
+_rdl_val_fit_table = _copy.deepcopy(_rdl_val_table)
+_rdl_val_fit_table.df = _rdl_val_fit_df
+_rdl_val_table.df = _rdl_val_report_df
 _entity_table    = _rdl_task.entity_table
 
 import pandas as _pd
@@ -771,9 +799,10 @@ def _rdl_atrisk(target_df, act, thresholds=None):
     trend = act["trend_w"].to_numpy(dtype=_np.float64)
     a_bar = _np.maximum(act["avg_activity"].to_numpy(dtype=_np.float64), 0.0)
     if thresholds is None:
-        thresholds = {"a": _ATRISK_A, "b": _ATRISK_B, "alpha": _ATRISK_ALPHA}
+        thresholds = {"a": _ATRISK_A, "b": _ATRISK_B, "alpha": _ATRISK_ALPHA,
+                      "tau_multiplier": float(os.environ.get("ATRISK_TAU_MULTIPLIER", "1.0"))}
     a, b, alpha = thresholds["a"], thresholds["b"], thresholds["alpha"]
-    tau   = a + (_np.log(a_bar + 1.0) / _np.log(b)) * (1.0 + alpha * a_bar)
+    tau   = (a + (_np.log(a_bar + 1.0) / _np.log(b)) * (1.0 + alpha * a_bar)) * float(thresholds.get("tau_multiplier", 1.0))
     at_risk = trend <= (-tau)
     keep  = ~at_risk
     unexp = raw * keep.astype(_np.int64)
@@ -781,33 +810,33 @@ def _rdl_atrisk(target_df, act, thresholds=None):
 
 
 _act_tr = _rdl_activity(_rdl_train_table.df)
-_act_vl = _rdl_activity(_rdl_val_table.df)
 _unexp_tr, _keep_tr, _thr = _rdl_atrisk(_rdl_train_table.df, _act_tr)
-_unexp_vl, _keep_vl, _    = _rdl_atrisk(_rdl_val_table.df, _act_vl, thresholds=_thr)
-
 _rdl_train_table.df = _rdl_train_table.df.loc[_keep_tr].copy()
 _rdl_train_table.df["churn"] = _unexp_tr[_keep_tr]
-_rdl_val_table.df   = _rdl_val_table.df.loc[_keep_vl].copy()
-_rdl_val_table.df["churn"]   = _unexp_vl[_keep_vl]
 
 _target_anom_rate = float(os.environ.get("TARGET_ANOM_RATE", "0.015"))
-_rdl_val_pos = _rdl_val_table.df[_rdl_val_table.df["churn"] == 1]
-_rdl_val_neg = _rdl_val_table.df[_rdl_val_table.df["churn"] == 0]
-if 0.0 < _target_anom_rate < 1.0 and len(_rdl_val_pos) > 0 and len(_rdl_val_neg) > 0:
-    _n_pos_tgt = int(round((_target_anom_rate / (1.0 - _target_anom_rate)) * len(_rdl_val_neg)))
-    _n_pos_tgt = min(_n_pos_tgt, len(_rdl_val_pos))
-    if _n_pos_tgt < len(_rdl_val_pos):
-        _rng_vl = _np.random.default_rng(RANDOM_STATE)
-        _kp_idx = _rng_vl.choice(_rdl_val_pos.index.to_numpy(), size=_n_pos_tgt, replace=False)
-        _rdl_val_table.df = _rdl_val_table.df.loc[
-            _np.sort(_np.concatenate([_rdl_val_neg.index.to_numpy(), _kp_idx]))
-        ].copy()
 
-_rdl_val_labels = _rdl_val_table.df["churn"].astype(_np.int64).to_numpy()
+
+def _rdl_eval_table(table):
+    """At-risk filter and downsample a val partition in place, as the RAD scripts do."""
+    act = _rdl_activity(table.df)
+    unexp, keep, _ = _rdl_atrisk(table.df, act, thresholds=_thr)
+    table.df = table.df.loc[keep].copy()
+    table.df["churn"] = unexp[keep]
+    m = downsample_positions(table.df["churn"].to_numpy(), _target_anom_rate, RANDOM_STATE)
+    table.df = table.df.iloc[m].copy()
+    return table.df["churn"].astype(_np.int64).to_numpy()
+
+
+_rdl_val_labels = _rdl_eval_table(_rdl_val_table)
+_rdl_eval_fp = eval_fingerprint(_rdl_val_table.df, _rdl_val_labels)
+_rdl_fit_labels = _rdl_eval_table(_rdl_val_fit_table)
 print(f"Supervised RDL — train: {len(_rdl_train_table.df):,} "
       f"({int(_rdl_train_table.df['churn'].sum()):,} pos) | "
-      f"val: {len(_rdl_val_table.df):,} "
-      f"({int(_rdl_val_table.df['churn'].sum()):,} pos)")
+      f"val fit: {len(_rdl_val_fit_table.df):,} ({int(_rdl_fit_labels.sum()):,} pos) | "
+      f"val report: {len(_rdl_val_table.df):,} "
+      f"({int(_rdl_val_table.df['churn'].sum()):,} pos) | "
+      f"eval_fingerprint: {_rdl_eval_fp}")
 
 
 def _make_rdl_loader(table, shuffle):
@@ -822,6 +851,7 @@ def _make_rdl_loader(table, shuffle):
 
 _tr_loader_rdl = _make_rdl_loader(_rdl_train_table, shuffle=True)
 _vl_loader_rdl = _make_rdl_loader(_rdl_val_table,   shuffle=False)
+_fit_loader_rdl = _make_rdl_loader(_rdl_val_fit_table, shuffle=False)
 print(f"Loaders — train: {len(_tr_loader_rdl)} batches | val: {len(_vl_loader_rdl)} batches")
 
 
@@ -889,11 +919,11 @@ for _epoch in range(1, RDL_EPOCHS + 1):
     _rdl_sup_model.eval()
     _all_scores = []
     with torch.no_grad():
-        for _vb in _vl_loader_rdl:
+        for _vb in _fit_loader_rdl:
             _all_scores.append(torch.sigmoid(_rdl_sup_model(_vb.to(DEVICE), _entity_table)).detach().cpu().numpy())
     _vscores = _np.nan_to_num(_np.concatenate(_all_scores), nan=0.5)
-    _vap  = float(average_precision_score(_rdl_val_labels, _vscores)) if _np.unique(_rdl_val_labels).size > 1 else float("nan")
-    _vauc = float(roc_auc_score(_rdl_val_labels, _vscores))           if _np.unique(_rdl_val_labels).size > 1 else float("nan")
+    _vap  = float(average_precision_score(_rdl_fit_labels, _vscores)) if _np.unique(_rdl_fit_labels).size > 1 else float("nan")
+    _vauc = float(roc_auc_score(_rdl_fit_labels, _vscores))           if _np.unique(_rdl_fit_labels).size > 1 else float("nan")
     print(f"  RDL epoch {_epoch:02d} | steps={_steps} | loss={_running/_steps:.4f} | val_auprc={_vap:.4f} | val_auroc={_vauc:.4f}")
     if _np.isfinite(_vap) and _vap > _best_rdl_ap + 1e-8:
         _best_rdl_ap = _vap
@@ -914,7 +944,7 @@ with torch.no_grad():
             torch.sigmoid(_rdl_sup_model(_vb.to(DEVICE), _entity_table)).detach().cpu().numpy())
 _final_rdl_scores = _np.concatenate(_final_rdl_scores)
 
-RESULTS["Supervised RDL"] = eval_metrics(_rdl_val_labels, _final_rdl_scores)
+RESULTS["Supervised RDL"] = eval_metrics(_rdl_val_labels, _final_rdl_scores, eval_fp=_rdl_eval_fp)
 print("Supervised RDL:", RESULTS["Supervised RDL"])
 
 # ── Results Summary ───────────────────────────────────────────────────────────
