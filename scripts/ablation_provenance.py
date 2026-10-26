@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 from pathlib import Path
 
 import pandas as pd
@@ -101,9 +102,29 @@ def check_same_eval_set(rows: pd.DataFrame, seed: int) -> None:
         )
 
 
+def code_version() -> dict:
+    """Commit, exact tag and modified tracked files of the checkout this run executes from."""
+    repo = Path(__file__).resolve().parents[1]
+
+    def git(*args: str) -> str | None:
+        try:
+            return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True,
+                                  check=True).stdout.rstrip()
+        except (OSError, subprocess.CalledProcessError):
+            return None
+
+    dirty = git("status", "--porcelain", "--untracked-files=no", "--", ".", ":(exclude)*.pyc")
+    return {
+        "git_commit": git("rev-parse", "HEAD"),
+        "git_tag": git("describe", "--exact-match", "--tags", "HEAD"),
+        "git_modified_tracked_files": dirty.splitlines() if dirty else [],
+    }
+
+
 def write_run_config(out_dir: Path, seeds: list[int], extra: dict | None = None) -> Path:
     """Record the label-defining settings next to the metrics so results can be traced to their config."""
     cfg = {
+        "code_version": code_version(),
         "seeds": seeds,
         "label_env": {k: os.environ.get(k) for k in LABEL_ENV_VARS},
         **(extra or {}),

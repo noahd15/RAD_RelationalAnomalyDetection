@@ -22,6 +22,7 @@ import json
 import os
 import random
 import re
+import subprocess
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -1206,6 +1207,21 @@ def run_gae_single(g: HeteroData, seed: int, lambda_struct_override: Optional[fl
     return s_te[te_m_np]
 
 
+def _code_version() -> Dict:
+    """Commit, exact tag and modified tracked files of the checkout this run executes from."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    def git(*args):
+        try:
+            return subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True, check=True).stdout.rstrip()
+        except (OSError, subprocess.CalledProcessError):
+            return None
+
+    dirty = git("status", "--porcelain", "--untracked-files=no", "--", ".", ":(exclude)*.pyc")
+    return {"git_commit": git("rev-parse", "HEAD"), "git_tag": git("describe", "--exact-match", "--tags", "HEAD"),
+            "git_modified_tracked_files": dirty.splitlines() if dirty else []}
+
+
 def main() -> None:
     os.makedirs(RESULTS_DIR, exist_ok=True)
     print(f"[init] device={DEVICE}")
@@ -1213,6 +1229,7 @@ def main() -> None:
     print(f"[init] raw outputs={RAW_RESULTS_DIR}")
     print(f"[init] seeds={SEEDS} mlp_hidden={MLP_HIDDEN} mlp_alpha={MLP_ALPHA} llm_rules={LLM_RULES_MODE}")
     run_config = {
+        "code_version": _code_version(),
         "seeds": SEEDS,
         "mlp_supervised_detector": {"hidden_layer_sizes": list(MLP_HIDDEN), "alpha": MLP_ALPHA,
                                     "source": os.environ.get("LANL_MLP_SOURCE", "default (untuned)")},
