@@ -190,6 +190,8 @@ def _pa_cache_key(ts) -> str:
 
 def _compute_pa_for_ts(ts):
     txn_before = txn_df[txn_df["t_dat"] < ts]
+    if not txn_before.empty and not txn_before["t_dat"].max() < ts:
+        raise RuntimeError(f"price/article aggregates for {ts} read a transaction at or after the target timestamp")
     price_agg, art_agg = None, None
     if _price_col is not None and not txn_before.empty:
         rated = txn_before[["customer_id", _price_col]].copy()
@@ -481,6 +483,8 @@ def _check_flat_features(base, n=FLAT_CHECK_SAMPLES):
     idx = np.random.default_rng(0).choice(len(base), size=min(n, len(base)), replace=False)
     _ev = txn_events[txn_events["customer_id"].isin(base["customer_id"].iloc[idx].unique())]
     _times = {c: g["t_dat"].to_numpy() for c, g in _ev.groupby("customer_id")}
+    _tx = txn_df[txn_df["customer_id"].isin(base["customer_id"].iloc[idx].unique())]
+    _txns = {c: g for c, g in _tx.groupby("customer_id")}
     for i in idx:
         r = base.iloc[int(i)]
         ts = np.datetime64(r["timestamp"], "ns")
@@ -493,14 +497,26 @@ def _check_flat_features(base, n=FLAT_CHECK_SAMPLES):
             "recent_txns_90d": int((t >= ts - np.timedelta64(90, "D")).sum()),
             "recent_txns_30d": recent,
         }
+        tx = _txns.get(int(r["customer_id"]))
+        tx = tx[tx["t_dat"] < ts] if tx is not None else None
+        if "article_id" in txn_df.columns:
+            exp["distinct_articles"] = int(tx["article_id"].nunique()) if tx is not None and len(tx) else 0
         got = {k: int(r[k]) for k in exp}
+        if _price_col is not None:
+            pr = (pd.to_numeric(tx[_price_col], errors="coerce").dropna() if tx is not None
+                  else pd.Series(dtype=np.float64))
+            for c, e in [("mean_price", pr.mean() if len(pr) else 0.0), ("price_std", pr.std() if len(pr) > 1 else 0.0),
+                         ("min_price", pr.min() if len(pr) else 0.0), ("max_price", pr.max() if len(pr) else 0.0)]:
+                if not np.isclose(float(r[c]), float(e), rtol=1e-5, atol=1e-9):
+                    exp[c], got[c] = float(e), float(r[c])
         for c, e in [("trend_w", (recent - prev) / (prev + 1.0)), ("avg_activity", 0.5 * (recent + prev))]:
             if not np.isclose(float(r[c]), e, rtol=0, atol=1e-9):
                 exp[c], got[c] = e, float(r[c])
         if got != exp:
             raise RuntimeError(f"flat-feature check failed at row {int(i)} (customer_id={int(r['customer_id'])}, "
                                f"timestamp={r['timestamp']}): expected {exp}, got {got}")
-    print(f"[flat-check] {len(idx)} sampled rows match a recomputation from transactions before each row's timestamp")
+    print(f"[flat-check] {len(idx)} sampled rows: counts and price/article aggregates match a recomputation "
+          f"from transactions before each row's timestamp")
 
 
 _act_train_filt = _activity_features_for_targets(rdl_train_table.df, lookback_days=30)

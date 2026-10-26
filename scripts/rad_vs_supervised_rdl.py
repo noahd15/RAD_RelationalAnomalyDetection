@@ -376,6 +376,31 @@ review_df["review_time"]  = pd.to_datetime(review_df["review_time"])
 _rating_col = next((c for c in ["rating", "star_rating", "stars"] if c in review_df.columns), None)
 
 
+# Per-customer running review statistics, one row per review in time order. A backward
+# merge_asof with allow_exact_matches=False reads the state after the last review strictly
+# before the target timestamp (the DB runs to the test timestamp, so all-time aggregates
+# would see the label window).
+_review_state = review_df[review_df["review_time"].notna()].copy()
+_review_state = _review_state.sort_values(["customer_id", "review_time"], kind="mergesort").reset_index(drop=True)
+_rs_g = _review_state.groupby("customer_id")
+_review_state["first_review_time"] = _rs_g["review_time"].transform("first")
+_review_state["cum_distinct_products"] = (
+    (~_review_state.duplicated(subset=["customer_id", "product_id"])).astype(np.int64).groupby(
+        _review_state["customer_id"]).cumsum() if "product_id" in _review_state.columns else 0)
+if _rating_col is not None:
+    _r = pd.to_numeric(_review_state[_rating_col], errors="coerce").astype(np.float64)
+    _review_state["cum_n_rated"] = _r.notna().astype(np.int64).groupby(_review_state["customer_id"]).cumsum()
+    _review_state["cum_r_sum"]   = _r.fillna(0.0).groupby(_review_state["customer_id"]).cumsum()
+    _review_state["cum_r_sumsq"] = (_r.fillna(0.0) ** 2).groupby(_review_state["customer_id"]).cumsum()
+    _review_state["cum_r_min"]   = _r.groupby(_review_state["customer_id"]).cummin()
+    _review_state["cum_r_max"]   = _r.groupby(_review_state["customer_id"]).cummax()
+    _review_state[["cum_r_min", "cum_r_max"]] = _review_state.groupby("customer_id")[["cum_r_min", "cum_r_max"]].ffill()
+_review_state = _review_state.drop(columns=[c for c in _review_state.columns if c not in {
+    "customer_id", "review_time", "first_review_time", "cum_distinct_products",
+    "cum_n_rated", "cum_r_sum", "cum_r_sumsq", "cum_r_min", "cum_r_max"}])
+del _rs_g
+
+
 def _build_customer_flat(target_df, activity_df, lookback_90=90):
     base = target_df[["customer_id", "timestamp"]].copy()
     base["customer_id"] = base["customer_id"].astype(np.int64)
@@ -410,32 +435,30 @@ def _build_customer_flat(target_df, activity_df, lookback_90=90):
     base["total_reviews"] = _now
     base["recent_reviews_90d"] = np.maximum(0, _now - _j2["cum_reviews"].fillna(0).astype(np.int64).to_numpy())
 
+    _st = pd.merge_asof(
+        _q.sort_values(["timestamp", "customer_id"]),
+        _review_state.sort_values(["review_time", "customer_id"]),
+        left_on="timestamp", right_on="review_time",
+        by="customer_id", direction="backward", allow_exact_matches=False,
+    ).set_index("_row_id").reindex(_q["_row_id"])
+    if not np.array_equal(_st["customer_id"].to_numpy(), _q["customer_id"].to_numpy()):
+        raise RuntimeError("flat features: customer_id order changed across merge_asof")
+    if not (_st["review_time"].isna() | (_st["review_time"].to_numpy() < _q["timestamp"].to_numpy())).all():
+        raise RuntimeError("flat features: review aggregates read a review at or after the target timestamp")
     if _rating_col is not None:
-        _rated = review_df[["customer_id", _rating_col]].copy()
-        _rated[_rating_col] = pd.to_numeric(_rated[_rating_col], errors="coerce")
-        _rated = _rated.dropna(subset=[_rating_col])
-        _agg = _rated.groupby("customer_id")[_rating_col].agg(
-            mean_rating="mean", rating_std="std", min_rating="min", max_rating="max").reset_index()
-        base = base.merge(_agg, on="customer_id", how="left")
-        for c, v in [("mean_rating", 3.0), ("rating_std", 0.0), ("min_rating", 3.0), ("max_rating", 3.0)]:
-            base[c] = base[c].fillna(v)
+        _n = _st["cum_n_rated"].fillna(0).to_numpy(dtype=np.float64)
+        _sum, _sumsq = _st["cum_r_sum"].fillna(0.0).to_numpy(), _st["cum_r_sumsq"].fillna(0.0).to_numpy()
+        _var = np.maximum(_sumsq - _sum * _sum / np.maximum(_n, 1.0), 0.0) / np.maximum(_n - 1.0, 1.0)
+        base["mean_rating"] = np.where(_n > 0, _sum / np.maximum(_n, 1.0), 3.0)
+        base["rating_std"]  = np.where(_n > 1, np.sqrt(_var), 0.0)
+        base["min_rating"]  = _st["cum_r_min"].fillna(3.0).to_numpy()
+        base["max_rating"]  = _st["cum_r_max"].fillna(3.0).to_numpy()
     else:
         for c in ["mean_rating", "rating_std", "min_rating", "max_rating"]:
             base[c] = 0.0
-
-    if "product_id" in review_df.columns:
-        _div = review_df.groupby("customer_id")["product_id"].nunique().rename("distinct_products")
-        base = base.merge(_div.reset_index(), on="customer_id", how="left")
-        base["distinct_products"] = base["distinct_products"].fillna(0).astype(np.int64)
-    else:
-        base["distinct_products"] = 0
-
-    _span = review_df.groupby("customer_id")["review_time"].agg(
-        first_review="min", last_review="max").reset_index()
-    _span["review_span_days"] = (
-        (_span["last_review"] - _span["first_review"]).dt.days.fillna(0).astype(np.int64))
-    base = base.merge(_span[["customer_id", "review_span_days"]], on="customer_id", how="left")
-    base["review_span_days"] = base["review_span_days"].fillna(0).astype(np.int64)
+    base["distinct_products"] = _st["cum_distinct_products"].fillna(0).astype(np.int64).to_numpy()
+    base["review_span_days"] = (
+        (_st["review_time"] - _st["first_review_time"]).dt.days.fillna(0).astype(np.int64).to_numpy())
     base["low_rating_flag"] = (base["mean_rating"] < 3.0).astype(np.int8)
     _ids = target_df[["customer_id", "timestamp"]]
     if not (np.array_equal(base["customer_id"].to_numpy(), _ids["customer_id"].astype(np.int64).to_numpy())
@@ -457,6 +480,8 @@ def _check_flat_features(base, n=FLAT_CHECK_SAMPLES):
     idx = np.random.default_rng(0).choice(len(base), size=min(n, len(base)), replace=False)
     _ev = review_events[review_events["customer_id"].isin(base["customer_id"].iloc[idx].unique())]
     _times = {c: g["review_time"].to_numpy() for c, g in _ev.groupby("customer_id")}
+    _rv = review_df[review_df["customer_id"].isin(base["customer_id"].iloc[idx].unique())]
+    _reviews = {c: g for c, g in _rv.groupby("customer_id")}
     for i in idx:
         r = base.iloc[int(i)]
         ts = np.datetime64(r["timestamp"], "ns")
@@ -468,11 +493,29 @@ def _check_flat_features(base, n=FLAT_CHECK_SAMPLES):
             "recent_reviews_30d": int((t >= ts - np.timedelta64(30, "D")).sum()),
             "days_since_last_review": int((ts - t.max()) // np.timedelta64(1, "D")) if len(t) else 9999,
         }
+        rv = _reviews.get(int(r["customer_id"]))
+        rv = rv[rv["review_time"] < ts] if rv is not None else None
+        if rv is not None and len(rv):
+            exp["review_span_days"] = int((rv["review_time"].max() - rv["review_time"].min()).days)
+            if "product_id" in rv.columns:
+                exp["distinct_products"] = int(rv["product_id"].nunique())
+        else:
+            exp["review_span_days"] = 0
+            exp["distinct_products"] = 0
         got = {k: int(r[k]) for k in exp}
+        if _rating_col is not None:
+            rt = (pd.to_numeric(rv[_rating_col], errors="coerce").astype(np.float64).dropna()
+                  if rv is not None else pd.Series(dtype=np.float64))
+            for c, e in [("mean_rating", rt.mean() if len(rt) else 3.0),
+                         ("rating_std", rt.std() if len(rt) > 1 else 0.0),
+                         ("min_rating", rt.min() if len(rt) else 3.0), ("max_rating", rt.max() if len(rt) else 3.0)]:
+                if not np.isclose(float(r[c]), float(e), rtol=0, atol=1e-6):
+                    exp[c], got[c] = float(e), float(r[c])
         if got != exp:
             raise RuntimeError(f"flat-feature check failed at row {int(i)} (customer_id={int(r['customer_id'])}, "
                                f"timestamp={r['timestamp']}): expected {exp}, got {got}")
-    print(f"[flat-check] {len(idx)} sampled rows match a recomputation from reviews before each row's timestamp")
+    print(f"[flat-check] {len(idx)} sampled rows: counts and review aggregates match a recomputation "
+          f"from reviews before each row's timestamp")
 
 
 # Recompute activity on filtered table for flat features
