@@ -36,6 +36,8 @@ import torch.nn.functional as F
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, roc_auc_score
+
+from eval_fingerprint import auth_eval_fingerprint
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 from torch_geometric.data import HeteroData
@@ -1272,6 +1274,7 @@ def main() -> None:
     graph = torch.load(GRAPH_PATH, map_location="cpu", weights_only=False)
     auth = graph["auth"]
     y_true_test = auth.y.view(-1).cpu().numpy().astype(np.int8)[auth.test_mask.view(-1).cpu().numpy().astype(bool)]
+    eval_set = auth_eval_fingerprint(auth)
 
     variants = [
         ("rad_llm_rules_no_bce", "llm", 0.0),
@@ -1361,12 +1364,12 @@ def main() -> None:
             done_pairs.add((variant_name, seed))
 
         by_seed_df = pd.DataFrame(rows).sort_values(["variant", "seed"]).reset_index(drop=True)
-        by_seed_df = by_seed_df.drop_duplicates(subset=["variant", "seed"], keep="last")
+        by_seed_df = by_seed_df.drop_duplicates(subset=["variant", "seed"], keep="last").assign(**eval_set)
         by_seed_df.to_csv(BY_SEED_CSV, index=False)
         print(f"[seed {seed}] checkpoint saved -> {BY_SEED_CSV}")
 
     by_seed_df = pd.DataFrame(rows).sort_values(["variant", "seed"]).reset_index(drop=True)
-    by_seed_df = by_seed_df.drop_duplicates(subset=["variant", "seed"], keep="last")
+    by_seed_df = by_seed_df.drop_duplicates(subset=["variant", "seed"], keep="last").assign(**eval_set)
     mean_std_df = summarize(by_seed_df)
     by_seed_df.to_csv(BY_SEED_CSV, index=False)
     mean_std_df.to_csv(MEAN_STD_CSV, index=False)

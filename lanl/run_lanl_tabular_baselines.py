@@ -28,6 +28,8 @@ if str(ROOT_DIR / "DRL") not in os.sys.path:
 
 from PrototypeNet.Model import PN
 
+from eval_fingerprint import auth_eval_fingerprint
+
 
 def _device() -> torch.device:
     raw = os.environ.get("LANL_BASELINE_DEVICE", "").strip().lower()
@@ -105,6 +107,8 @@ def load_split_data() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, n
           f"val&test={int((val_mask & test_mask).sum())}", flush=True)
     if (train_mask & val_mask).any() or (train_mask & test_mask).any() or (val_mask & test_mask).any():
         raise RuntimeError("LANL train/val/test masks overlap")
+    global EVAL_SET
+    EVAL_SET = auth_eval_fingerprint(auth)
 
     x_train = x[train_mask]
     x_val = x[val_mask]
@@ -458,27 +462,27 @@ def main() -> None:
         if ("Isolation Forest", seed) not in done_pairs:
             set_seed(seed)
             res = run_iforest(x_norm, x_test_n, y_test, seed)
-            rows.append({"model": "Isolation Forest", "seed": seed, **res})
+            rows.append({**EVAL_SET, "model": "Isolation Forest", "seed": seed, **res})
             done_pairs.add(("Isolation Forest", seed))
             print(f"  [done] Isolation Forest auprc={res['auprc']:.4f}")
         if ("DRL", seed) not in done_pairs:
             res = run_drl(x_norm, x_test_n, y_test, seed)
-            rows.append({"model": "DRL", "seed": seed, **res})
+            rows.append({**EVAL_SET, "model": "DRL", "seed": seed, **res})
             done_pairs.add(("DRL", seed))
             print(f"  [done] DRL auprc={res['auprc']:.4f}")
         if ("Deep SVDD", seed) not in done_pairs:
             res = run_svdd(x_norm, x_val_n, x_test_n, y_val, y_test, seed)
-            rows.append({"model": "Deep SVDD", "seed": seed, **res})
+            rows.append({**EVAL_SET, "model": "Deep SVDD", "seed": seed, **res})
             done_pairs.add(("Deep SVDD", seed))
             print(f"  [done] Deep SVDD auprc={res['auprc']:.4f}")
         if ("AE", seed) not in done_pairs:
             res = train_ae(x_norm, x_val_n, x_test_n, y_train, y_val, y_test, use_rank=False, seed=seed)
-            rows.append({"model": "AE", "seed": seed, **res})
+            rows.append({**EVAL_SET, "model": "AE", "seed": seed, **res})
             done_pairs.add(("AE", seed))
             print(f"  [done] AE auprc={res['auprc']:.4f}")
         if ("AE+Rank", seed) not in done_pairs:
             res = train_ae(x_norm, x_val_n, x_test_n, y_train, y_val, y_test, use_rank=True, seed=seed)
-            rows.append({"model": "AE+Rank", "seed": seed, **res})
+            rows.append({**EVAL_SET, "model": "AE+Rank", "seed": seed, **res})
             done_pairs.add(("AE+Rank", seed))
             print(f"  [done] AE+Rank auprc={res['auprc']:.4f}")
 

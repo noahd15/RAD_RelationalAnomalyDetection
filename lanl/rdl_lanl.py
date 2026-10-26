@@ -39,6 +39,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.metrics import average_precision_score, roc_auc_score
 
+from eval_fingerprint import auth_eval_fingerprint
+
 from relbench.modeling.nn import HeteroGraphSAGE
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -396,6 +398,7 @@ def main():
           f"val&test={int((_va & _te).sum())}", flush=True)
     if int((_tr & _va).sum()) or int((_tr & _te).sum()) or int((_va & _te).sum()):
         raise RuntimeError("LANL train/val/test masks overlap")
+    eval_set = auth_eval_fingerprint(auth)
 
     in_dims = {
         nt: int(g[nt].x.size(1))
@@ -429,7 +432,7 @@ def main():
             continue
         print(f"[rdl] ── Seed {seed} ──────────────────────────────────", flush=True)
         res = run_one_seed(g, in_dims, seed)
-        all_results.append({"seed": int(seed), **res, "weighted_loss": bool(USE_POS_WEIGHT)})
+        all_results.append({"seed": int(seed), **res, "weighted_loss": bool(USE_POS_WEIGHT), **eval_set})
         print(f"  → AUROC={res['auroc']:.4f}  AUPRC={res['auprc']:.4f}  P@127={res['p@127']:.4f}\n",
               flush=True)
 
