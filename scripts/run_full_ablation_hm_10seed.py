@@ -21,13 +21,14 @@ Outputs:
 from __future__ import annotations
 
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from ablation_provenance import check_same_eval_set, parse_rad_final, write_run_config
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -44,6 +45,8 @@ def _run_baselines(seed: int) -> pd.DataFrame:
     env = os.environ.copy()
     env.pop("CUDA_VISIBLE_DEVICES", None)
     env["SEED"] = str(seed)
+    baselines_dir = OUT_DIR / "baselines" / f"seed{seed}"
+    env["BASELINES_OUT_DIR"] = baselines_dir.as_posix()
 
     cmd = [sys.executable, str(BASELINES_SCRIPT)]
     print(f"[seed={seed}] Running H&M baselines script", flush=True)
@@ -55,7 +58,7 @@ def _run_baselines(seed: int) -> pd.DataFrame:
     if proc.returncode != 0:
         raise RuntimeError(f"Baselines script exited {proc.returncode} (seed={seed})")
 
-    csv_path = ROOT_DIR / "results" / "full_ablation_hm" / "baselines_metrics.csv"
+    csv_path = baselines_dir / "baselines_metrics.csv"
     if not csv_path.exists():
         raise RuntimeError(f"Baselines script did not produce expected file: {csv_path}")
 
@@ -96,21 +99,16 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
         raise RuntimeError(f"RAD script exited {proc.returncode} (seed={seed}, lambda_struct={lambda_struct})")
 
     txt = proc.stdout or ""
-    m = re.search(
-        r"FINAL COMPARISON \(Val Set.*?At-Risk Filtered Labels\).*?"
-        r"RAD \(rule-augmented\)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)",
-        txt,
-        flags=re.S,
-    )
-    if not m:
-        raise RuntimeError("Could not parse RAD at-risk filtered metrics from output")
+    parsed = parse_rad_final(txt)
 
     return pd.Series(
         {
-            "auprc": float(m.group(1)),
-            "auroc": float(m.group(2)),
-            "p@k": float(m.group(3)),
-            "lift": float(m.group(4)),
+            "auprc": parsed["auprc"],
+            "auroc": parsed["auroc"],
+            "p@k": parsed["p@k"],
+            "lift": parsed["lift"],
+            "n_eval": parsed["n_eval"],
+            "n_pos": parsed["n_pos"],
             "seed": int(seed),
         }
     )
@@ -157,6 +155,7 @@ def main() -> None:
     print(f"FULL H&M ABLATION OVER SEEDS | n_seeds={n_seeds} | seeds={seeds}")
     print("=" * 90)
 
+    write_run_config(OUT_DIR, seeds)
     all_rows: list[dict] = []
     for seed in seeds:
         baselines = _run_baselines(seed)
@@ -174,6 +173,8 @@ def main() -> None:
                     "auprc": float(rad_bce["auprc"]),
                     "p@k":   float(rad_bce["p@k"]),
                     "lift":  float(rad_bce["lift"]),
+                    "n_eval": int(rad_bce["n_eval"]),
+                    "n_pos": int(rad_bce["n_pos"]),
                     "seed":  int(seed),
                     "source": "rad_vs_script",
                 },
@@ -183,6 +184,8 @@ def main() -> None:
                     "auprc": float(rad_no_bce["auprc"]),
                     "p@k":   float(rad_no_bce["p@k"]),
                     "lift":  float(rad_no_bce["lift"]),
+                    "n_eval": int(rad_no_bce["n_eval"]),
+                    "n_pos": int(rad_no_bce["n_pos"]),
                     "seed":  int(seed),
                     "source": "rad_vs_script",
                 },
@@ -191,11 +194,12 @@ def main() -> None:
 
         combined = pd.concat(
             [
-                baselines[["model", "auroc", "auprc", "p@k", "lift", "seed", "source"]],
+                baselines[["model", "auroc", "auprc", "p@k", "lift", "n_eval", "n_pos", "seed", "source"]],
                 rad_rows,
             ],
             ignore_index=True,
         )
+        check_same_eval_set(combined, seed)
         all_rows.extend(combined.to_dict(orient="records"))
 
     per_seed = pd.DataFrame(all_rows)

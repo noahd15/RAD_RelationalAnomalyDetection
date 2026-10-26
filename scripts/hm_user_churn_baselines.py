@@ -245,9 +245,18 @@ def atrisk_labels(target_df, activity_df, thresholds=None):
     trend   = activity_df["trend_w"].to_numpy(dtype=np.float64)
     a_bar   = np.maximum(activity_df["avg_activity"].to_numpy(dtype=np.float64), 0.0)
     if thresholds is None:
-        thresholds = {"a": _ATRISK_A, "b": _ATRISK_B, "alpha": _ATRISK_ALPHA}
+        thresholds = {
+            "a": _ATRISK_A,
+            "b": _ATRISK_B,
+            "alpha": _ATRISK_ALPHA,
+            "tau_multiplier": float(os.environ.get("ATRISK_TAU_MULTIPLIER", "1.0")),
+        }
     a, b, alpha = thresholds["a"], thresholds["b"], thresholds["alpha"]
-    tau     = a + (np.log(a_bar + 1.0) / np.log(b)) * (1.0 + alpha * a_bar)
+    # Must match the RAD scripts, otherwise baselines and RAD are scored on different anomaly labels.
+    tau_multiplier = float(thresholds.get("tau_multiplier", 1.0))
+    if tau_multiplier <= 0.0:
+        raise ValueError(f"ATRISK_TAU_MULTIPLIER must be > 0, got {tau_multiplier}")
+    tau     = (a + (np.log(a_bar + 1.0) / np.log(b)) * (1.0 + alpha * a_bar)) * tau_multiplier
     at_risk = trend <= (-tau)
     keep_mask      = ~at_risk
     anomaly_labels = raw * keep_mask.astype(np.int64)
@@ -312,7 +321,8 @@ def eval_metrics(y_true, scores):
     p_at_k = float(y_true[top_k].mean())
     prev   = float(y_true.mean())
     lift   = auprc / prev if prev > 0 else float("nan")
-    return {"auroc": auroc, "auprc": auprc, "p@k": p_at_k, "lift": lift}
+    return {"auroc": auroc, "auprc": auprc, "p@k": p_at_k, "lift": lift,
+            "n_eval": int(len(y_true)), "n_pos": int(y_true.sum())}
 
 
 RESULTS: dict[str, dict] = {}
@@ -320,7 +330,7 @@ RESULTS: dict[str, dict] = {}
 
 def _persist_results_csv(results: dict) -> None:
     root_dir = Path(__file__).resolve().parents[1]
-    out_dir  = root_dir / "results" / "hm" / "full_ablation_hm"
+    out_dir  = Path(os.environ.get("BASELINES_OUT_DIR", "") or (root_dir / "results" / "hm" / "full_ablation_hm"))
     out_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     for model, met in results.items():
@@ -331,6 +341,8 @@ def _persist_results_csv(results: dict) -> None:
                 "auprc": float(met.get("auprc", float("nan"))),
                 "p@k":   float(met.get("p@k",   float("nan"))),
                 "lift":  float(met.get("lift",  float("nan"))),
+                "n_eval": met.get("n_eval"),
+                "n_pos": met.get("n_pos"),
                 "source": "baselines_script",
             })
     df = pd.DataFrame(rows)

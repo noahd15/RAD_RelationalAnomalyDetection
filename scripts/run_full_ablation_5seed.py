@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import os
 import pickle
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -33,12 +32,14 @@ import pandas as pd
 import torch
 from sklearn.metrics import roc_auc_score
 
+from ablation_provenance import check_same_eval_set, parse_rad_final, write_run_config
+
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 os.chdir(ROOT_DIR)
 
-BASELINES_SCRIPT = ROOT_DIR / "scripts" / "active" / "amazon_user_churn_baselines.py"
-RAD_SCRIPT = ROOT_DIR / "scripts" / "active" / "rad_vs_supervised_rdl.py"
+BASELINES_SCRIPT = ROOT_DIR / "scripts" / "amazon_user_churn_baselines.py"
+RAD_SCRIPT = ROOT_DIR / "scripts" / "rad_vs_supervised_rdl.py"
 OUT_DIR = ROOT_DIR / "results" / "amazon" / "full_ablation_5seed"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 RAW_PRED_DIR = OUT_DIR / "raw_predictions"
@@ -80,6 +81,8 @@ def _run_baselines(seed: int) -> pd.DataFrame:
     env = os.environ.copy()
     env.pop("CUDA_VISIBLE_DEVICES", None)
     env["SEED"] = str(seed)
+    baselines_dir = OUT_DIR / "baselines" / f"seed{seed}"
+    env["BASELINES_OUT_DIR"] = baselines_dir.as_posix()
     raw_path = RAW_PRED_DIR / f"baselines_seed{seed}.pt"
     env["SAVE_RAW_RESULTS_PATH"] = raw_path.as_posix()
 
@@ -91,7 +94,7 @@ def _run_baselines(seed: int) -> pd.DataFrame:
     if proc.stderr:
         print(proc.stderr, end="", file=sys.stderr)
 
-    csv_path = ROOT_DIR / "results" / "amazon" / "full_ablation" / "baselines_metrics.csv"
+    csv_path = baselines_dir / "baselines_metrics.csv"
     if not csv_path.exists():
         raise RuntimeError(f"Baselines script did not produce expected file: {csv_path}")
 
@@ -132,22 +135,17 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
         print(proc.stderr, end="", file=sys.stderr)
 
     txt = proc.stdout or ""
-    m = re.search(
-        r"FINAL COMPARISON \(Val Set.*?At-Risk Filtered Labels\).*?"
-        r"RAD \(rule-augmented\)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)",
-        txt,
-        flags=re.S,
-    )
-    if not m:
-        raise RuntimeError("Could not parse RAD at-risk filtered metrics from output")
+    parsed = parse_rad_final(txt)
 
     return pd.Series(
         {
-            "auprc": float(m.group(1)),
-            "auroc": float(m.group(2)),
+            "auprc": parsed["auprc"],
+            "auroc": parsed["auroc"],
             "pauroc": _load_rad_pauroc(raw_path),
-            "p@k": float(m.group(3)),
-            "lift": float(m.group(4)),
+            "p@k": parsed["p@k"],
+            "lift": parsed["lift"],
+            "n_eval": parsed["n_eval"],
+            "n_pos": parsed["n_pos"],
             "seed": int(seed),
         }
     )
@@ -206,6 +204,7 @@ def main() -> None:
     print(f"FULL ABLATION AMAZON (5 SEEDS) | seeds={seeds}")
     print("=" * 90)
 
+    write_run_config(OUT_DIR, seeds)
     all_rows: list[dict] = []
     for seed in seeds:
         baselines = _run_baselines(seed)
@@ -224,6 +223,8 @@ def main() -> None:
                     "pauroc": float(rad_bce["pauroc"]),
                     "p@k": float(rad_bce["p@k"]),
                     "lift": float(rad_bce["lift"]),
+                    "n_eval": int(rad_bce["n_eval"]),
+                    "n_pos": int(rad_bce["n_pos"]),
                     "seed": int(seed),
                     "source": "rad_vs_script",
                 },
@@ -234,6 +235,8 @@ def main() -> None:
                     "pauroc": float(rad_no_bce["pauroc"]),
                     "p@k": float(rad_no_bce["p@k"]),
                     "lift": float(rad_no_bce["lift"]),
+                    "n_eval": int(rad_no_bce["n_eval"]),
+                    "n_pos": int(rad_no_bce["n_pos"]),
                     "seed": int(seed),
                     "source": "rad_vs_script",
                 },
@@ -242,11 +245,12 @@ def main() -> None:
 
         combined = pd.concat(
             [
-                baselines[["model", "auroc", "auprc", "pauroc", "p@k", "lift", "seed", "source"]],
+                baselines[["model", "auroc", "auprc", "pauroc", "p@k", "lift", "n_eval", "n_pos", "seed", "source"]],
                 rad_rows,
             ],
             ignore_index=True,
         )
+        check_same_eval_set(combined, seed)
         all_rows.extend(combined.to_dict(orient="records"))
 
     per_seed_df = pd.DataFrame(all_rows)
