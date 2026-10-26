@@ -20,6 +20,23 @@ import pandas as pd
 VAL_FIT_FRAC = float(os.environ.get("VAL_FIT_FRAC", "0.6"))
 
 
+def fresh_table(table):
+    """A new Table holding a copy of `table.df`.
+
+    RelBench caches get_task() and Task.get_table() (lru_cache), so every call returns the
+    same Table object. Reassigning or editing its .df changes what later get_table() calls in
+    the same process return. Take a fresh_table() of every get_table() result before changing it.
+    """
+    from relbench.base import Table
+
+    return Table(
+        df=table.df.copy(),
+        fkey_col_to_pkey_table=dict(table.fkey_col_to_pkey_table),
+        pkey_col=table.pkey_col,
+        time_col=table.time_col,
+    )
+
+
 def partition_val(val_df: pd.DataFrame, seed: int, frac: float = VAL_FIT_FRAC) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Split the val table into (fit, report) exactly as the RAD scripts do."""
     val_df = val_df.reset_index(drop=True)

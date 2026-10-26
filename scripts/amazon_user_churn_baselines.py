@@ -17,7 +17,7 @@ from tqdm import tqdm
 from relbench.datasets import get_dataset
 from relbench.tasks import get_task
 from path_helpers import amazon_data, append_results_jsonl
-from eval_split import check_disjoint, downsample_positions, eval_fingerprint, partition_val
+from eval_split import check_disjoint, downsample_positions, eval_fingerprint, fresh_table, partition_val
 
 RANDOM_STATE = int(os.environ.get("SEED", os.environ.get("RANDOM_STATE", "42")))
 _device_env = os.environ.get("BASELINES_DEVICE", "auto").strip().lower()
@@ -52,7 +52,7 @@ task    = get_task("rel-amazon", "user-churn", download=True)
 db      = dataset.get_db()
 
 train_table = task.get_table("train")
-val_table   = task.get_table("val")
+val_table   = fresh_table(task.get_table("val"))  # fresh: .df is reassigned below
 # Same fit/report partition of val as the RAD scripts: fit rows drive early stopping,
 # report rows are the only ones scored.
 _val_fit_df, _val_report_df = partition_val(val_table.df, RANDOM_STATE)
@@ -828,8 +828,9 @@ else:
 # variables which do NOT have the heuristic churn column written back in.
 import copy as _copy2
 _rdl_task        = get_task("rel-amazon", "user-churn", download=True)
-_rdl_train_table = _rdl_task.get_table("train")
-_rdl_val_table   = _rdl_task.get_table("val")
+# fresh_table: get_table() is cached, and these tables are filtered in place below.
+_rdl_train_table = fresh_table(_rdl_task.get_table("train"))
+_rdl_val_table   = fresh_table(_rdl_task.get_table("val"))
 _rdl_val_fit_df, _rdl_val_report_df = partition_val(_rdl_val_table.df, RANDOM_STATE)
 check_disjoint(_rdl_val_fit_df, _rdl_val_report_df, "Supervised RDL val fit vs report")
 _rdl_val_fit_table = _copy2.deepcopy(_rdl_val_table)

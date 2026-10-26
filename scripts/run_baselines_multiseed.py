@@ -32,6 +32,7 @@ from tqdm import tqdm
 from relbench.datasets import get_dataset
 from relbench.tasks import get_task
 from path_helpers import amazon_data
+from eval_split import fresh_table
 
 # ── Device setup ─────────────────────────────────────────────────────────────
 _device_env = os.environ.get("BASELINES_DEVICE", "auto").strip().lower()
@@ -828,10 +829,11 @@ def _run_one_seed(seed: int) -> dict[str, dict[str, float]]:
 
     _seed_pyg(seed)
 
-    # Fresh task table instances per seed (val table is mutated during filtering)
+    # Fresh table copies per seed: get_task()/get_table() are cached, and these tables are
+    # filtered in place below.
     _rdl_task        = get_task("rel-amazon", "user-churn", download=True)
-    _rdl_train_table = _rdl_task.get_table("train")
-    _rdl_val_table   = _rdl_task.get_table("val")
+    _rdl_train_table = fresh_table(_rdl_task.get_table("train"))
+    _rdl_val_table   = fresh_table(_rdl_task.get_table("val"))
     _entity_table    = _rdl_task.entity_table
 
     # Apply at-risk filtering with the same thresholds

@@ -138,6 +138,9 @@ def _alias_models(df: pd.DataFrame) -> pd.DataFrame:
         "AE-Rank": "AE+Rank",
         "DeepSVDD": "Deep SVDD",
         "DRL": "DRL",
+        # The baselines script's own RDL model. Kept as an internal cross-check against the
+        # Supervised RDL runner (run_10seed_supervised_rdl_weighted.py); not a Table 4 row.
+        "Supervised RDL": "Supervised RDL (baselines-script cross-check, not reported)",
     }
     out = df.copy()
     out["model"] = out["model"].map(lambda x: alias_map.get(x, x))

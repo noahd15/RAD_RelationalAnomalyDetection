@@ -44,7 +44,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from path_helpers import ROOT_DIR, amazon_data, hm_data  # noqa: E402
-from eval_split import check_disjoint, downsample_positions, eval_fingerprint, partition_val  # noqa: E402
+from eval_split import check_disjoint, downsample_positions, eval_fingerprint, fresh_table, partition_val  # noqa: E402
 from ablation_provenance import write_run_config  # noqa: E402
 
 
@@ -362,9 +362,11 @@ def load_dataset_assets(dataset_key: str):
 def run_seed(seed: int, task, graph_data, col_stats, events_df, event_time_col: str) -> Dict[str, float]:
     set_seed(seed)
 
-    train_table = task.get_table("train")
-    val_table = task.get_table("val")
-    raw_test_table = task.get_table("test")
+    # fresh_table: get_table() is cached and the tables are changed in place below, so
+    # without a copy each seed would start from the previous seed's filtered tables.
+    train_table = fresh_table(task.get_table("train"))
+    val_table = fresh_table(task.get_table("val"))
+    raw_test_table = fresh_table(task.get_table("test"))
     use_val_for_eval = "churn" not in raw_test_table.df.columns
     eval_split = "val" if use_val_for_eval else "test"
     if use_val_for_eval:
