@@ -113,6 +113,9 @@ LLM_MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct"
 LLM_GEN_KWARGS = dict(max_new_tokens=int(os.environ.get("LLM_MAX_NEW_TOKENS", "4000")),
                       do_sample=False, temperature=0.0, top_p=1.0)
 LLM_N_SEED_RULES = 20
+# Example predicates written into the prompt (none: the LANL prompt quotes no example predicate);
+# generated rules that copy one verbatim are counted in rule_generation.json.
+PROMPT_EXAMPLE_PREDICATES: List[str] = []
 
 
 def set_seed(seed: int) -> None:
@@ -661,6 +664,9 @@ def generate_llm_rules_per_run(rule_ctx: Dict, seed: int, out_dir: str) -> str:
         **LLM_GEN_KWARGS,
     )
     response_text = outputs[0]["generated_text"][-1]["content"]
+    user_prompt = outputs[0]["generated_text"][1]["content"]
+    if not all(f"'{p}'" in user_prompt for p in PROMPT_EXAMPLE_PREDICATES):
+        raise RuntimeError("PROMPT_EXAMPLE_PREDICATES no longer match the examples in the prompt")
     del llm, pipe, tok, outputs
     torch.cuda.empty_cache()
 
@@ -670,6 +676,16 @@ def generate_llm_rules_per_run(rule_ctx: Dict, seed: int, out_dir: str) -> str:
     if truncated:
         print(f"  [llm-rules] response did not close its JSON array (max_new_tokens={LLM_GEN_KWARGS['max_new_tokens']}); "
               f"kept the {n_parsed} complete objects")
+    # Generated candidates identical (whitespace collapsed) to a predicate the prompt showed the LLM.
+    norm = lambda p: " ".join(str(p).split())
+    cand_preds = [norm(c.get("sql_predicate", "")) for c in cands if isinstance(c, dict)]
+    example_set = {norm(p) for p in PROMPT_EXAMPLE_PREDICATES}
+    seed_set = {norm(r["sql_predicate"]) for r in seed_rules}
+    prompt_copies = [p for p in cand_preds if p in example_set]
+    seed_copies = [p for p in cand_preds if p in seed_set]
+    print(f"  [rules] verbatim prompt copies: {len(prompt_copies)} (of {len(cand_preds)} generated; "
+          f"{len(PROMPT_EXAMPLE_PREDICATES)} example predicates in the prompt) {prompt_copies}")
+    print(f"  [rules] verbatim seed-rule copies: {len(seed_copies)} {seed_copies}")
     avail = set(X_df.columns)
     val_df = X_df.iloc[val_idx].reset_index(drop=True).assign(_row=np.arange(len(val_idx)))
     val_y = y[val_idx]
@@ -726,6 +742,9 @@ def generate_llm_rules_per_run(rule_ctx: Dict, seed: int, out_dir: str) -> str:
             "seed_rules_in_prompt": seed_rules,
             "response_truncated": truncated,
             "n_candidates_parsed": n_parsed,
+            "prompt_example_predicates": PROMPT_EXAMPLE_PREDICATES,
+            "n_verbatim_prompt_copies": len(prompt_copies), "verbatim_prompt_copies": prompt_copies,
+            "n_verbatim_seed_rule_copies": len(seed_copies), "verbatim_seed_rule_copies": seed_copies,
             "n_rejected_missing_columns": len(rejected), "rejected": rejected,
             "n_sql_errors": len(sql_errors), "sql_errors": sql_errors,
             "n_dropped_no_val_support": len(no_val_support), "dropped_no_val_support": no_val_support,

@@ -902,6 +902,10 @@ seed_text = json.dumps([{
     "val_support":   int(r.get("val_support", 0)),
 } for i, r in enumerate(seed_rules[:20])], indent=2)
 
+# Example predicates written into the prompt (quoted in the user prompt below); generated rules that copy one
+# verbatim are counted in rule_generation.json.
+PROMPT_EXAMPLE_PREDICATES = ["recent_txns_90d <= 1", "distinct_articles <= 2"]
+
 if RF_RULE_MODE == "llm" and not (USE_CACHED_LLM_RULES and os.path.exists(PARSED_RULES_CSV)):
     outputs = pipe(
         [
@@ -926,6 +930,9 @@ if RF_RULE_MODE == "llm" and not (USE_CACHED_LLM_RULES and os.path.exists(PARSED
         **LLM_GEN_KWARGS,
     )
     response_text = outputs[0]["generated_text"][-1]["content"]
+    _user_prompt = outputs[0]["generated_text"][1]["content"]
+    if not all(f"'{p}'" in _user_prompt for p in PROMPT_EXAMPLE_PREDICATES):
+        raise RuntimeError("PROMPT_EXAMPLE_PREDICATES no longer match the examples in the prompt")
     print("LLM response (first 500 chars):")
     print(response_text[:500])
 
@@ -995,6 +1002,23 @@ def _seed_fallback():
 llm_candidates = _parse_llm(response_text)
 print(f"Parsed {len(llm_candidates)} rule candidates.")
 _n_parsed, _fallback_used, _rejected = len(llm_candidates), False, []
+
+# Generated candidates identical (whitespace collapsed) to a predicate the prompt showed the LLM.
+def _norm_pred(p):
+    return " ".join(str(p).split())
+_cand_preds = [_norm_pred(c.get("sql_predicate", "")) for c in llm_candidates if isinstance(c, dict)]
+if RF_RULE_MODE == "llm" and not _used_cached_rules:
+    _example_set = {_norm_pred(p) for p in PROMPT_EXAMPLE_PREDICATES}
+    _seed_set = {_norm_pred(r["sql_predicate"]) for r in json.loads(seed_text)}
+    _prompt_copies = [p for p in _cand_preds if p in _example_set]
+    _seed_copies = [p for p in _cand_preds if p in _seed_set]
+    print(f"[rules] verbatim prompt copies: {len(_prompt_copies)}"
+          f" (of {len(_cand_preds)} generated; {len(PROMPT_EXAMPLE_PREDICATES)} example predicates in the prompt)"
+          f" {_prompt_copies}")
+    print(f"[rules] verbatim seed-rule copies: {len(_seed_copies)} {_seed_copies}")
+else:
+    _prompt_copies = _seed_copies = None
+    print("[rules] verbatim prompt copies: n/a (no LLM generation in this run)")
 
 if RF_RULE_MODE in {"llm", "rf_seed"} and not llm_candidates:
     print("Rule parsing failed — using seed rules as fallback.")
@@ -1135,6 +1159,11 @@ with open(PARSED_RULES_GEN_JSON, "w") as _f:
         "seed_rules_in_prompt": json.loads(seed_text),
         "broad_rules_included": bool(RF_RULE_MODE == "llm" and HM_INCLUDE_BROAD_RULES),
         "n_candidates_parsed": _n_parsed,
+        "prompt_example_predicates": PROMPT_EXAMPLE_PREDICATES,
+        "n_verbatim_prompt_copies": (None if _prompt_copies is None else len(_prompt_copies)),
+        "verbatim_prompt_copies": _prompt_copies,
+        "n_verbatim_seed_rule_copies": (None if _seed_copies is None else len(_seed_copies)),
+        "verbatim_seed_rule_copies": _seed_copies,
         "seed_fallback_used": _fallback_used,
         "n_rejected_missing_columns": len(_rejected),
         "rejected": _rejected,
