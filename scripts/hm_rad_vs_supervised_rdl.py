@@ -405,24 +405,29 @@ def _build_customer_flat(target_df, activity_df, lookback_90=90):
     base["avg_activity"]    = activity_df["avg_activity"].values
 
     _right = txn_events[["customer_id", "t_dat", "cum_txns"]]
+    # merge_asof returns rows sorted by the join key; carry _row_id so the counts are
+    # assigned back to the rows they were computed for (the target tables are not sorted).
+    _q = base[["customer_id", "timestamp"]].copy()
+    _q["_row_id"]   = np.arange(len(_q), dtype=np.int64)
+    _q["window_90"] = _q["timestamp"] - pd.Timedelta(days=lookback_90)
     _j = pd.merge_asof(
-        base[["customer_id", "timestamp"]].sort_values(["timestamp", "customer_id"]),
+        _q.sort_values(["timestamp", "customer_id"]),
         _right.sort_values(["t_dat", "customer_id"]),
         left_on="timestamp", right_on="t_dat",
         by="customer_id", direction="backward", allow_exact_matches=False,
-    )
-    base["total_txns"] = _j["cum_txns"].fillna(0).astype(np.int64).values
-
-    _q2 = base[["customer_id", "timestamp"]].copy()
-    _q2["window_90"] = _q2["timestamp"] - pd.Timedelta(days=lookback_90)
+    ).set_index("_row_id").reindex(_q["_row_id"])
     _j2 = pd.merge_asof(
-        _q2.sort_values(["window_90", "customer_id"]),
+        _q.sort_values(["window_90", "customer_id"]),
         _right.sort_values(["t_dat", "customer_id"]),
         left_on="window_90", right_on="t_dat",
         by="customer_id", direction="backward", allow_exact_matches=False,
-    )
-    base["recent_txns_90d"] = np.maximum(
-        0, base["total_txns"].values - _j2["cum_txns"].fillna(0).astype(np.int64).values)
+    ).set_index("_row_id").reindex(_q["_row_id"])
+    for _jj in (_j, _j2):
+        if not np.array_equal(_jj["customer_id"].to_numpy(), _q["customer_id"].to_numpy()):
+            raise RuntimeError("flat features: customer_id order changed across merge_asof")
+    _now = _j["cum_txns"].fillna(0).astype(np.int64).to_numpy()
+    base["total_txns"] = _now
+    base["recent_txns_90d"] = np.maximum(0, _now - _j2["cum_txns"].fillna(0).astype(np.int64).to_numpy())
 
     # Compute price and article features causally — use shared disk cache
     price_cols = ["mean_price", "price_std", "min_price", "max_price"]
@@ -440,10 +445,14 @@ def _build_customer_flat(target_df, activity_df, lookback_90=90):
 
         if price_agg is not None:
             merged = base.loc[grp_idx, ["customer_id"]].merge(price_agg, on="customer_id", how="left")
+            if not np.array_equal(merged["customer_id"].to_numpy(), base.loc[grp_idx, "customer_id"].to_numpy()):
+                raise RuntimeError("flat features: customer_id order changed in the per-timestamp price merge")
             for c in price_cols:
                 base.loc[grp_idx, c] = merged[c].fillna(0.0).values
         if art_agg is not None:
             merged2 = base.loc[grp_idx, ["customer_id"]].merge(art_agg, on="customer_id", how="left")
+            if not np.array_equal(merged2["customer_id"].to_numpy(), base.loc[grp_idx, "customer_id"].to_numpy()):
+                raise RuntimeError("flat features: customer_id order changed in the per-timestamp article merge")
             base.loc[grp_idx, "distinct_articles"] = (
                 merged2["distinct_articles"].fillna(0).astype(np.int64).values)
 
@@ -452,7 +461,46 @@ def _build_customer_flat(target_df, activity_df, lookback_90=90):
             _pickle.dump(_pa_cache, _f)
         print(f"Saved causal price/article cache: {len(_pa_cache)} timestamps → {_PA_CACHE_PATH}")
 
+    _ids = target_df[["customer_id", "timestamp"]]
+    if not (np.array_equal(base["customer_id"].to_numpy(), _ids["customer_id"].astype(np.int64).to_numpy())
+            and np.array_equal(base["timestamp"].to_numpy(), pd.to_datetime(_ids["timestamp"]).to_numpy())):
+        raise RuntimeError("flat features: (customer_id, timestamp) rows no longer match the target table")
+    _check_flat_features(base)
     return base
+
+
+FLAT_CHECK_SAMPLES = 256
+
+
+def _check_flat_features(base, n=FLAT_CHECK_SAMPLES):
+    """Recompute the features of sampled rows directly from the transactions strictly before
+    each row's own timestamp and require exact agreement. Fails on row misalignment or on any
+    feature that reads transactions at or after the target timestamp."""
+    if len(base) == 0:
+        return
+    idx = np.random.default_rng(0).choice(len(base), size=min(n, len(base)), replace=False)
+    _ev = txn_events[txn_events["customer_id"].isin(base["customer_id"].iloc[idx].unique())]
+    _times = {c: g["t_dat"].to_numpy() for c, g in _ev.groupby("customer_id")}
+    for i in idx:
+        r = base.iloc[int(i)]
+        ts = np.datetime64(r["timestamp"], "ns")
+        t = _times.get(int(r["customer_id"]), np.array([], dtype="datetime64[ns]"))
+        t = t[t < ts]
+        recent = int((t >= ts - np.timedelta64(30, "D")).sum())
+        prev = int(((t >= ts - np.timedelta64(60, "D")) & (t < ts - np.timedelta64(30, "D"))).sum())
+        exp = {
+            "total_txns": int(len(t)),
+            "recent_txns_90d": int((t >= ts - np.timedelta64(90, "D")).sum()),
+            "recent_txns_30d": recent,
+        }
+        got = {k: int(r[k]) for k in exp}
+        for c, e in [("trend_w", (recent - prev) / (prev + 1.0)), ("avg_activity", 0.5 * (recent + prev))]:
+            if not np.isclose(float(r[c]), e, rtol=0, atol=1e-9):
+                exp[c], got[c] = e, float(r[c])
+        if got != exp:
+            raise RuntimeError(f"flat-feature check failed at row {int(i)} (customer_id={int(r['customer_id'])}, "
+                               f"timestamp={r['timestamp']}): expected {exp}, got {got}")
+    print(f"[flat-check] {len(idx)} sampled rows match a recomputation from transactions before each row's timestamp")
 
 
 _act_train_filt = _activity_features_for_targets(rdl_train_table.df, lookback_days=30)

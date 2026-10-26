@@ -386,24 +386,29 @@ def _build_customer_flat(target_df, activity_df, lookback_90=90):
     base["days_since_last_review"] = activity_df["days_since_last_review"].values
 
     _right = review_events[["customer_id", "review_time", "cum_reviews"]]
+    # merge_asof returns rows sorted by the join key; carry _row_id so the counts are
+    # assigned back to the rows they were computed for (the target tables are not sorted).
+    _q = base[["customer_id", "timestamp"]].copy()
+    _q["_row_id"]   = np.arange(len(_q), dtype=np.int64)
+    _q["window_90"] = _q["timestamp"] - pd.Timedelta(days=lookback_90)
     _j = pd.merge_asof(
-        base[["customer_id", "timestamp"]].sort_values(["timestamp", "customer_id"]),
+        _q.sort_values(["timestamp", "customer_id"]),
         _right.sort_values(["review_time", "customer_id"]),
         left_on="timestamp", right_on="review_time",
         by="customer_id", direction="backward", allow_exact_matches=False,
-    )
-    base["total_reviews"] = _j["cum_reviews"].fillna(0).astype(np.int64).values
-
-    _q2 = base[["customer_id", "timestamp"]].copy()
-    _q2["window_90"] = _q2["timestamp"] - pd.Timedelta(days=lookback_90)
+    ).set_index("_row_id").reindex(_q["_row_id"])
     _j2 = pd.merge_asof(
-        _q2.sort_values(["window_90", "customer_id"]),
+        _q.sort_values(["window_90", "customer_id"]),
         _right.sort_values(["review_time", "customer_id"]),
         left_on="window_90", right_on="review_time",
         by="customer_id", direction="backward", allow_exact_matches=False,
-    )
-    base["recent_reviews_90d"] = np.maximum(
-        0, base["total_reviews"].values - _j2["cum_reviews"].fillna(0).astype(np.int64).values)
+    ).set_index("_row_id").reindex(_q["_row_id"])
+    for _jj in (_j, _j2):
+        if not np.array_equal(_jj["customer_id"].to_numpy(), _q["customer_id"].to_numpy()):
+            raise RuntimeError("flat features: customer_id order changed across merge_asof")
+    _now = _j["cum_reviews"].fillna(0).astype(np.int64).to_numpy()
+    base["total_reviews"] = _now
+    base["recent_reviews_90d"] = np.maximum(0, _now - _j2["cum_reviews"].fillna(0).astype(np.int64).to_numpy())
 
     if _rating_col is not None:
         _rated = review_df[["customer_id", _rating_col]].copy()
@@ -432,7 +437,42 @@ def _build_customer_flat(target_df, activity_df, lookback_90=90):
     base = base.merge(_span[["customer_id", "review_span_days"]], on="customer_id", how="left")
     base["review_span_days"] = base["review_span_days"].fillna(0).astype(np.int64)
     base["low_rating_flag"] = (base["mean_rating"] < 3.0).astype(np.int8)
+    _ids = target_df[["customer_id", "timestamp"]]
+    if not (np.array_equal(base["customer_id"].to_numpy(), _ids["customer_id"].astype(np.int64).to_numpy())
+            and np.array_equal(base["timestamp"].to_numpy(), pd.to_datetime(_ids["timestamp"]).to_numpy())):
+        raise RuntimeError("flat features: (customer_id, timestamp) rows no longer match the target table")
+    _check_flat_features(base)
     return base
+
+
+FLAT_CHECK_SAMPLES = 256
+
+
+def _check_flat_features(base, n=FLAT_CHECK_SAMPLES):
+    """Recompute the features of sampled rows directly from the reviews strictly before each
+    row's own timestamp and require exact agreement. Fails on row misalignment or on any
+    feature that reads reviews at or after the target timestamp."""
+    if len(base) == 0:
+        return
+    idx = np.random.default_rng(0).choice(len(base), size=min(n, len(base)), replace=False)
+    _ev = review_events[review_events["customer_id"].isin(base["customer_id"].iloc[idx].unique())]
+    _times = {c: g["review_time"].to_numpy() for c, g in _ev.groupby("customer_id")}
+    for i in idx:
+        r = base.iloc[int(i)]
+        ts = np.datetime64(r["timestamp"], "ns")
+        t = _times.get(int(r["customer_id"]), np.array([], dtype="datetime64[ns]"))
+        t = t[t < ts]
+        exp = {
+            "total_reviews": int(len(t)),
+            "recent_reviews_90d": int((t >= ts - np.timedelta64(90, "D")).sum()),
+            "recent_reviews_30d": int((t >= ts - np.timedelta64(30, "D")).sum()),
+            "days_since_last_review": int((ts - t.max()) // np.timedelta64(1, "D")) if len(t) else 9999,
+        }
+        got = {k: int(r[k]) for k in exp}
+        if got != exp:
+            raise RuntimeError(f"flat-feature check failed at row {int(i)} (customer_id={int(r['customer_id'])}, "
+                               f"timestamp={r['timestamp']}): expected {exp}, got {got}")
+    print(f"[flat-check] {len(idx)} sampled rows match a recomputation from reviews before each row's timestamp")
 
 
 # Recompute activity on filtered table for flat features
