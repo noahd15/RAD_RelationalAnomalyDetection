@@ -49,6 +49,10 @@ RAD_HP_SOURCE = (
 )
 RAD_HP_NOTE = 'LATENT_DIM 32 fixed (not tuned); EPOCHS/PATIENCE/WARMUP defaults date from 6574b66 with no tuning record.'
 
+# RF_SEED_VARIANT=1 adds a RAD (no BCE) arm fed the RF-sampled seed rules directly (no LLM),
+# the validation-only comparison the LANL six-ablations runs as rf_sampled_rules.
+RF_SEED_VARIANT = os.environ.get("RF_SEED_VARIANT", "0").strip() == "1"
+
 
 def _run_baselines(seed: int) -> pd.DataFrame:
     env = os.environ.copy()
@@ -76,8 +80,9 @@ def _run_baselines(seed: int) -> pd.DataFrame:
     return df
 
 
-def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc") -> tuple[pd.Series, dict]:
-    run_tag = f"amazon10seed_seed{seed}_ls{lambda_struct}_{uuid.uuid4().hex[:8]}"
+def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc",
+                     rf_rule_mode: str = "llm") -> tuple[pd.Series, dict]:
+    run_tag = f"amazon10seed_seed{seed}_ls{lambda_struct}_{rf_rule_mode}_{uuid.uuid4().hex[:8]}"
     env = os.environ.copy()
     env.update(
         {
@@ -89,6 +94,8 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
             # Source of these values: RAD_HP_SOURCE (recorded in run_config.json).
             **RAD_HP,
             "TUNE_METRIC": tune_metric,
+            "RF_RULE_MODE": rf_rule_mode,
+            "RULES_OUT_DIR": (OUT_DIR / "rules" / run_tag).as_posix(),
             "EPOCHS": env.get("EPOCHS", "60"),
             "PATIENCE": env.get("PATIENCE", "10"),
             "WARMUP_EPOCHS": env.get("WARMUP_EPOCHS", "15"),
@@ -180,6 +187,8 @@ def main() -> None:
         "rad_hyperparameters": {**RAD_HP, "BCE_arm_LAMBDA_STRUCT": RAD_BCE_LAMBDA_STRUCT},
         "rad_hyperparameter_source": RAD_HP_SOURCE,
         "rad_hyperparameter_note": RAD_HP_NOTE,
+        "rf_seed_variant": RF_SEED_VARIANT,
+        "rules_out_dir": (OUT_DIR / "rules").as_posix(),
         "use_cached_llm_rules": os.environ.get("USE_CACHED_LLM_RULES", "0 (default: LLM regenerates rules)"),
     })
     all_rows: list[dict] = []
@@ -191,6 +200,15 @@ def main() -> None:
         rad_bce, _ = _run_rad_variant(seed=seed, lambda_struct=RAD_BCE_LAMBDA_STRUCT)
         rad_no_bce, final_no_bce = _run_rad_variant(seed=seed, lambda_struct=0.0)
         mlp = final_no_bce["MLP (supervised detector)"]
+        rf_seed_rows = []
+        if RF_SEED_VARIANT:
+            rad_rf, _ = _run_rad_variant(seed=seed, lambda_struct=0.0, rf_rule_mode="rf_seed")
+            rf_seed_rows.append({
+                "model": "RAD (RF-sampled rules, no BCE)",
+                **{k: rad_rf[k] for k in ("auroc", "auprc", "p@k", "lift", "n_eval", "n_pos", "eval_fp")},
+                "seed": int(seed),
+                "source": "rad_vs_script",
+            })
 
         rad_rows = pd.DataFrame(
             [
@@ -224,7 +242,7 @@ def main() -> None:
                     "seed": int(seed),
                     "source": "rad_vs_script",
                 },
-            ]
+            ] + rf_seed_rows
         )
 
         combined = pd.concat(

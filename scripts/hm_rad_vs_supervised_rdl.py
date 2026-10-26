@@ -760,7 +760,14 @@ HF_TOKEN = os.environ.get("HF_TOKEN")
 
 USE_CACHED_LLM_RULES = os.environ.get("USE_CACHED_LLM_RULES", "0").strip() == "1"
 PARSED_RULES_CSV     = hm_data("hm_parsed_rules_df.csv")
+# RULES_OUT_DIR: write this run's parsed rules and rule table there instead of data/hm/,
+# so a run never rewrites the shared cache that USE_CACHED_LLM_RULES (or another run) reads.
+RULES_OUT_DIR    = os.environ.get("RULES_OUT_DIR", "").strip()
+PARSED_RULES_OUT = os.path.join(RULES_OUT_DIR, "parsed_rules_df.csv") if RULES_OUT_DIR else PARSED_RULES_CSV
 response_text = "[]"
+_used_cached_rules = False
+LLM_GEN_KWARGS = dict(max_new_tokens=int(os.environ.get("LLM_MAX_NEW_TOKENS", "4000")),
+                      do_sample=False, temperature=0.0, top_p=1.0)
 
 if RF_RULE_MODE == "llm":
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, pipeline
@@ -779,6 +786,7 @@ if RF_RULE_MODE == "llm":
                 "rationale": "cached rule",
             })
         response_text = json.dumps(_cached_rules)
+        _used_cached_rules = True
         print(f"Using cached parsed LLM rules from {PARSED_RULES_CSV} ({len(_cached_rules)} rules).")
     else:
         tokenizer  = AutoTokenizer.from_pretrained(MODEL_ID, token=HF_TOKEN)
@@ -814,7 +822,6 @@ SCHEMA = """
 Table: features_table  (customer-level activity for H&M user-churn detection)
 Columns:
   recent_txns_30d      INTEGER  -- transactions in last 30 days
-  prev_txns_30d        INTEGER  -- transactions in the prior 30-day window (days -60 to -30)
   total_txns           INTEGER  -- cumulative transactions before churn timestamp
   recent_txns_90d      INTEGER  -- transactions in last 90 days
   mean_price           FLOAT    -- average transaction price
@@ -845,15 +852,14 @@ if RF_RULE_MODE == "llm" and not (USE_CACHED_LLM_RULES and os.path.exists(PARSED
                 f"SCHEMA:\n{SCHEMA}\n\n"
                 f"SEED RULES:\n{seed_text}\n\n"
                 "Generate 15 SQL WHERE predicates. Prefer broad, single-condition rules like "
-                "'trend_w <= -0.5' or 'avg_activity <= 1.0' over highly specific multi-condition rules. "
+                "'recent_txns_90d <= 1' or 'distinct_articles <= 2' over highly specific multi-condition rules. "
                 "Each object must have keys: "
                 "\"candidate_id\" (string), \"sql_predicate\" (SQL), "
                 "\"mutation_type\" (tighten|relax|combine|novel), \"rationale\" (one sentence). "
                 "Return only the JSON array."
             )},
         ],
-        max_new_tokens=int(os.environ.get("LLM_MAX_NEW_TOKENS", "4000")),
-        do_sample=False, temperature=0.0, top_p=1.0,
+        **LLM_GEN_KWARGS,
     )
     response_text = outputs[0]["generated_text"][-1]["content"]
     print("LLM response (first 500 chars):")
@@ -915,19 +921,27 @@ _broad_rules = [
     {"candidate_id": "broad_zero_recent",  "sql_predicate": "recent_txns_30d = 0 AND total_txns > 0",      "mutation_type": "novel", "rationale": "previously active, now silent"},
 ]
 
-llm_candidates = _parse_llm(response_text)
-print(f"Parsed {len(llm_candidates)} rule candidates.")
-
-if RF_RULE_MODE in {"llm", "rf_seed"} and not llm_candidates:
-    print("Rule parsing failed — using seed rules as fallback.")
-    llm_candidates = [
+def _seed_fallback():
+    return [
         {"candidate_id": f"seed_{i:03d}", "sql_predicate": r["sql_predicate"],
          "mutation_type": "seed_fallback", "rationale": "RF seed rule"}
         for i, r in enumerate(seed_rules[:20]) if r.get("sql_predicate", "").strip()
     ]
 
-# Keep broad hand-crafted rules for LLM mode only.
-if RF_RULE_MODE == "llm":
+llm_candidates = _parse_llm(response_text)
+print(f"Parsed {len(llm_candidates)} rule candidates.")
+_n_parsed, _fallback_used, _rejected = len(llm_candidates), False, []
+
+if RF_RULE_MODE in {"llm", "rf_seed"} and not llm_candidates:
+    print("Rule parsing failed — using seed rules as fallback.")
+    llm_candidates = _seed_fallback()
+    _fallback_used = True
+
+# Keep broad hand-crafted rules for LLM mode only. HM_INCLUDE_BROAD_RULES=0 drops them:
+# both condition on recent_txns_30d, an input of the at-risk/D(u) label filter.
+HM_INCLUDE_BROAD_RULES = os.environ.get("HM_INCLUDE_BROAD_RULES", "1").strip() == "1"
+print(f"Broad hand-crafted rules: {'included' if HM_INCLUDE_BROAD_RULES else 'excluded'}")
+if RF_RULE_MODE == "llm" and HM_INCLUDE_BROAD_RULES:
     llm_candidates = _broad_rules + llm_candidates
 
 _act_eval = _activity_features_for_targets(rdl_train_table.df, lookback_days=30)
@@ -936,6 +950,13 @@ eval_df   = _build_customer_flat(rdl_train_table.df, _act_eval)
 # generated predicate can bind to the exact columns the at-risk/D(u) filter is computed from.
 eval_df   = eval_df.drop(columns=["timestamp", "trend_w", "avg_activity"], errors="ignore").copy()
 eval_df["customer_id"] = eval_df["customer_id"].astype(np.int64)
+
+# The prompt's SCHEMA must list exactly the columns rules are evaluated against.
+_schema_cols = set(re.findall(r"^\s+([A-Za-z_][A-Za-z0-9_]*)\s+(?:INTEGER|FLOAT)\b", SCHEMA, re.M))
+_eval_cols = set(eval_df.columns) - {"customer_id"}
+if _schema_cols != _eval_cols:
+    raise RuntimeError(f"SCHEMA/rule-evaluation column mismatch: only in SCHEMA={sorted(_schema_cols - _eval_cols)}, "
+                       f"only in eval table={sorted(_eval_cols - _schema_cols)}")
 
 all_cids  = eval_df["customer_id"].to_numpy(dtype=np.int64)
 result_df = pd.DataFrame({"customer_id": all_cids})
@@ -959,13 +980,30 @@ if RF_RULE_MODE == "rf_decision":
         )
     print(f"Built RF decision-feature matrix using {_n_trees} trees.")
 else:
-    ref_cols = set()
+    # Reject (rather than zero-fill) candidates that reference a column the rule-evaluation
+    # table does not have: a zero-filled column silently turns the predicate into a constant.
+    _avail_cols = set(eval_df.columns)
+    _kept = []
     for cand in llm_candidates:
-        for tok in re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", str(cand.get("sql_predicate", ""))):
-            if tok.upper() not in SQL_KW:
-                ref_cols.add(tok)
-    for c in sorted(ref_cols - set(eval_df.columns) - {"customer_id"}):
-        eval_df[c] = 0
+        _refs = {
+            tok for tok in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\b(?!\s*\()", str(cand.get("sql_predicate", "")))
+            if tok.upper() not in SQL_KW
+        }
+        _missing = sorted(_refs - _avail_cols)
+        if _missing:
+            _rejected.append({"candidate_id": str(cand.get("candidate_id", "")),
+                              "sql_predicate": cand.get("sql_predicate"), "missing_columns": _missing})
+        else:
+            _kept.append(cand)
+    print(f"[rules] rejected {len(_rejected)}/{len(llm_candidates)} candidates referencing columns "
+          f"missing from the rule-evaluation table")
+    for _r in _rejected:
+        print(f"  rejected {_r['candidate_id']}: missing {_r['missing_columns']}")
+    llm_candidates = _kept
+    if not llm_candidates and RF_RULE_MODE in {"llm", "rf_seed"}:
+        print("[rules] every candidate was rejected — using seed rules as fallback.")
+        llm_candidates = _seed_fallback()
+        _fallback_used = True
 
     con = duckdb.connect(":memory:")
     con.register("features_table", eval_df)
@@ -1011,15 +1049,41 @@ else:
     con.close()
     print(f"\nRules with matches: {n_matched}/{len(llm_candidates)}")
 parsed_rules_df = pd.DataFrame(parsed_rules_rows)
-Path(PARSED_RULES_CSV).parent.mkdir(parents=True, exist_ok=True)
-parsed_rules_df.to_csv(PARSED_RULES_CSV, index=False)
+Path(PARSED_RULES_OUT).parent.mkdir(parents=True, exist_ok=True)
+parsed_rules_df.to_csv(PARSED_RULES_OUT, index=False)
 rule_cols = [c for c in result_df.columns if c != "customer_id"]
 print(f"Rule columns: {rule_cols}")
+
+# Record how this run's rules were produced next to the saved rules.
+PARSED_RULES_GEN_JSON = (os.path.join(RULES_OUT_DIR, "rule_generation.json") if RULES_OUT_DIR
+                         else os.path.splitext(PARSED_RULES_CSV)[0] + "_generation.json")
+_llm_generated = RF_RULE_MODE == "llm" and not _used_cached_rules
+with open(PARSED_RULES_GEN_JSON, "w") as _f:
+    json.dump({
+        "rf_rule_mode": RF_RULE_MODE,
+        "used_cached_rules": (PARSED_RULES_CSV if _used_cached_rules else None),
+        "llm": ({"model_id": MODEL_ID, **LLM_GEN_KWARGS} if _llm_generated else None),
+        "seed": RUN_SEED,
+        "seed_note": ("do_sample=False (greedy decoding), so the LLM output does not depend on a sampling seed; "
+                      "SEED sets the RF and the rule-selection slice; the seed-rule sample uses seed 42"),
+        "rule_selection_rows": int(len(X_rule_sel)),
+        "rule_selection_pos": int(y_rule_sel.sum()),
+        "seed_rules_in_prompt": json.loads(seed_text),
+        "broad_rules_included": bool(RF_RULE_MODE == "llm" and HM_INCLUDE_BROAD_RULES),
+        "n_candidates_parsed": _n_parsed,
+        "seed_fallback_used": _fallback_used,
+        "n_rejected_missing_columns": len(_rejected),
+        "rejected": _rejected,
+        "n_rule_columns": len(rule_cols),
+        "llm_raw_response": (response_text if _llm_generated else None),
+    }, _f, indent=2)
+print(f"[rules] generation record → {PARSED_RULES_GEN_JSON}")
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION 10 — RULE TABLE BUILDING
 # ═══════════════════════════════════════════════════════════════════════════
-RULE_TABLE_CACHE = hm_data("hm_customer_rule_table.pt")
+RULE_TABLE_CACHE = (os.path.join(RULES_OUT_DIR, "customer_rule_table.pt") if RULES_OUT_DIR
+                    else hm_data("hm_customer_rule_table.pt"))
 
 customer_df  = rdl_db.table_dict["customer"].df.copy()
 customer_df["customer_id"] = customer_df["customer_id"].astype(np.int64)
