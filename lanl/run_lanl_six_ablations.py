@@ -100,6 +100,19 @@ PATHS_PER_TREE = 30
 SAMPLED_RULE_COUNT = 30
 SQL_KEYWORDS = {"AND", "OR", "NOT", "IN", "IS", "NULL", "TRUE", "FALSE", "BETWEEN", "LIKE"}
 
+# LANL_LLM_RULES selects the rules behind the llm variants:
+#   cached  -- lanl/data/parsed_rules_df.csv. rule_mining.ipynb selected and filtered these with
+#              test labels and features, so rows built from them are contaminated.
+#   per_run -- regenerated every seed: RF seed rules scored on val only, refined by the LLM,
+#              then kept only if they match val rows (val is the rule-selection split; test is not read).
+LLM_RULES_MODE = os.environ.get("LANL_LLM_RULES", "cached").strip()
+if LLM_RULES_MODE not in {"cached", "per_run"}:
+    raise ValueError(f"LANL_LLM_RULES must be cached|per_run, got {LLM_RULES_MODE!r}")
+LLM_MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct"
+LLM_GEN_KWARGS = dict(max_new_tokens=int(os.environ.get("LLM_MAX_NEW_TOKENS", "4000")),
+                      do_sample=False, temperature=0.0, top_p=1.0)
+LLM_N_SEED_RULES = 20
+
 
 def set_seed(seed: int) -> None:
     random.seed(seed)
@@ -387,6 +400,8 @@ def _sample_rules_for_prompt(
                 "mutation_type": "rf_sampled_path",
                 "sql_predicate": row["rule_text"],
                 "predicate_struct": "[]",
+                "val_support": int(row["val_support"]),
+                "val_precision": float(row["val_precision"]),
                 "test_support_eval": int(row["test_support"]),
                 "relaxed": False,
                 "relax_factor": 1.0,
@@ -395,6 +410,12 @@ def _sample_rules_for_prompt(
             }
         )
     return rules
+
+
+def _cat_codes(s: pd.Series) -> np.ndarray:
+    # Integer codes over the sorted distinct values. RF rules are mined on these codes, so rule
+    # evaluation must expose the same codes under the same column names.
+    return pd.factorize(s, sort=True)[0].astype("int32")
 
 
 def _prepare_rf_training_matrix(df: pd.DataFrame) -> pd.DataFrame:
@@ -416,12 +437,12 @@ def _prepare_rf_training_matrix(df: pd.DataFrame) -> pd.DataFrame:
     ]
     x = df.drop(columns=leakage_cols, errors="ignore").copy()
     for c in x.select_dtypes(include=["object", "string", "category"]).columns:
-        x[c] = pd.factorize(x[c], sort=True)[0].astype("int32")
+        x[c] = _cat_codes(x[c])
     x = x.apply(pd.to_numeric, errors="coerce").fillna(0)
     return x
 
 
-def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData, seed: int = 42) -> Tuple[np.ndarray, np.ndarray, str]:
+def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData, seed: int = 42) -> Tuple[np.ndarray, np.ndarray, str, Dict]:
     auth_ids = graph["auth"].auth_id.view(-1).cpu().numpy().astype(np.int64)
     g_train = graph["auth"].train_mask.view(-1).cpu().numpy().astype(bool)
     g_val = graph["auth"].val_mask.view(-1).cpu().numpy().astype(bool)
@@ -532,7 +553,185 @@ def train_rf_and_build_sources(df: pd.DataFrame, graph: HeteroData, seed: int = 
         )
     os.makedirs(RESULTS_DIR, exist_ok=True)
     rf_rules_df.to_csv(RF_SAMPLED_RULES_CSV, index=False)
-    return rf_score_all, mlp_score_all, RF_SAMPLED_RULES_CSV
+    rule_ctx = {"X_df": X_df, "y": y, "val_idx": val_idx, "sampled_rules": sampled_rules,
+                "categories": {c: sorted(merged[c].unique().tolist())
+                               for c in merged.select_dtypes(include=["object", "string", "category"]).columns
+                               if c in X_df.columns}}
+    return rf_score_all, mlp_score_all, RF_SAMPLED_RULES_CSV, rule_ctx
+
+
+# --------------------
+# Per-run LLM rule generation (LANL_LLM_RULES=per_run)
+# --------------------
+def _parse_llm(text: str) -> List[Dict]:
+    s = text.strip()
+    m = re.match(r"^```(?:json)?\s*(.*?)\s*```$", s, re.DOTALL | re.IGNORECASE)
+    if m:
+        s = m.group(1).strip()
+    s = re.sub(r",\s*([}\]])", r"\1", s)
+    try:
+        out = json.loads(s)
+        return out if isinstance(out, list) else []
+    except Exception:
+        pass
+    start, end = s.find("["), s.rfind("]")
+    if start != -1 and end > start:
+        try:
+            out = json.loads(s[start:end + 1])
+            if isinstance(out, list):
+                return out
+        except Exception:
+            pass
+    # Truncated output (generation hit max_new_tokens mid-array): keep every complete
+    # top-level object and drop the unfinished tail.
+    dec, out, i = json.JSONDecoder(), [], (s.find("[") + 1 if "[" in s else 0)
+    while True:
+        i = s.find("{", i)
+        if i == -1:
+            break
+        try:
+            obj, i = dec.raw_decode(s, i)
+        except ValueError:
+            break
+        if isinstance(obj, dict):
+            out.append(obj)
+    return out
+
+
+def _referenced_columns(pred: str) -> set:
+    pred = re.sub(r"'[^']*'", "", str(pred))
+    return {t for t in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\b(?!\s*\()", pred) if t.upper() not in SQL_KEYWORDS}
+
+
+def _llm_schema(X_df: pd.DataFrame, categories: Dict[str, List[str]]) -> str:
+    lines = ["Table: features_table  (one row per LANL authentication event)", "Columns:"]
+    for c in X_df.columns:
+        if c in categories:
+            codes = ", ".join(f"{i}={v}" for i, v in enumerate(categories[c]))
+            lines.append(f"  {c:28s} INTEGER  -- category code: {codes}")
+        else:
+            kind = "FLOAT" if pd.api.types.is_float_dtype(X_df[c]) else "INTEGER"
+            lines.append(f"  {c:28s} {kind:8s} -- range {X_df[c].min():g} to {X_df[c].max():g}")
+    return "\n".join(lines)
+
+
+def generate_llm_rules_per_run(rule_ctx: Dict, seed: int, out_dir: str) -> str:
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, pipeline
+
+    X_df, y, val_idx = rule_ctx["X_df"], rule_ctx["y"], rule_ctx["val_idx"]
+    schema = _llm_schema(X_df, rule_ctx["categories"])
+    seed_rules = [{"rule_id": r["candidate_id"], "sql_predicate": r["sql_predicate"],
+                   "val_precision": round(float(r["val_precision"]), 4), "val_support": int(r["val_support"])}
+                  for r in rule_ctx["sampled_rules"][:LLM_N_SEED_RULES]]
+    seed_text = json.dumps(seed_rules, indent=2)
+
+    tok = AutoTokenizer.from_pretrained(LLM_MODEL_ID, token=os.environ.get("HF_TOKEN"))
+    total_gib = int(torch.cuda.get_device_properties(0).total_memory / (1024 ** 3))
+    llm = AutoModelForCausalLM.from_pretrained(
+        LLM_MODEL_ID, token=os.environ.get("HF_TOKEN"),
+        quantization_config=BitsAndBytesConfig(
+            load_in_4bit=True, bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.bfloat16,
+            llm_int8_enable_fp32_cpu_offload=True,
+        ),
+        device_map="auto", max_memory={0: f"{max(4, int(total_gib * 0.9))}GiB", "cpu": "64GiB"},
+        low_cpu_mem_usage=True,
+    )
+    pipe = pipeline("text-generation", model=llm, tokenizer=tok)
+    outputs = pipe(
+        [
+            {"role": "system", "content": (
+                "You write SQL WHERE-clause predicates for a LANL authentication anomaly detector. "
+                "The positives are red-team authentication events. "
+                "You receive RF seed rules and must generate refined or novel predicates. "
+                "Return only a valid JSON array. No prose. Use only the columns listed in SCHEMA; "
+                "categorical columns are integer codes as listed. Keep predicates simple (1-3 conditions)."
+            )},
+            {"role": "user", "content": (
+                f"SCHEMA:\n{schema}\n\n"
+                f"SEED RULES (precision/support measured on the validation split):\n{seed_text}\n\n"
+                "Generate 15 SQL WHERE predicates. "
+                "Each object must have keys: "
+                "\"candidate_id\" (string), \"sql_predicate\" (SQL), "
+                "\"mutation_type\" (tighten|relax|combine|novel), \"rationale\" (one sentence). "
+                "Return only the JSON array."
+            )},
+        ],
+        **LLM_GEN_KWARGS,
+    )
+    response_text = outputs[0]["generated_text"][-1]["content"]
+    del llm, pipe, tok, outputs
+    torch.cuda.empty_cache()
+
+    cands = _parse_llm(response_text)
+    n_parsed = len(cands)
+    truncated = not response_text.strip().strip("`").strip().endswith("]")
+    if truncated:
+        print(f"  [llm-rules] response did not close its JSON array (max_new_tokens={LLM_GEN_KWARGS['max_new_tokens']}); "
+              f"kept the {n_parsed} complete objects")
+    avail = set(X_df.columns)
+    val_df = X_df.iloc[val_idx].reset_index(drop=True).assign(_row=np.arange(len(val_idx)))
+    val_y = y[val_idx]
+    con = duckdb.connect(":memory:")
+    con.register("features_table", val_df)
+
+    kept, rejected, sql_errors, no_val_support, seen = [], [], [], [], set()
+    for i, c in enumerate(cands):
+        pred = str(c.get("sql_predicate", "") if isinstance(c, dict) else "").strip()
+        cid = str(c.get("candidate_id", f"llm_{i:03d}") if isinstance(c, dict) else f"llm_{i:03d}")
+        if not pred or pred in seen:
+            continue
+        seen.add(pred)
+        missing = sorted(_referenced_columns(pred) - avail)
+        if missing:
+            rejected.append({"candidate_id": cid, "sql_predicate": pred, "missing_columns": missing})
+            continue
+        try:
+            rows = con.execute(f"SELECT _row FROM features_table WHERE ({pred})").fetchdf()["_row"].to_numpy()
+        except Exception as e:
+            sql_errors.append({"candidate_id": cid, "sql_predicate": pred, "error": str(e)[:200]})
+            continue
+        sup, pos = int(len(rows)), int(val_y[rows].sum()) if len(rows) else 0
+        prec = float(pos / sup) if sup else 0.0
+        if sup < int(MIN_VAL_SUPPORT) or prec < float(MIN_VAL_CONFIDENCE):
+            no_val_support.append({"candidate_id": cid, "sql_predicate": pred, "val_support": sup})
+            continue
+        kept.append({"candidate_id": cid, "sql_predicate": pred,
+                     "mutation_type": c.get("mutation_type", ""), "val_support": sup,
+                     "val_pos": pos, "val_precision": prec})
+    con.close()
+    print(f"  [llm-rules] parsed={n_parsed} rejected(missing columns)={len(rejected)} "
+          f"sql_errors={len(sql_errors)} dropped(val_support<{MIN_VAL_SUPPORT})={len(no_val_support)} kept={len(kept)}")
+    for r in rejected:
+        print(f"    rejected {r['candidate_id']}: missing {r['missing_columns']}")
+    fallback = not kept
+    if fallback:
+        print("  [llm-rules] no candidate survived -- using the RF seed rules as fallback.")
+        kept = [{"candidate_id": r["rule_id"], "sql_predicate": r["sql_predicate"], "mutation_type": "seed_fallback",
+                 "val_support": r["val_support"], "val_precision": r["val_precision"]} for r in seed_rules]
+
+    os.makedirs(out_dir, exist_ok=True)
+    rules_csv = os.path.join(out_dir, "llm_parsed_rules_df.csv")
+    pd.DataFrame(kept).to_csv(rules_csv, index=False)
+    with open(os.path.join(out_dir, "rule_generation.json"), "w") as f:
+        json.dump({
+            "llm_rules_mode": LLM_RULES_MODE,
+            "llm": {"model_id": LLM_MODEL_ID, "quantization": "4-bit nf4", **LLM_GEN_KWARGS},
+            "seed": int(seed),
+            "seed_note": ("do_sample=False (greedy decoding), so the LLM output does not depend on a sampling seed; "
+                          "SEED sets the RF and the seed-rule sample"),
+            "selection_split": f"val mask ({len(val_idx)} rows, {int(val_y.sum())} positives); test is not read",
+            "schema": schema,
+            "seed_rules_in_prompt": seed_rules,
+            "response_truncated": truncated,
+            "n_candidates_parsed": n_parsed,
+            "n_rejected_missing_columns": len(rejected), "rejected": rejected,
+            "n_sql_errors": len(sql_errors), "sql_errors": sql_errors,
+            "n_dropped_no_val_support": len(no_val_support), "dropped_no_val_support": no_val_support,
+            "n_kept": len(kept), "seed_fallback_used": fallback,
+            "llm_raw_response": response_text,
+        }, f, indent=2)
+    return rules_csv
 
 
 # --------------------
@@ -785,14 +984,22 @@ def _rule_matrix_for_auth_ids(base_df: pd.DataFrame, auth_ids_np: np.ndarray, ru
     bcols = x_eval_df.select_dtypes(include=["bool"]).columns.tolist()
     if bcols:
         x_eval_df[bcols] = x_eval_df[bcols].astype(np.int8)
+    # RF rules are mined on integer category codes (_prepare_rf_training_matrix); without these
+    # columns every RF rule with a categorical condition evaluated against a zero-filled column.
+    for c in cat_cols:
+        x_eval_df[c] = _cat_codes(base_df[c])
 
-    ref_cols = set()
-    for pred in rules_df["sql_predicate"].dropna().astype(str):
-        for tok in re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", pred):
-            if tok.upper() not in SQL_KEYWORDS and not tok.isdigit():
-                ref_cols.add(tok)
-    for c in sorted(c for c in ref_cols if c not in x_eval_df.columns):
-        x_eval_df[c] = 0
+    # Reject (rather than zero-fill) rules that reference a column the evaluation table lacks.
+    avail = set(x_eval_df.columns)
+    keep = []
+    for pred in rules_df["sql_predicate"].astype(str):
+        missing = sorted(_referenced_columns(pred) - avail)
+        keep.append(not missing)
+        if missing:
+            print(f"    [rules] rejected {pred[:80]!r}: missing {missing}")
+    print(f"  [rules] {os.path.basename(rules_csv)}: rejected {keep.count(False)}/{len(keep)} rules "
+          f"referencing columns missing from the rule-evaluation table")
+    rules_df = rules_df[keep].reset_index(drop=True)
 
     feature_df = pd.concat(
         [
@@ -827,12 +1034,18 @@ def _rule_matrix_for_auth_ids(base_df: pd.DataFrame, auth_ids_np: np.ndarray, ru
                 mids = pd.to_numeric(matched["auth_event_id"], errors="coerce").dropna().astype(np.int64).unique()
                 mask = eval_df["auth_event_id"].isin(mids)
                 eval_df.loc[mask, col_name] = np.int8(1)
-        except Exception:
+        except Exception as e:
+            print(f"    [rules] SQL error in {raw_name}: {str(e)[:160]}")
             continue
     con.close()
 
     rule_cols = [c for c in eval_df.columns if c != "auth_event_id"]
-    aligned = eval_df.set_index("auth_event_id").reindex(auth_ids_np).fillna(0).astype(np.float32)
+    print(f"  [rules] {len(rule_cols)} rule columns; matches per rule = "
+          f"{[int(eval_df[c].sum()) for c in rule_cols]}")
+    _ids = eval_df["auth_event_id"]
+    if _ids.duplicated().any() or not np.isin(auth_ids_np, _ids.to_numpy()).all():
+        raise RuntimeError("rule matrix: graph auth_ids are not a subset of the unique auth_ids in base_df")
+    aligned = eval_df.set_index("auth_event_id").reindex(auth_ids_np).astype(np.float32)
     mat = aligned.to_numpy(dtype=np.float32)
     return mat, rule_cols
 
@@ -840,17 +1053,17 @@ def _rule_matrix_for_auth_ids(base_df: pd.DataFrame, auth_ids_np: np.ndarray, ru
 def _align_scores_to_auth_ids(auth_ids_np: np.ndarray, base_df: pd.DataFrame, score_all: np.ndarray) -> np.ndarray:
     idx_by_auth = pd.Series(np.arange(len(base_df)), index=base_df["auth_id"].to_numpy(dtype=np.int64))
     pos = idx_by_auth.reindex(auth_ids_np).to_numpy()
-    aligned = np.zeros(len(auth_ids_np), dtype=np.float32)
-    valid = ~pd.isna(pos)
-    aligned[valid] = score_all[pos[valid].astype(int)]
-    return aligned
+    if idx_by_auth.index.duplicated().any() or pd.isna(pos).any():
+        raise RuntimeError("score alignment: graph auth_ids are not a subset of the unique auth_ids in base_df")
+    return score_all[pos.astype(int)].astype(np.float32)
 
 
-def augment_graph_for_variant(base_graph: HeteroData, base_df: pd.DataFrame, variant: str, rf_score_all: np.ndarray) -> HeteroData:
+def augment_graph_for_variant(base_graph: HeteroData, base_df: pd.DataFrame, variant: str, rf_score_all: np.ndarray,
+                              llm_rules_csv: str = LLM_RULES_CSV) -> HeteroData:
     g = copy.deepcopy(base_graph)
 
     if variant in {"llm", "rf_sampled"}:
-        rules_csv = LLM_RULES_CSV if variant == "llm" else RF_SAMPLED_RULES_CSV
+        rules_csv = llm_rules_csv if variant == "llm" else RF_SAMPLED_RULES_CSV
         auth_ids_np = g["auth"].auth_id.view(-1).cpu().numpy().astype(np.int64)
         rule_matrix, rule_cols = _rule_matrix_for_auth_ids(base_df, auth_ids_np, rules_csv)
         x_old = g["auth"].x.float()
@@ -998,12 +1211,18 @@ def main() -> None:
     print(f"[init] device={DEVICE}")
     print(f"[init] partial_auroc_max_fpr={PARTIAL_AUROC_MAX_FPR}")
     print(f"[init] raw outputs={RAW_RESULTS_DIR}")
-    print(f"[init] seeds={SEEDS} mlp_hidden={MLP_HIDDEN} mlp_alpha={MLP_ALPHA}")
+    print(f"[init] seeds={SEEDS} mlp_hidden={MLP_HIDDEN} mlp_alpha={MLP_ALPHA} llm_rules={LLM_RULES_MODE}")
     run_config = {
         "seeds": SEEDS,
         "mlp_supervised_detector": {"hidden_layer_sizes": list(MLP_HIDDEN), "alpha": MLP_ALPHA,
                                     "source": os.environ.get("LANL_MLP_SOURCE", "default (untuned)")},
         "rad_hyperparameters_source": os.environ.get("LANL_RAD_HP_SOURCE"),
+        "llm_rules": (
+            f"cached {LLM_RULES_CSV}: selected and filtered with test labels/features in rule_mining.ipynb "
+            "(contaminated; llm_* rows must not be reported)" if LLM_RULES_MODE == "cached" else
+            f"per_run: regenerated each seed with {LLM_MODEL_ID} ({LLM_GEN_KWARGS}); RF seed rules and LLM "
+            f"rules selected on the val split only; saved under {os.path.join(RESULTS_DIR, 'rules')}"
+        ),
     }
     with open(os.path.join(RESULTS_DIR, "run_config.json"), "w") as f:
         json.dump(run_config, f, indent=2)
@@ -1061,8 +1280,13 @@ def main() -> None:
         # Rule construction (RF fit + rule mining/selection/sampling) is seed-dependent, so
         # the reported std across seeds captures rule-selection variance, not just GAE init variance.
         print(f"  [rf] training RF and building RF source artifacts for seed={seed}...")
-        rf_score_all, mlp_score_all, rf_rules_csv = train_rf_and_build_sources(base_df, graph, seed=seed)
+        rf_score_all, mlp_score_all, rf_rules_csv, rule_ctx = train_rf_and_build_sources(base_df, graph, seed=seed)
         print(f"  [rf] sampled rule csv: {rf_rules_csv}")
+        llm_rules_csv = LLM_RULES_CSV
+        if LLM_RULES_MODE == "per_run" and any((vn, seed) not in done_pairs for vn, sk, _ in variants if sk == "llm"):
+            llm_rules_csv = generate_llm_rules_per_run(
+                rule_ctx, seed=seed, out_dir=os.path.join(RESULTS_DIR, "rules", f"seed_{seed:03d}"))
+            print(f"  [llm-rules] per-run rule csv: {llm_rules_csv}")
 
         auth_ids_np = graph["auth"].auth_id.view(-1).cpu().numpy().astype(np.int64)
         test_mask_np = auth.test_mask.view(-1).cpu().numpy().astype(bool)
@@ -1086,7 +1310,7 @@ def main() -> None:
                 print(f"  [skip] {variant_name} already completed for seed={seed}")
                 continue
             print(f"  [run] {variant_name} | source={source_kind} | lambda_struct_override={lambda_struct_override}")
-            g_aug = augment_graph_for_variant(graph, base_df, source_kind, rf_score_all)
+            g_aug = augment_graph_for_variant(graph, base_df, source_kind, rf_score_all, llm_rules_csv=llm_rules_csv)
             scores = run_gae_single(g_aug, seed=seed, lambda_struct_override=lambda_struct_override)
             rows.append(metrics_row(variant_name, seed, y_true_test, scores))
             os.makedirs(RAW_RESULTS_DIR, exist_ok=True)
