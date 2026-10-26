@@ -678,6 +678,9 @@ def generate_llm_rules_per_run(rule_ctx: Dict, seed: int, out_dir: str) -> str:
     if truncated:
         print(f"  [llm-rules] response did not close its JSON array (max_new_tokens={LLM_GEN_KWARGS['max_new_tokens']}); "
               f"kept the {n_parsed} complete objects")
+    if not n_parsed:
+        print("  [llm-rules] LLM raw response:\n" + response_text)
+        raise RuntimeError("LLM rule generation parsed 0 rules; a per-run LLM-rules run does not fall back to the RF seed rules")
     # Generated candidates identical (whitespace collapsed) to a predicate the prompt showed the LLM.
     norm = lambda p: " ".join(str(p).split())
     cand_preds = [norm(c.get("sql_predicate", "")) for c in cands if isinstance(c, dict)]
@@ -723,11 +726,10 @@ def generate_llm_rules_per_run(rule_ctx: Dict, seed: int, out_dir: str) -> str:
           f"sql_errors={len(sql_errors)} dropped(val_support<{MIN_VAL_SUPPORT})={len(no_val_support)} kept={len(kept)}")
     for r in rejected:
         print(f"    rejected {r['candidate_id']}: missing {r['missing_columns']}")
-    fallback = not kept
-    if fallback:
-        print("  [llm-rules] no candidate survived -- using the RF seed rules as fallback.")
-        kept = [{"candidate_id": r["rule_id"], "sql_predicate": r["sql_predicate"], "mutation_type": "seed_fallback",
-                 "val_support": r["val_support"], "val_precision": r["val_precision"]} for r in seed_rules]
+    if not kept:
+        raise RuntimeError("no generated rule survived the column, SQL and val-support checks; "
+                           "a per-run LLM-rules run does not fall back to the RF seed rules")
+    fallback = False
 
     os.makedirs(out_dir, exist_ok=True)
     rules_csv = os.path.join(out_dir, "llm_parsed_rules_df.csv")

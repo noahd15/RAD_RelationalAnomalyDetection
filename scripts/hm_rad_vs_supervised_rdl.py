@@ -1001,6 +1001,14 @@ def _seed_fallback():
 
 llm_candidates = _parse_llm(response_text)
 print(f"Parsed {len(llm_candidates)} rule candidates.")
+_llm_generated = RF_RULE_MODE == "llm" and not _used_cached_rules
+# The response stopped before closing its JSON array (generation hit max_new_tokens).
+_response_truncated = (not response_text.strip().strip("`").strip().endswith("]")) if _llm_generated else None
+if _response_truncated:
+    print(f"[rules] LLM response did not close its JSON array (max_new_tokens={LLM_GEN_KWARGS['max_new_tokens']})")
+if _llm_generated and not llm_candidates:
+    print("LLM raw response:\n" + response_text)
+    raise RuntimeError("LLM rule generation parsed 0 rules; an LLM-rules run does not fall back to the RF seed rules")
 _n_parsed, _fallback_used, _rejected = len(llm_candidates), False, []
 
 # Generated candidates identical (whitespace collapsed) to a predicate the prompt showed the LLM.
@@ -1089,6 +1097,8 @@ else:
         print(f"  rejected {_r['candidate_id']}: missing {_r['missing_columns']}")
     llm_candidates = _kept
     if not llm_candidates and RF_RULE_MODE in {"llm", "rf_seed"}:
+        if _llm_generated:
+            raise RuntimeError("every generated rule was rejected; an LLM-rules run does not fall back to the RF seed rules")
         print("[rules] every candidate was rejected — using seed rules as fallback.")
         llm_candidates = _seed_fallback()
         _fallback_used = True
@@ -1145,7 +1155,6 @@ print(f"Rule columns: {rule_cols}")
 # Record how this run's rules were produced next to the saved rules.
 PARSED_RULES_GEN_JSON = (os.path.join(RULES_OUT_DIR, "rule_generation.json") if RULES_OUT_DIR
                          else os.path.splitext(PARSED_RULES_CSV)[0] + "_generation.json")
-_llm_generated = RF_RULE_MODE == "llm" and not _used_cached_rules
 with open(PARSED_RULES_GEN_JSON, "w") as _f:
     json.dump({
         "rf_rule_mode": RF_RULE_MODE,
@@ -1158,6 +1167,7 @@ with open(PARSED_RULES_GEN_JSON, "w") as _f:
         "rule_selection_pos": int(y_rule_sel.sum()),
         "seed_rules_in_prompt": json.loads(seed_text),
         "broad_rules_included": bool(RF_RULE_MODE == "llm" and HM_INCLUDE_BROAD_RULES),
+        "response_truncated": _response_truncated,
         "n_candidates_parsed": _n_parsed,
         "prompt_example_predicates": PROMPT_EXAMPLE_PREDICATES,
         "n_verbatim_prompt_copies": (None if _prompt_copies is None else len(_prompt_copies)),
