@@ -30,7 +30,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from ablation_provenance import check_same_eval_set, parse_final_rows, parse_rad_final, write_run_config
+import rad_per_seed
+from ablation_provenance import (LABEL_ENV_VARS, check_same_eval_set, parse_final_rows, parse_rad_final,
+                                 write_run_config)
+from rad_run_settings import RUN_PREFIX, run_env
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -48,6 +51,14 @@ RAD_HP_SOURCE = (
     'scripts/optuna_rad32_tune.py, study rad32_optuna_postfix (30 trials, TPE seed 42, objective: val AUPRC, latent_dim 32 fixed); best trial #6 value 0.028929 = {lambda_struct: 0.1, lambda_rank: 2.0, alpha_feat: 1.0, alpha_struct: 1.0}. Record: results/amazon/optuna_rad32_postfix/{best_trial.txt,trials.csv,study.db} and results/amazon_optuna_postfix_run.log in commit e8c5a5e (branch wip/main-local-changes-20261026). Caveat: the tuner scored the full RelBench val table, which includes the report partition used here.'
 )
 RAD_HP_NOTE = 'LATENT_DIM 32 fixed (not tuned); EPOCHS/PATIENCE/WARMUP defaults date from 6574b66 with no tuning record.'
+
+# Tuned rerun (docs/table4_reporting_plan.md, "RAD hyperparameters"): RAD_HPARAMS_FILE gives each
+# seed's hyperparameters, and REUSE_BASELINES_FROM (the final_20261028 folder) supplies the baseline
+# and Supervised MLP rows and the rule tables each RAD arm must rebuild. Set both or neither.
+RAD_HPARAMS_FILE = os.environ.get("RAD_HPARAMS_FILE", "").strip()
+REUSE_BASELINES_FROM = os.environ.get("REUSE_BASELINES_FROM", "").strip()
+if bool(RAD_HPARAMS_FILE) != bool(REUSE_BASELINES_FROM):
+    raise RuntimeError("Set RAD_HPARAMS_FILE and REUSE_BASELINES_FROM together.")
 
 # RF_SEED_VARIANT=1 adds a RAD (no BCE) arm fed the RF-sampled seed rules directly (no LLM),
 # the validation-only comparison the LANL six-ablations runs as rf_sampled_rules.
@@ -81,7 +92,8 @@ def _run_baselines(seed: int) -> pd.DataFrame:
 
 
 def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc",
-                     rf_rule_mode: str = "llm") -> tuple[pd.Series, dict]:
+                     rf_rule_mode: str = "llm", hp: dict | None = None,
+                     expect_rule_table: Path | None = None) -> tuple[pd.Series, dict]:
     run_tag = f"amazon10seed_seed{seed}_ls{lambda_struct}_{rf_rule_mode}_{uuid.uuid4().hex[:8]}"
     env = os.environ.copy()
     env.update(
@@ -89,20 +101,18 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
             "SEED": str(seed),
             "RUN_TAG": run_tag,
             "CUDA_VISIBLE_DEVICES": env.get("CUDA_VISIBLE_DEVICES", "1"),
-            "LATENT_DIM": "32",
-            "LAMBDA_STRUCT": str(lambda_struct),
-            # Source of these values: RAD_HP_SOURCE (recorded in run_config.json).
-            **RAD_HP,
+            # Per-seed values from RAD_HPARAMS_FILE, or the August values (RAD_HP_SOURCE).
+            **(rad_per_seed.variant_env(hp, lambda_struct) if hp is not None
+               else {"LAMBDA_STRUCT": str(lambda_struct), **RAD_HP}),
             "TUNE_METRIC": tune_metric,
             "RF_RULE_MODE": rf_rule_mode,
             "RULES_OUT_DIR": (OUT_DIR / "rules" / run_tag).as_posix(),
-            "EPOCHS": env.get("EPOCHS", "60"),
-            "PATIENCE": env.get("PATIENCE", "10"),
-            "WARMUP_EPOCHS": env.get("WARMUP_EPOCHS", "15"),
-            "WARMUP_RANK_SCALE": env.get("WARMUP_RANK_SCALE", "0.25"),
-            "WARMUP_STRUCT_SCALE": env.get("WARMUP_STRUCT_SCALE", "1.0"),
+            # LATENT_DIM, EPOCHS, PATIENCE, WARMUP_*: shared with the per-seed studies.
+            **run_env("amazon", env),
         }
     )
+    if expect_rule_table is not None:
+        env["RULE_TABLE_EXPECT"] = expect_rule_table.as_posix()
 
     cmd = [sys.executable, str(RAD_SCRIPT)]
     print(f"[seed={seed}] Running RAD variant lambda_struct={lambda_struct}", flush=True)
@@ -115,6 +125,10 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
         raise RuntimeError(f"RAD script exited {proc.returncode} (seed={seed}, lambda_struct={lambda_struct})")
 
     txt = proc.stdout or ""
+    if hp is not None:
+        label = f"seed={seed} ls{lambda_struct} {rf_rule_mode}"
+        rad_per_seed.check_inputs_fp(txt, hp, label)
+        rad_per_seed.check_run_hp(txt, hp, lambda_struct, label)
     parsed = parse_rad_final(txt)
 
     return pd.Series(
@@ -186,26 +200,63 @@ def main() -> None:
     print(f"FULL ABLATION OVER SEEDS | n_seeds={n_seeds} | seeds={seeds}")
     print("=" * 90)
 
+    hparams = rules_root = None
+    if RAD_HPARAMS_FILE:
+        hparams = rad_per_seed.load_hparams(RAD_HPARAMS_FILE, "amazon", seeds)
+        rad_per_seed.check_label_env(REUSE_BASELINES_FROM, {k: os.environ.get(k) for k in LABEL_ENV_VARS})
+        rules_root = Path(REUSE_BASELINES_FROM) / "rules"
+        hp_config = {
+            "rad_hyperparameters_file": RAD_HPARAMS_FILE,
+            "rad_hyperparameters_file_md5": rad_per_seed.file_md5(RAD_HPARAMS_FILE),
+            "rad_hyperparameters_per_seed": {str(s): {k: hparams[s][k] for k in rad_per_seed.TUNED}
+                                             for s in seeds},
+            "reuse_baselines_from": REUSE_BASELINES_FROM,
+            "reused_per_seed_metrics_md5": rad_per_seed.file_md5(
+                Path(REUSE_BASELINES_FROM) / "per_seed_metrics.csv"),
+        }
+    else:
+        hp_config = {
+            "rad_hyperparameters": {**RAD_HP, "BCE_arm_LAMBDA_STRUCT": RAD_BCE_LAMBDA_STRUCT},
+            "rad_hyperparameter_source": RAD_HP_SOURCE,
+            "rad_hyperparameter_note": RAD_HP_NOTE,
+        }
     write_run_config(OUT_DIR, seeds, extra={
-        "rad_hyperparameters": {**RAD_HP, "BCE_arm_LAMBDA_STRUCT": RAD_BCE_LAMBDA_STRUCT},
-        "rad_hyperparameter_source": RAD_HP_SOURCE,
-        "rad_hyperparameter_note": RAD_HP_NOTE,
+        **hp_config,
+        "rad_run_env": run_env("amazon", os.environ),
         "rf_seed_variant": RF_SEED_VARIANT,
         "rules_out_dir": (OUT_DIR / "rules").as_posix(),
         "use_cached_llm_rules": os.environ.get("USE_CACHED_LLM_RULES", "0 (default: LLM regenerates rules)"),
     })
     all_rows: list[dict] = []
     for seed in seeds:
-        baselines = _run_baselines(seed)
-        baselines = _alias_models(baselines)
-        baselines["source"] = "baselines_script"
+        hp = expect = None
+        if REUSE_BASELINES_FROM:
+            baselines, mlp_reused = rad_per_seed.load_reused_rows(REUSE_BASELINES_FROM, seed)
+            hp = hparams[seed]
+            # Rule table each arm must rebuild: the one the same arm built in the reused run.
+            expect = {(ls, mode): rad_per_seed.find_rule_table(rules_root, RUN_PREFIX["amazon"], seed, ls, mode)
+                      for ls, mode in ((RAD_BCE_LAMBDA_STRUCT, "llm"), (0.0, "llm"), (0.0, "rf_seed"))}
+            if rad_per_seed.file_md5(expect[(0.0, "llm")]) != hp["rule_table_md5"]:
+                raise RuntimeError(f"seed={seed}: {expect[(0.0, 'llm')]} is not the rule table the study used")
+        else:
+            baselines = _run_baselines(seed)
+            baselines = _alias_models(baselines)
+            baselines["source"] = "baselines_script"
 
-        rad_bce, _ = _run_rad_variant(seed=seed, lambda_struct=RAD_BCE_LAMBDA_STRUCT)
-        rad_no_bce, final_no_bce = _run_rad_variant(seed=seed, lambda_struct=0.0)
+        rad_bce, _ = _run_rad_variant(
+            seed=seed, lambda_struct=float(hp["lambda_struct"]) if hp else RAD_BCE_LAMBDA_STRUCT,
+            hp=hp, expect_rule_table=expect and expect[(RAD_BCE_LAMBDA_STRUCT, "llm")])
+        rad_no_bce, final_no_bce = _run_rad_variant(
+            seed=seed, lambda_struct=0.0, hp=hp, expect_rule_table=expect and expect[(0.0, "llm")])
         mlp = final_no_bce["MLP (supervised detector)"]
+        if REUSE_BASELINES_FROM:
+            # The reported MLP row is the reused one; the rerun's copy is only a match check.
+            rad_per_seed.check_mlp_match(mlp_reused, mlp, seed)
+            mlp = mlp_reused
         rf_seed_rows = []
         if RF_SEED_VARIANT:
-            rad_rf, _ = _run_rad_variant(seed=seed, lambda_struct=0.0, rf_rule_mode="rf_seed")
+            rad_rf, _ = _run_rad_variant(seed=seed, lambda_struct=0.0, rf_rule_mode="rf_seed", hp=hp,
+                                         expect_rule_table=expect and expect[(0.0, "rf_seed")])
             rf_seed_rows.append({
                 "model": "RAD (RF-sampled rules, no BCE)",
                 **{k: rad_rf[k] for k in ("auroc", "auprc", "p@k", "lift", "n_eval", "n_pos", "eval_fp")},
