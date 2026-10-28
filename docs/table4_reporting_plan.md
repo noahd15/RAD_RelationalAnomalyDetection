@@ -69,6 +69,18 @@ Each row records the fingerprint (`eval_fp`) of the rows it was scored on.
 
 **Cells:** each cell is the mean ± sample std (ddof = 1) over the 10 seeds, computed from the per-seed CSVs. The table also gives `n_eval` and `n_pos`; on H&M and Amazon they can vary by seed, so it gives their range.
 
+## Comparisons
+
+Decided 2026-10-28, before any 10-seed result was seen. Applies to H&M, Amazon and LANL.
+
+- **Paired by seed.** Within a seed every model is scored on the same rows, so each comparison uses the per-seed differences d_s = RAD_s − baseline_s, s = 0…9. RAD is the headline RAD row.
+  - The comparisons are RAD against each reported baseline row: Isolation Forest, DRL, Deep SVDD, AE, AE+Rank, Supervised RDL (weighted), Supervised RDL (unweighted) and Supervised MLP.
+  - Metrics: AUROC, AUPRC and P@k.
+  - A pair is used only if both rows of the seed have the same `eval_fp`, `n_eval` and `n_pos`; otherwise the comparison stops.
+- **Reported:** the mean of d_s and its 95% bootstrap CI.
+  - The 10 seeds are resampled with replacement 10,000 times, with `numpy.random.default_rng(20261028)`. The CI is the 2.5th–97.5th percentile of the resampled means (percentile method).
+- **Claims:** "RAD beats baseline X on metric M" requires the CI to lie entirely above 0. "X beats RAD" requires it to lie entirely below 0. If the CI contains 0, the text reports no difference on that metric.
+
 **Rule logs:** each run's `rule_generation.json` records:
 
 - `n_candidates_parsed` and `n_rejected_missing_columns`;
@@ -105,6 +117,25 @@ The August studies (`hm48_optuna_postfix`, `rad32_optuna_postfix`) scored the fu
 - **Supervised MLP:** the reported row stays the final_20261028 row. The rerun's MLP row is a match check only, and the rerun stops if it differs.
 - **Supervised RDL:** unchanged. It comes from `scripts/run_10seed_supervised_rdl_weighted.py` and does not depend on the RAD hyperparameters.
 - **Reported with the table:** the selected hyperparameters for each dataset and seed, and each study's best fit-partition AUPRC with its count of completed and pruned trials.
+
+**Deterministic mode** (decided 2026-10-28):
+
+- **Why:** the RAD scripts set only `seed_everything(seed)`. Two runs with the same code, seed and rule table give different RAD rows (errata item 13).
+- **Wrapper:** `scripts/deterministic_run.py` runs a script unchanged after setting:
+  - `CUBLAS_WORKSPACE_CONFIG=:4096:8`
+  - `torch.use_deterministic_algorithms(True)`
+  - `torch.backends.cudnn.deterministic = True`
+  - `torch.backends.cudnn.benchmark = False`
+- **Equivalence check, before the studies:** H&M seed 0, all three RAD arms, August hyperparameters, the final_20261028 rule tables, in deterministic mode.
+  1. The old code (`table4-final-20261026b`) runs twice. The per-epoch logs and final rows must be identical.
+  2. The refactored code runs once. It must be identical to step 1.
+  - No metric tolerance. If either step fails, the studies do not start.
+  - Step 1 also measures, per epoch, how much slower deterministic mode is than normal mode, on H&M and on Amazon.
+- **Studies and tuned reruns:** run in deterministic mode if the check passes and the slowdown fits the deadline.
+  - The rerun arm that matches the study's selected model is the with-BCE LLM arm: the selected λ_struct, λ_rank, α_feat and α_struct, and the same LLM rule table. Its best fit-partition AUPRC must equal its study's best trial value exactly.
+  - The no-BCE arms (λ_struct = 0) were not trials, so they have no study value to match.
+  - If the check fails or the slowdown doesn't fit, the studies run in normal mode, and the authors are told before they start.
+- **Recorded:** each run_config.json records `deterministic_mode` (true or false). The final_20261028 runs and all earlier runs did not use it.
 
 **Secondary:** the final_20261028 RAD rows, with the August hyperparameters. They are reported as secondary rows, with the caveat that their hyperparameters were tuned on the full val table.
 
