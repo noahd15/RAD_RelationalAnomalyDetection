@@ -2,12 +2,14 @@
 python scripts/checks/test_rad_per_seed.py
 
 Covers rad_core.inputs_fingerprint / check_same_rule_table, rad_tune.run_study (training stubbed),
-rad_per_seed, rad_run_settings, and both 10-seed runners in tuned-rerun mode with the RAD script
-replaced by canned output.
+rad_per_seed, rad_run_settings, deterministic_run.py (on CPU), the tuning launcher's study call, and
+both 10-seed runners in tuned-rerun mode, normal and deterministic, with the RAD script replaced by
+canned output.
 """
 import importlib
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import types
@@ -23,7 +25,8 @@ sys.path.insert(0, str(SCRIPTS))
 import rad_core  # noqa: E402
 import rad_per_seed  # noqa: E402
 import rad_tune  # noqa: E402
-from rad_run_settings import RUN_PREFIX, run_env  # noqa: E402
+from rad_run_settings import (DETERMINISTIC_WRAPPER, MODE_LINE_PREFIX, RUN_PREFIX, check_mode_line,  # noqa: E402
+                              deterministic_mode, rad_command, run_env)
 
 FAILURES = []
 
@@ -108,6 +111,7 @@ def test_run_study(tmp):
         check("best value is the best trial's", abs(best["best_value"] - max(
             0.01 * c["lambda_rank"] + 0.001 * c["alpha_feat"] for c in calls if True)) < 1e-12 or best["n_pruned"] > 0)
         check("base_hp unchanged in best.json", best["base_hp"] == base_hp)
+        check("best.json records deterministic mode (off here)", best["deterministic_mode"] is False)
         check("trials.csv written", len(pd.read_csv(tmp / "study" / "trials.csv")) == 6)
         check("returned summary == best.json", s == best)
         raises("refuses an existing study", lambda: rad_tune.run_study(out_dir=tmp / "study", **kw), "already exists")
@@ -132,6 +136,86 @@ def test_run_env():
                                                            "LATENT_DIM": "32"})
 
 
+def test_deterministic_settings(tmp):
+    check("RAD_DETERMINISTIC unset is normal mode", deterministic_mode({}) is False)
+    check("RAD_DETERMINISTIC=1", deterministic_mode({"RAD_DETERMINISTIC": "1"}) is True)
+    check("RAD_DETERMINISTIC=0", deterministic_mode({"RAD_DETERMINISTIC": "0"}) is False)
+    raises("RAD_DETERMINISTIC must be 0 or 1", lambda: deterministic_mode({"RAD_DETERMINISTIC": "true"}), "0 or 1")
+    check("normal command", rad_command("py", "s.py", False) == ["py", "s.py"])
+    check("deterministic command goes through the wrapper",
+          rad_command("py", "s.py", True) == ["py", str(DETERMINISTIC_WRAPPER), "s.py"])
+    line = f"{MODE_LINE_PREFIX} | x\n"
+    check_mode_line("a\n" + line, True, "t")
+    check_mode_line("a\n", False, "t")
+    check("mode line present exactly when expected", True)
+    raises("deterministic run without the mode line", lambda: check_mode_line("a\n", True, "t"), "expected True")
+    raises("normal run with the mode line", lambda: check_mode_line(line, False, "t"), "expected False")
+    raises("mode line must start the line", lambda: check_mode_line("x " + line, True, "t"), "expected True")
+
+    # The wrapper itself, on CPU: settings applied, script runs as __main__ with its args and dir.
+    (tmp / "pkg").mkdir()
+    (tmp / "pkg" / "helper.py").write_text("X = 7\n")
+    (tmp / "pkg" / "probe.py").write_text(
+        "import os, sys, torch, helper\n"
+        "print('probe', __name__, sys.argv[1:], helper.X, os.environ['CUBLAS_WORKSPACE_CONFIG'],\n"
+        "      torch.are_deterministic_algorithms_enabled(), torch.backends.cudnn.deterministic,\n"
+        "      torch.backends.cudnn.benchmark)\n")
+    env = {k: v for k, v in os.environ.items() if k != "CUBLAS_WORKSPACE_CONFIG"}
+    r = subprocess.run([sys.executable, str(DETERMINISTIC_WRAPPER), str(tmp / "pkg" / "probe.py"), "a", "b"],
+                       env=env, capture_output=True, text=True, cwd=tmp)
+    out = r.stdout.splitlines()
+    check("wrapper: exits 0", r.returncode == 0 or print(r.stderr))
+    check("wrapper: mode line first", bool(out) and out[0].startswith(MODE_LINE_PREFIX))
+    check("wrapper: script sees the settings, its args and its own dir",
+          out[-1:] == ["probe __main__ ['a', 'b'] 7 :4096:8 True True False"] or print(out))
+    r = subprocess.run([sys.executable, str(DETERMINISTIC_WRAPPER), str(tmp / "pkg" / "probe.py")],
+                       env={**env, "CUBLAS_WORKSPACE_CONFIG": ":16:8"}, capture_output=True, text=True, cwd=tmp)
+    check("wrapper: refuses another CUBLAS preset", r.returncode != 0 and "already ':16:8'" in r.stderr)
+
+
+def test_check_best_fit():
+    hp = {"tune_metric": "auprc", "best_value": 0.1 + 0.2}
+    ok = "x\nrad_best_fit_metric: auprc=0.30000000000000004\n"
+    check("best fit: exact match", rad_per_seed.check_best_fit(ok, hp, "t", exact=True) == 0.1 + 0.2)
+    off = "rad_best_fit_metric: auprc=0.3\n"
+    raises("best fit: one ulp off fails in exact mode", lambda: rad_per_seed.check_best_fit(off, hp, "t", exact=True),
+           "differs from the study's best trial")
+    check("best fit: not compared in normal mode", rad_per_seed.check_best_fit(off, hp, "t", exact=False) == 0.3)
+    raises("best fit: line missing", lambda: rad_per_seed.check_best_fit("x\n", hp, "t", exact=False), "no rad_best_fit_metric")
+    raises("best fit: other metric", lambda: rad_per_seed.check_best_fit("rad_best_fit_metric: auroc=0.3\n", hp, "t", exact=False),
+           "differs from the study's auprc")
+
+
+def test_launcher_study(tmp):
+    import run_rad_tuning_per_seed as launcher
+    seen = []
+
+    def fake_popen(lines):
+        def popen(cmd, env=None, **kw):
+            seen.append((cmd, env))
+            return types.SimpleNamespace(stdout=iter(lines), wait=lambda: 0)
+        return popen
+
+    orig = launcher.subprocess
+    try:
+        rt = tmp / "rt.pt"
+        mode = f"{MODE_LINE_PREFIX} | x\n"
+        launcher.subprocess = types.SimpleNamespace(Popen=fake_popen([mode, "study\n"]), PIPE=-1, STDOUT=-2)
+        launcher._run_study("hm", 3, rt, tmp / "det", 2, True)
+        cmd, env = seen[-1]
+        check("launcher: deterministic study goes through the wrapper", cmd[1] == str(DETERMINISTIC_WRAPPER))
+        check("launcher: study env", env["SEED"] == "3" and env["RULE_TABLE_IN"] == rt.as_posix()
+              and env["RAD_TUNE_TRIALS"] == "2" and env["LATENT_DIM"] == "48")
+        check("launcher: run.log keeps the output", (tmp / "det" / "run.log").read_text() == mode + "study\n")
+        launcher.subprocess.Popen = fake_popen(["study\n"])
+        raises("launcher: deterministic study without the mode line",
+               lambda: launcher._run_study("hm", 3, rt, tmp / "det2", 2, True), "expected True")
+        launcher._run_study("amazon", 4, rt, tmp / "normal", 2, False)
+        check("launcher: normal study runs the script directly", seen[-1][0][1:] == ["scripts/rad_vs_supervised_rdl.py"])
+    finally:
+        launcher.subprocess = orig
+
+
 # ── Fixtures for the runners: a reused run folder, studies, an hp file ─────
 BASE_HP = {"epochs": 30, "patience": 5, "warmup_epochs": 5, "lambda_struct": 0.5, "lambda_rank": 1.0,
            "alpha_feat": 1.0, "alpha_struct": 1.0, "latent_dim": 48}
@@ -145,7 +229,7 @@ LABEL_ENV = {"TARGET_ANOM_RATE": "0.015", "ATRISK_TAU_A": "0.05", "ATRISK_TAU_B"
              "ATRISK_TAU_ALPHA": "0.02", "ATRISK_TAU_MULTIPLIER": "1.0"}
 
 
-def make_fixture(tmp, ds, bce_ls):
+def make_fixture(tmp, ds, bce_ls, best_value=0.04, deterministic=False):
     reuse = tmp / f"{ds}_final"
     (reuse / "rules").mkdir(parents=True)
     rows = []
@@ -170,17 +254,17 @@ def make_fixture(tmp, ds, bce_ls):
         sd = studies / f"seed{s}"; sd.mkdir(parents=True)
         rt = rad_per_seed.find_rule_table(reuse / "rules", RUN_PREFIX[ds], s, 0.0, "llm")
         (sd / "best.json").write_text(json.dumps({
-            "dataset": ds, "seed": s, "tune_metric": "auprc", "best_trial": 7, "best_value": 0.04,
+            "dataset": ds, "seed": s, "tune_metric": "auprc", "best_trial": 7, "best_value": best_value,
             "best_params": TUNED[s], "n_trials": 30, "n_complete": 20, "n_pruned": 10,
             "rule_table_md5": rad_per_seed.file_md5(rt), "n_rules": 2,
             "train_fp": f"100:train{s}", "fit_fp": f"{N[s][0]}:fit{s}", "n_fit": 900, "n_fit_pos": 14,
-            "base_hp": BASE_HP}))
+            "base_hp": BASE_HP, "deterministic_mode": deterministic}))
     hp_file = tmp / f"{ds}_hparams.csv"
     rad_per_seed.combine(hp_file, [studies])
     return reuse, hp_file
 
 
-def rad_stdout(seed, env, *, fit_fp=None, hp_override=None, n_eval=None, mlp=None, eval_fp=None):
+def rad_stdout(seed, env, *, fit_fp=None, hp_override=None, n_eval=None, mlp=None, eval_fp=None, best_fit=0.04):
     hp = dict(BASE_HP, lambda_struct=float(env["LAMBDA_STRUCT"]), lambda_rank=float(env["LAMBDA_RANK"]),
               alpha_feat=float(env["ALPHA_FEAT"]), alpha_struct=float(env["ALPHA_STRUCT"]), **(hp_override or {}))
     a, r, p, l = mlp or MLP[seed]
@@ -188,6 +272,7 @@ def rad_stdout(seed, env, *, fit_fp=None, hp_override=None, n_eval=None, mlp=Non
     rad = 0.05 + 0.001 * float(env["LAMBDA_STRUCT"]) + (0.002 if env["RF_RULE_MODE"] == "rf_seed" else 0)
     return (f"rad_hp: {json.dumps(hp, sort_keys=True)}\n"
             f"rad_inputs_fp: train=100:train{seed} fit={fit_fp or f'{N[seed][0]}:fit{seed}'}\n"
+            f"rad_best_fit_metric: auprc={best_fit!r}\n"
             "======\nFINAL COMPARISON (Val Set — At-Risk Filtered Labels)\n======\n"
             f"  Val:  {n:,} users  |  {npos} anomalies  (0.0149 rate)\n"
             f"  eval_fingerprint: {eval_fp or FP[seed]}\n\n"
@@ -199,12 +284,15 @@ def rad_stdout(seed, env, *, fit_fp=None, hp_override=None, n_eval=None, mlp=Non
             "======\nFINAL COMPARISON (Val Set — Original Unfiltered Labels)\n")
 
 
-def run_runner(module, tmp, case, reuse, hp_file, fake=None, extra_env=None):
-    """Import the runner fresh with the rerun env, replace subprocess.run, run main()."""
+def run_runner(module, tmp, case, reuse, hp_file, fake=None, extra_env=None, mode_line=True):
+    """Import the runner fresh with the rerun env, replace subprocess.run, run main().
+
+    A call through the deterministic wrapper prints the wrapper's mode line first (unless mode_line=False)."""
     out = tmp / f"out_{module}_{case}"
     env = {"OUT_SUBDIR": out.as_posix(), "RAD_HPARAMS_FILE": hp_file.as_posix(),
            "REUSE_BASELINES_FROM": reuse.as_posix(), "N_SEEDS": str(len(SEEDS)), "START_SEED": "0",
-           "RF_SEED_VARIANT": "1", "CUDA_VISIBLE_DEVICES": "0", **LABEL_ENV, **(extra_env or {})}
+           "RF_SEED_VARIANT": "1", "CUDA_VISIBLE_DEVICES": "0", "RAD_DETERMINISTIC": "0", **LABEL_ENV,
+           **(extra_env or {})}
     saved = {k: os.environ.get(k) for k in env}
     os.environ.update(env)
     calls = []
@@ -215,9 +303,11 @@ def run_runner(module, tmp, case, reuse, hp_file, fake=None, extra_env=None):
         def fake_run(cmd, env=None, **kw):
             if "baselines" in str(cmd[-1]):
                 raise AssertionError("baselines script must not run in rerun mode")
-            calls.append(dict(env))
+            calls.append(dict(env, _cmd=list(map(str, cmd))))
             seed = int(env["SEED"])
             stdout = (fake or rad_stdout)(seed, env)
+            if str(DETERMINISTIC_WRAPPER) in map(str, cmd) and mode_line:
+                stdout = f"{MODE_LINE_PREFIX} | test\n" + stdout
             return types.SimpleNamespace(returncode=0, stdout=stdout, stderr="")
 
         mod.subprocess = types.SimpleNamespace(run=fake_run)
@@ -243,6 +333,8 @@ def test_runner(tmp, module, ds, bce_ls):
     df = pd.read_csv(out / "per_seed_metrics.csv", dtype={"eval_fp": str})
     final = pd.read_csv(reuse / "per_seed_metrics.csv", dtype={"eval_fp": str})
     check(f"{ds}: three RAD arms per seed, no baselines run", len(calls) == 3 * len(SEEDS))
+    check(f"{ds}: normal mode runs the RAD script directly",
+          all(str(DETERMINISTIC_WRAPPER) not in c["_cmd"] for c in calls))
     for s in SEEDS:
         arms = [c for c in calls if c["SEED"] == str(s)]
         bce, nobce, rf = arms
@@ -276,6 +368,19 @@ def test_runner(tmp, module, ds, bce_ls):
     check(f"{ds}: run_config records the hp file, its md5 and per-seed values",
           cfg["rad_hyperparameters_file_md5"] == rad_per_seed.file_md5(hp_file)
           and cfg["rad_hyperparameters_per_seed"]["0"] == TUNED[0] and "rad_hyperparameters" not in cfg)
+    check(f"{ds}: run_config records normal mode", cfg["deterministic_mode"] is False)
+    off_fit = lambda s, e: rad_stdout(s, e, best_fit=0.0399)
+    out, _ = run_runner(module, tmp, "offfit", reuse, hp_file, off_fit)
+    check(f"{ds}: normal mode does not require the study's best value", (out / "per_seed_metrics.csv").exists())
+    with_line = lambda s, e: f"{MODE_LINE_PREFIX} | x\n" + rad_stdout(s, e)
+    raises(f"{ds}: normal-mode run printed the deterministic line",
+           lambda: run_runner(module, tmp, "modeline", reuse, hp_file, with_line), "expected False")
+    raises(f"{ds}: best-fit line missing",
+           lambda: run_runner(module, tmp, "nofit", reuse, hp_file, lambda s, e: rad_stdout(s, e).replace(
+               "rad_best_fit_metric", "x")), "no rad_best_fit_metric")
+    raises(f"{ds}: deterministic rerun of studies tuned in normal mode",
+           lambda: run_runner(module, tmp, "detnormal", reuse, hp_file, extra_env={"RAD_DETERMINISTIC": "1"}),
+           "not tuned in deterministic mode")
 
     bad_mlp = lambda s, e: rad_stdout(s, e, mlp=(0.0303, *MLP[s][1:]))
     raises(f"{ds}: rerun MLP differs", lambda: run_runner(module, tmp, "mlp", reuse, hp_file, bad_mlp), "Supervised MLP differs")
@@ -297,6 +402,31 @@ def test_runner(tmp, module, ds, bce_ls):
            lambda: run_runner(module, tmp, "half", reuse, hp_file, extra_env={"REUSE_BASELINES_FROM": ""}), "together")
 
 
+def test_runner_deterministic(tmp, module, ds, bce_ls):
+    """Deterministic rerun: wrapper on every arm, exact best value (one that needs full precision)."""
+    best = 0.1 + 0.2
+    reuse, hp_file = make_fixture(tmp / ds, ds, bce_ls, best_value=best, deterministic=True)
+    tmp = tmp / ds
+    check(f"{ds}: hp file keeps best_value exactly", rad_per_seed.load_hparams(hp_file, ds, SEEDS)[1]["best_value"] == best)
+    exact = lambda s, e: rad_stdout(s, e, best_fit=best)
+    env = {"RAD_DETERMINISTIC": "1"}
+    out, calls = run_runner(module, tmp, "det", reuse, hp_file, exact, extra_env=env)
+    check(f"{ds}: deterministic arms go through the wrapper",
+          len(calls) == 3 * len(SEEDS) and all(c["_cmd"][1] == str(DETERMINISTIC_WRAPPER) for c in calls))
+    check(f"{ds}: run_config records deterministic mode",
+          json.loads((out / "run_config.json").read_text())["deterministic_mode"] is True)
+    ulp = lambda s, e: rad_stdout(s, e, best_fit=0.3 if s == 1 else best)
+    raises(f"{ds}: deterministic rerun one ulp from the study's best",
+           lambda: run_runner(module, tmp, "ulp", reuse, hp_file, ulp, extra_env=env), "differs from the study's best trial")
+    raises(f"{ds}: deterministic arm without the mode line",
+           lambda: run_runner(module, tmp, "noline", reuse, hp_file, exact, extra_env=env, mode_line=False), "expected True")
+    # The with-BCE LLM arm would rebuild another rule table than the study's.
+    rt = rad_per_seed.find_rule_table(reuse / "rules", RUN_PREFIX[ds], 1, bce_ls, "llm")
+    torch.save({"rule_table": torch.zeros(4, 2), "rule_cols": ["x", "y"], "n_rules": 2}, rt)
+    raises(f"{ds}: deterministic, with-BCE rule table differs from the study's",
+           lambda: run_runner(module, tmp, "bcert", reuse, hp_file, exact, extra_env=env), "with-BCE LLM arm's rule table")
+
+
 def test_find_rule_table(tmp):
     r = tmp / "rules"; r.mkdir()
     for name in ("hm10seed_seed1_ls0.0_llm_0123abcd", "hm10seed_seed10_ls0.0_llm_0123abce",
@@ -312,13 +442,18 @@ def test_find_rule_table(tmp):
 if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as d:
         d = Path(d)
-        for sub in ("core", "tune", "rules", "runners"):
+        for sub in ("core", "tune", "rules", "runners", "det", "launcher", "runners_det"):
             (d / sub).mkdir()
         test_rad_core(d / "core")
         test_run_study(d / "tune")
         test_run_env()
+        test_deterministic_settings(d / "det")
+        test_check_best_fit()
+        test_launcher_study(d / "launcher")
         test_find_rule_table(d / "rules")
         test_runner(d / "runners", "run_full_ablation_hm_10seed", "hm", 1.0)
         test_runner(d / "runners", "run_full_ablation_10seed", "amazon", 0.1)
+        test_runner_deterministic(d / "runners_det", "run_full_ablation_hm_10seed", "hm", 1.0)
+        test_runner_deterministic(d / "runners_det", "run_full_ablation_10seed", "amazon", 0.1)
     print(f"\n{len(FAILURES)} failure(s)" if FAILURES else "\nall passed")
     sys.exit(1 if FAILURES else 0)

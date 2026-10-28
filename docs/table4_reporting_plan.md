@@ -75,11 +75,12 @@ Decided 2026-10-28, before any 10-seed result was seen. Applies to H&M, Amazon a
 
 - **Paired by seed.** Within a seed every model is scored on the same rows, so each comparison uses the per-seed differences d_s = RAD_s − baseline_s, s = 0…9. RAD is the headline RAD row.
   - The comparisons are RAD against each reported baseline row: Isolation Forest, DRL, Deep SVDD, AE, AE+Rank, Supervised RDL (weighted), Supervised RDL (unweighted) and Supervised MLP.
-  - Metrics: AUROC, AUPRC and P@k.
+  - Metrics: AUROC, AUPRC and P@k, with k = the seed's number of positives. On LANL that is the `p@127` column (n_pos = 127 on every LANL seed, so it equals `precision_at_k`); the script stops if a LANL row has n_pos ≠ 127.
   - A pair is used only if both rows of the seed have the same `eval_fp`, `n_eval` and `n_pos`; otherwise the comparison stops.
 - **Reported:** the mean of d_s and its 95% bootstrap CI.
-  - The 10 seeds are resampled with replacement 10,000 times, with `numpy.random.default_rng(20261028)`. The CI is the 2.5th–97.5th percentile of the resampled means (percentile method).
+  - The 10 seeds are resampled with replacement 10,000 times, with `numpy.random.default_rng(20261028)`, started fresh for each (baseline, metric) comparison, so all comparisons use the same resamples and the order they are computed in does not matter. The CI is the 2.5th–97.5th percentile of the resampled means (percentile method).
 - **Claims:** "RAD beats baseline X on metric M" requires the CI to lie entirely above 0. "X beats RAD" requires it to lie entirely below 0. If the CI contains 0, the text reports no difference on that metric.
+- **Script:** `scripts/table4_paired_bootstrap.py` (tests: `scripts/checks/test_table4_paired_bootstrap.py`).
 
 **Rule logs:** each run's `rule_generation.json` records:
 

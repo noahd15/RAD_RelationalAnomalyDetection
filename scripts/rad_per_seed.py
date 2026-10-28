@@ -25,7 +25,8 @@ import pandas as pd
 TUNED = ("lambda_struct", "lambda_rank", "alpha_feat", "alpha_struct")
 HP_COLUMNS = (
     "dataset", "seed", *TUNED, "tune_metric", "best_value", "best_trial", "n_trials", "n_complete",
-    "n_pruned", "rule_table_md5", "n_rules", "train_fp", "fit_fp", "n_fit", "n_fit_pos", "study_dir",
+    "n_pruned", "rule_table_md5", "n_rules", "train_fp", "fit_fp", "n_fit", "n_fit_pos", "deterministic_mode",
+    "study_dir",
 )
 REPORTED_METRICS = ("auroc", "auprc", "p@k", "lift")
 ROW_COLUMNS = ("model", *REPORTED_METRICS, "n_eval", "n_pos", "eval_fp", "seed", "source")
@@ -52,7 +53,7 @@ def study_row(study_dir: Path) -> dict:
         "n_trials": s["n_trials"], "n_complete": s["n_complete"], "n_pruned": s["n_pruned"],
         "rule_table_md5": s["rule_table_md5"], "n_rules": s["n_rules"], "train_fp": s["train_fp"],
         "fit_fp": s["fit_fp"], "n_fit": s["n_fit"], "n_fit_pos": s["n_fit_pos"],
-        "study_dir": Path(study_dir).as_posix(),
+        "deterministic_mode": s["deterministic_mode"], "study_dir": Path(study_dir).as_posix(),
     }
 
 
@@ -72,7 +73,8 @@ def combine(out_path, study_roots) -> pd.DataFrame:
 
 def load_hparams(path, dataset: str, seeds) -> dict[int, dict]:
     """Per-seed hyperparameters for `dataset`; raise unless every seed has exactly one row."""
-    df = pd.read_csv(path, dtype=_STR_COLUMNS)
+    # round_trip: pandas' default float parser can change the last digit of best_value.
+    df = pd.read_csv(path, dtype=_STR_COLUMNS, float_precision="round_trip")
     missing_cols = set(HP_COLUMNS) - set(df.columns)
     if missing_cols:
         raise RuntimeError(f"{path} is missing columns {sorted(missing_cols)}")
@@ -84,6 +86,13 @@ def load_hparams(path, dataset: str, seeds) -> dict[int, dict]:
             raise RuntimeError(f"{path}: expected one row for {dataset} seed {seed}, found {len(rows)}")
         out[int(seed)] = rows.iloc[0].to_dict()
     return out
+
+
+def check_deterministic_studies(hparams: dict[int, dict], path) -> None:
+    """A deterministic rerun can only reproduce studies that also ran in deterministic mode."""
+    bad = sorted(s for s, hp in hparams.items() if str(hp["deterministic_mode"]) != "True")  # bool or numpy bool
+    if bad:
+        raise RuntimeError(f"{path}: seeds {bad} were not tuned in deterministic mode")
 
 
 def variant_env(hp: dict, lambda_struct: float) -> dict[str, str]:
@@ -123,6 +132,25 @@ def check_run_hp(txt: str, hp: dict, lambda_struct: float, label: str) -> dict:
         diff = {k: (got.get(k), want.get(k)) for k in sorted(set(got) | set(want)) if got.get(k) != want.get(k)}
         raise RuntimeError(f"{label}: RAD settings differ from the study's (run, expected): {diff}")
     print(f"[hp] {label}: RAD settings match the study plus lambda_struct={float(lambda_struct)}")
+    return got
+
+
+_BEST_FIT_RE = re.compile(r"^rad_best_fit_metric: (\w+)=(\S+)$", flags=re.M)
+
+
+def check_best_fit(txt: str, hp: dict, label: str, exact: bool) -> float:
+    """The rerun's best fit-partition metric; with `exact`, raise unless it equals the study's best value."""
+    m = _BEST_FIT_RE.search(txt)
+    if not m:
+        raise RuntimeError(f"{label}: no rad_best_fit_metric line in the RAD output")
+    metric, got = m.group(1), float(m.group(2))
+    if metric != hp["tune_metric"]:
+        raise RuntimeError(f"{label}: rerun metric {metric} differs from the study's {hp['tune_metric']}")
+    want = float(hp["best_value"])
+    if exact and got != want:
+        raise RuntimeError(f"{label}: best fit {metric} {got!r} differs from the study's best trial {want!r}")
+    print(f"[best-fit] {label}: {metric}={got!r}, study best {want!r} "
+          f"({'equal' if got == want else 'not compared: not deterministic mode'})")
     return got
 
 

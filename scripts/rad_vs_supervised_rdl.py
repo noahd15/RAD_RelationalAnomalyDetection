@@ -1511,6 +1511,8 @@ best_metric, best_state, best_norm = rad_core.fit(
 
 rad_model.load_state_dict(best_state)
 print(f"\n  RAD best val {rdl_tune_metric}: {best_metric:.4f}")
+# Full precision, so a tuned rerun can be compared exactly with its study's best trial.
+print(f"rad_best_fit_metric: {rdl_tune_metric}={float(best_metric)!r}")
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION 14 — FINAL EVALUATION

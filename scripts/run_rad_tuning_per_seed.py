@@ -12,6 +12,7 @@ Env:
   RULES_FROM       earlier run folder whose rules/ holds each seed's rule tables (final_20261028)
   OUT_SUBDIR       output folder under results/; must not exist
   N_SEEDS, START_SEED, RAD_TUNE_TRIALS (default 30), CUDA_VISIBLE_DEVICES (required)
+  RAD_DETERMINISTIC 1 runs each study through scripts/deterministic_run.py (default 0)
 
 Writes results/<OUT_SUBDIR>/seed<s>/{run.log,study.db,trials.csv,best.json} and
 results/<OUT_SUBDIR>/rad_hparams_per_seed.csv.
@@ -27,7 +28,8 @@ from pathlib import Path
 import rad_core
 import rad_per_seed
 from ablation_provenance import write_run_config
-from rad_run_settings import AUGUST_BCE_LAMBDA_STRUCT, RAD_SCRIPT, RUN_PREFIX, run_env
+from rad_run_settings import (AUGUST_BCE_LAMBDA_STRUCT, RAD_SCRIPT, RUN_PREFIX, check_mode_line,
+                              deterministic_mode, rad_command, run_env)
 from rad_tune import PRUNER_KWARGS, SEARCH_SPACE, TPE_SEED
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -43,7 +45,8 @@ def _study_rule_table(rules_root: Path, dataset: str, seed: int) -> Path:
     return no_bce
 
 
-def _run_study(dataset: str, seed: int, rule_table: Path, out_dir: Path, n_trials: int) -> None:
+def _run_study(dataset: str, seed: int, rule_table: Path, out_dir: Path, n_trials: int,
+               deterministic: bool) -> None:
     out_dir.mkdir(parents=True)
     env = os.environ.copy()
     env.update({
@@ -55,15 +58,18 @@ def _run_study(dataset: str, seed: int, rule_table: Path, out_dir: Path, n_trial
         "RULE_TABLE_IN": rule_table.as_posix(),
     })
     print(f"[seed={seed}] RAD study, {n_trials} trials, rules {rule_table}", flush=True)
+    lines = []
     with open(out_dir / "run.log", "w") as log:
-        proc = subprocess.Popen([sys.executable, RAD_SCRIPT[dataset]], env=env, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, text=True, bufsize=1)
+        proc = subprocess.Popen(rad_command(sys.executable, RAD_SCRIPT[dataset], deterministic), env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
         for line in proc.stdout:
             sys.stdout.write(line)
             log.write(line)
+            lines.append(line)
         rc = proc.wait()
     if rc != 0:
         raise RuntimeError(f"RAD study exited {rc} (dataset={dataset}, seed={seed}); log: {out_dir / 'run.log'}")
+    check_mode_line("".join(lines), deterministic, f"study seed={seed}")
 
 
 def main() -> None:
@@ -77,6 +83,7 @@ def main() -> None:
     n_trials = int(os.environ.get("RAD_TUNE_TRIALS", "30"))
     start, n = int(os.environ.get("START_SEED", "0")), int(os.environ.get("N_SEEDS", "10"))
     seeds = list(range(start, start + n))
+    deterministic = deterministic_mode(os.environ)
 
     # Find and check every seed's rule table before the first study starts.
     rule_tables = {s: _study_rule_table(rules_root, dataset, s) for s in seeds}
@@ -89,11 +96,11 @@ def main() -> None:
         "rule_tables": {str(s): {"path": p.as_posix(), "md5": rad_per_seed.file_md5(p)}
                         for s, p in rule_tables.items()},
         "n_trials": n_trials, "search_space": SEARCH_SPACE, "tpe_seed": TPE_SEED, "pruner": PRUNER_KWARGS,
-        "tune_metric": "auprc", "run_env": run_env(dataset, os.environ),
+        "tune_metric": "auprc", "run_env": run_env(dataset, os.environ), "deterministic_mode": deterministic,
     })
 
     for s in seeds:
-        _run_study(dataset, s, rule_tables[s], out_root / f"seed{s}", n_trials)
+        _run_study(dataset, s, rule_tables[s], out_root / f"seed{s}", n_trials, deterministic)
 
     rad_per_seed.combine(out_root / "rad_hparams_per_seed.csv", [out_root])
 

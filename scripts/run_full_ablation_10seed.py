@@ -33,7 +33,7 @@ import pandas as pd
 import rad_per_seed
 from ablation_provenance import (LABEL_ENV_VARS, check_same_eval_set, parse_final_rows, parse_rad_final,
                                  write_run_config)
-from rad_run_settings import RUN_PREFIX, run_env
+from rad_run_settings import RUN_PREFIX, check_mode_line, deterministic_mode, rad_command, run_env
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -59,6 +59,8 @@ RAD_HPARAMS_FILE = os.environ.get("RAD_HPARAMS_FILE", "").strip()
 REUSE_BASELINES_FROM = os.environ.get("REUSE_BASELINES_FROM", "").strip()
 if bool(RAD_HPARAMS_FILE) != bool(REUSE_BASELINES_FROM):
     raise RuntimeError("Set RAD_HPARAMS_FILE and REUSE_BASELINES_FROM together.")
+# RAD_DETERMINISTIC=1 runs each RAD arm through scripts/deterministic_run.py.
+DETERMINISTIC = deterministic_mode(os.environ)
 
 # RF_SEED_VARIANT=1 adds a RAD (no BCE) arm fed the RF-sampled seed rules directly (no LLM),
 # the validation-only comparison the LANL six-ablations runs as rf_sampled_rules.
@@ -114,7 +116,7 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
     if expect_rule_table is not None:
         env["RULE_TABLE_EXPECT"] = expect_rule_table.as_posix()
 
-    cmd = [sys.executable, str(RAD_SCRIPT)]
+    cmd = rad_command(sys.executable, RAD_SCRIPT, DETERMINISTIC)
     print(f"[seed={seed}] Running RAD variant lambda_struct={lambda_struct}", flush=True)
     proc = subprocess.run(cmd, env=env, capture_output=True, text=True)
     if proc.stdout:
@@ -125,10 +127,15 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
         raise RuntimeError(f"RAD script exited {proc.returncode} (seed={seed}, lambda_struct={lambda_struct})")
 
     txt = proc.stdout or ""
+    label = f"seed={seed} ls{lambda_struct} {rf_rule_mode}"
+    check_mode_line(txt, DETERMINISTIC, label)
     if hp is not None:
-        label = f"seed={seed} ls{lambda_struct} {rf_rule_mode}"
         rad_per_seed.check_inputs_fp(txt, hp, label)
         rad_per_seed.check_run_hp(txt, hp, lambda_struct, label)
+        if rf_rule_mode == "llm" and lambda_struct == float(hp["lambda_struct"]):
+            # The with-BCE LLM arm is the study's selected model; in deterministic mode it must
+            # reach exactly the study's best value.
+            rad_per_seed.check_best_fit(txt, hp, label, exact=DETERMINISTIC)
     parsed = parse_rad_final(txt)
 
     return pd.Series(
@@ -203,6 +210,8 @@ def main() -> None:
     hparams = rules_root = None
     if RAD_HPARAMS_FILE:
         hparams = rad_per_seed.load_hparams(RAD_HPARAMS_FILE, "amazon", seeds)
+        if DETERMINISTIC:
+            rad_per_seed.check_deterministic_studies(hparams, RAD_HPARAMS_FILE)
         rad_per_seed.check_label_env(REUSE_BASELINES_FROM, {k: os.environ.get(k) for k in LABEL_ENV_VARS})
         rules_root = Path(REUSE_BASELINES_FROM) / "rules"
         hp_config = {
@@ -223,6 +232,7 @@ def main() -> None:
     write_run_config(OUT_DIR, seeds, extra={
         **hp_config,
         "rad_run_env": run_env("amazon", os.environ),
+        "deterministic_mode": DETERMINISTIC,
         "rf_seed_variant": RF_SEED_VARIANT,
         "rules_out_dir": (OUT_DIR / "rules").as_posix(),
         "use_cached_llm_rules": os.environ.get("USE_CACHED_LLM_RULES", "0 (default: LLM regenerates rules)"),
@@ -238,6 +248,12 @@ def main() -> None:
                       for ls, mode in ((RAD_BCE_LAMBDA_STRUCT, "llm"), (0.0, "llm"), (0.0, "rf_seed"))}
             if rad_per_seed.file_md5(expect[(0.0, "llm")]) != hp["rule_table_md5"]:
                 raise RuntimeError(f"seed={seed}: {expect[(0.0, 'llm')]} is not the rule table the study used")
+            if rad_per_seed.file_md5(expect[(RAD_BCE_LAMBDA_STRUCT, "llm")]) != hp["rule_table_md5"]:
+                # The with-BCE LLM arm reruns the study's selected model only on the study's rule table.
+                msg = f"seed={seed}: the with-BCE LLM arm's rule table is not the one the study used"
+                if DETERMINISTIC:
+                    raise RuntimeError(msg)
+                print(f"[note] {msg}", flush=True)
         else:
             baselines = _run_baselines(seed)
             baselines = _alias_models(baselines)

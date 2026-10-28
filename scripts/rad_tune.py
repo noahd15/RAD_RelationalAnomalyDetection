@@ -77,6 +77,7 @@ def run_study(*, dataset, seed, n_trials, out_dir, rule_table_path, data, col_st
     print(f"  rad_inputs_fp: train={train_fp} fit={fit_fp}")
     print(f"  fit partition: {n_fit} rows, {n_fit_pos} positives")
     print(f"  base hp: {json.dumps(base_hp, sort_keys=True)}")
+    print(f"  deterministic algorithms: {torch.are_deterministic_algorithms_enabled()}")
     print("=" * 70, flush=True)
 
     def objective(trial):
@@ -137,7 +138,7 @@ def run_study(*, dataset, seed, n_trials, out_dir, rule_table_path, data, col_st
         "search_space": SEARCH_SPACE, "tpe_seed": TPE_SEED, "pruner": PRUNER_KWARGS,
         "rule_table_path": str(rule_table_path), "rule_table_md5": rule_md5, "n_rules": n_rules,
         "train_fp": train_fp, "fit_fp": fit_fp, "n_fit": n_fit, "n_fit_pos": n_fit_pos,
-        "base_hp": base_hp,
+        "base_hp": base_hp, "deterministic_mode": torch.are_deterministic_algorithms_enabled(),
     }
     (out_dir / "best.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     print("=" * 70)
