@@ -5,6 +5,7 @@
 Scripts:
 - `scripts/diagnostics/table4_posthoc_diagnostics.py`: one run per dataset, CPU only. Logs are in `logs/`.
 - `scripts/diagnostics/table4_posthoc_summary.py`: builds the summary CSVs in this folder.
+- Section 5 uses the `--heuristics-only` mode of the first script (outputs in `heuristics/`) and the `--heuristics` mode of the second (`heuristic_summary.csv`).
 
 ## How the rows were obtained
 
@@ -100,3 +101,44 @@ Per seed: `lanl_stability.csv`. Correlations: `lanl_stability_corr.csv` (n = 10 
 - **Trend:** the churners kept as positives have a trend similar to non-churners, slightly higher on H&M. The churners with falling trends were removed by the filter (mean trend −0.74 on H&M, −0.56 on Amazon). This similarity holds largely by construction: the filter selects on trend.
 - **Activity level:** the kept positives are less active than average, not more "normal". Recent, previous and average activity are about 25–65% of the negatives' level (lowest for Amazon previous reviews), and on Amazon their last review is about 18 days older.
 - So the unexpected churners look normal on trend, but not on activity level.
+
+## 5. Trivial heuristic (H&M and Amazon)
+
+**Post hoc, added 2026-10-29. Not part of Table 4.**
+
+**Method.**
+- A single activity feature is used as the anomaly score on the same report rows as above: the rebuilt rows match each final run's `eval_fp`, `n_eval` and `n_pos` for all 10 seeds.
+- The features come from the script's own `_activity_features_for_targets` (30-day lookback). The sign is chosen so that higher means more likely to churn:
+  - H&M: −recent_txns.
+  - Amazon: −recent_reviews, and days_since_last_review as is.
+- No fitting is involved. AUROC uses sklearn `roc_auc_score`; AUPRC uses `average_precision_score` (ties in these count features are handled by sklearn's default).
+- Per seed: `heuristics/{hm,amazon}/heuristic_scores.csv`. Paired with the RAD rows by seed: `heuristic_summary.csv`. Logs: `logs/heuristics_{hm,amazon}.log`.
+
+Means over 10 seeds (range over seeds in brackets):
+
+| Dataset | Heuristic | AUROC | AUPRC |
+|---|---|---|---|
+| H&M | −recent_txns (30 d) | 0.607 (0.577–0.650) | 0.0203 (0.0182–0.0230) |
+| Amazon | −recent_reviews (30 d) | 0.616 (0.597–0.635) | 0.0205 (0.0193–0.0220) |
+| Amazon | days_since_last_review | 0.613 (0.595–0.641) | 0.0219 (0.0209–0.0244) |
+
+Prevalence is 0.015 on both datasets, so random AUPRC is about 0.015.
+
+The same seeds' RAD rows from the final runs, for comparison (means; "seeds" counts how many seeds have RAD above the heuristic):
+
+| Dataset | RAD row | AUROC | AUPRC | vs heuristic: ΔAUROC (seeds) | ΔAUPRC (seeds) |
+|---|---|---|---|---|---|
+| H&M | RAD (no BCE) | 0.618 | 0.0280 | +0.011 (5/10) | +0.0076 (8/10) |
+| H&M | RAD (with BCE) | 0.627 | 0.0317 | +0.020 (9/10) | +0.0114 (10/10) |
+| H&M | RAD (RF-sampled, no BCE) | 0.567 | 0.0238 | −0.040 (2/10) | +0.0035 (7/10) |
+| Amazon | RAD (no BCE) | 0.685 | 0.0295 | +0.069 / +0.072 (10/10) | +0.0091 / +0.0077 (10/10) |
+| Amazon | RAD (with BCE) | 0.689 | 0.0304 | +0.073 / +0.076 (10/10) | +0.0099 / +0.0085 (10/10) |
+| Amazon | RAD (RF-sampled, no BCE) | 0.689 | 0.0303 | +0.073 / +0.076 (10/10) | +0.0098 / +0.0084 (10/10) |
+
+For Amazon, the two Δ values are against −recent_reviews and against days_since_last_review, respectively.
+
+**Reading:**
+- **H&M:** one activity count reaches about the AUROC of RAD (no BCE): 0.607 vs 0.618, with RAD ahead on only 5 of 10 seeds. It also beats the RF-sampled RAD row on AUROC. On AUPRC, RAD stays ahead: 0.0280–0.0317 vs 0.0203.
+- **Amazon:** RAD is above both heuristics on every seed, by about 0.07 AUROC and 0.008–0.010 AUPRC.
+- These AUROCs are 1 − the positives-vs-negatives feature AUROCs in section 4, as expected.
+

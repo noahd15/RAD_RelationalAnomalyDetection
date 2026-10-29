@@ -1,0 +1,13 @@
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 43.29 seconds.
+[amazon] seed 0: report rows 5ddbb8273d7a/42041/631 ok; neg_recent_reviews auprc=0.0205 auroc=0.6197; days_since_last_review auprc=0.0219 auroc=0.6117
+[amazon] seed 1: report rows c54ab329bb2d/41931/629 ok; neg_recent_reviews auprc=0.0206 auroc=0.6229; days_since_last_review auprc=0.0221 auroc=0.6099
+[amazon] seed 2: report rows 713c33d4b132/41918/629 ok; neg_recent_reviews auprc=0.0193 auroc=0.5971; days_since_last_review auprc=0.0209 auroc=0.5949
+[amazon] seed 3: report rows 170e5651972d/42043/631 ok; neg_recent_reviews auprc=0.0220 auroc=0.6352; days_since_last_review auprc=0.0244 auroc=0.6409
+[amazon] seed 4: report rows ccdc141476f4/41996/630 ok; neg_recent_reviews auprc=0.0199 auroc=0.6057; days_since_last_review auprc=0.0213 auroc=0.6032
+[amazon] seed 5: report rows 95bccbda8063/42088/631 ok; neg_recent_reviews auprc=0.0206 auroc=0.6176; days_since_last_review auprc=0.0223 auroc=0.6148
+[amazon] seed 6: report rows 1439146ebe61/41686/625 ok; neg_recent_reviews auprc=0.0199 auroc=0.6066; days_since_last_review auprc=0.0212 auroc=0.6153
+[amazon] seed 7: report rows f07a61219235/41773/627 ok; neg_recent_reviews auprc=0.0208 auroc=0.6163; days_since_last_review auprc=0.0225 auroc=0.6143
+[amazon] seed 8: report rows da9af4226c6b/41926/629 ok; neg_recent_reviews auprc=0.0205 auroc=0.6192; days_since_last_review auprc=0.0210 auroc=0.6126
+[amazon] seed 9: report rows 9f85c767f52e/42084/631 ok; neg_recent_reviews auprc=0.0205 auroc=0.6185; days_since_last_review auprc=0.0211 auroc=0.6103
+[heur-amazon] rc=0

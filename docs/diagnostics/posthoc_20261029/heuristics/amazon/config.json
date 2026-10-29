@@ -1,0 +1,25 @@
+{
+  "dataset": "amazon",
+  "label_env": {
+    "ATRISK_TAU_A": "0.05",
+    "ATRISK_TAU_B": "10.0",
+    "ATRISK_TAU_ALPHA": "0.02",
+    "ATRISK_TAU_MULTIPLIER": "1.0",
+    "TARGET_ANOM_RATE": "0.015"
+  },
+  "lr": "sklearn LogisticRegression(C=1.0, lbfgs, max_iter=5000), no class weights, binary rule columns unscaled",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "script": "/isis/home/dahlenw/repos/RAD_submission/scripts/diagnostics/table4_posthoc_diagnostics.py",
+  "heuristics_only": true
+}

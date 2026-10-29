@@ -11,6 +11,11 @@ metrics, and writes into DIR (refusing to overwrite):
     six_ablations.log; lanl_stability_corr.csv: Pearson and Spearman correlations across seeds.
   - activity_summary.csv: per dataset, group and feature, the mean over seeds of the per-seed
     mean / median / fraction zero (and the per-seed feature AUROC, positives vs negatives).
+
+    python scripts/diagnostics/table4_posthoc_summary.py --dir docs/diagnostics/posthoc_20261029 --heuristics
+
+writes only heuristic_summary.csv (from DIR/heuristics/{hm,amazon}/heuristic_scores.csv): per seed, each
+single-feature heuristic next to each RAD row of the same seed, with mean rows (seed = "mean").
 """
 
 import argparse
@@ -100,13 +105,38 @@ def activity_summary(d: Path) -> pd.DataFrame:
     return s.reset_index().dropna(axis=1, how="all")
 
 
+def heuristic_summary(d: Path) -> pd.DataFrame:
+    out = []
+    for ds in ("hm", "amazon"):
+        h = pd.read_csv(d / "heuristics" / ds / "heuristic_scores.csv")
+        rad = final_rows(ds)
+        for name in h["heuristic"].unique():
+            for model in RAD_ROWS[ds]:
+                m = h[h["heuristic"] == name].merge(rad[rad["model"] == model], on="seed",
+                                                    suffixes=("_heuristic", "_rad"))
+                if len(m) != 10:
+                    raise RuntimeError(f"{ds} {name} vs {model}: {len(m)} paired seeds, expected 10")
+                for metric in ("auroc", "auprc"):
+                    m[f"{metric}_rad_minus_heuristic"] = m[f"{metric}_rad"] - m[f"{metric}_heuristic"]
+                m = m[["dataset", "heuristic", "model", "seed", "auroc_heuristic", "auroc_rad",
+                       "auroc_rad_minus_heuristic", "auprc_heuristic", "auprc_rad", "auprc_rad_minus_heuristic",
+                       "prevalence"]]
+                mean = m.drop(columns=["dataset", "heuristic", "model", "seed"]).mean().to_dict()
+                out += [m, pd.DataFrame([{"dataset": ds, "heuristic": name, "model": model, "seed": "mean", **mean}])]
+    return pd.concat(out, ignore_index=True)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dir", required=True, type=Path)
+    ap.add_argument("--heuristics", action="store_true", help="write only heuristic_summary.csv")
     a = ap.parse_args(argv)
-    st, corr = lanl_stability(a.dir)
-    outputs = {"rad_vs_rules_only_lr.csv": rad_vs_lr(a.dir), "lanl_stability.csv": st,
-               "lanl_stability_corr.csv": corr, "activity_summary.csv": activity_summary(a.dir)}
+    if a.heuristics:
+        outputs = {"heuristic_summary.csv": heuristic_summary(a.dir)}
+    else:
+        st, corr = lanl_stability(a.dir)
+        outputs = {"rad_vs_rules_only_lr.csv": rad_vs_lr(a.dir), "lanl_stability.csv": st,
+                   "lanl_stability_corr.csv": corr, "activity_summary.csv": activity_summary(a.dir)}
     for name in outputs:
         if (a.dir / name).exists():
             raise RuntimeError(f"{a.dir / name} exists; refusing to overwrite it.")

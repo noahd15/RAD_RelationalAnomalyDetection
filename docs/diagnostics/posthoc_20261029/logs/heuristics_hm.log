@@ -1,0 +1,13 @@
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 1.02 seconds.
+[hm] seed 0: report rows 23f9b330dfdd/5694/85 ok; neg_recent_txns auprc=0.0227 auroc=0.6340
+[hm] seed 1: report rows 710b11097e65/5707/86 ok; neg_recent_txns auprc=0.0187 auroc=0.5865
+[hm] seed 2: report rows 0584086c6c16/5654/85 ok; neg_recent_txns auprc=0.0204 auroc=0.6139
+[hm] seed 3: report rows 7b4e0a018b58/5669/85 ok; neg_recent_txns auprc=0.0225 auroc=0.6407
+[hm] seed 4: report rows 52c316c066f3/5742/86 ok; neg_recent_txns auprc=0.0182 auroc=0.5829
+[hm] seed 5: report rows 7434710cf5f1/5667/85 ok; neg_recent_txns auprc=0.0187 auroc=0.5843
+[hm] seed 6: report rows bc5d6f7b1e69/5718/86 ok; neg_recent_txns auprc=0.0201 auroc=0.6118
+[hm] seed 7: report rows 145e95034987/5634/85 ok; neg_recent_txns auprc=0.0191 auroc=0.5772
+[hm] seed 8: report rows a68e0856e9e4/5741/86 ok; neg_recent_txns auprc=0.0230 auroc=0.6501
+[hm] seed 9: report rows 8fcae05d6763/5683/85 ok; neg_recent_txns auprc=0.0197 auroc=0.5887
+[heur-hm] rc=0

@@ -15,6 +15,9 @@ writes
 lanl: rebuilds each seed's LLM rule matrix from rules/seed_N/llm_parsed_rules_df.csv with the run's
 own _rule_matrix_for_auth_ids, checks its per-rule match counts against six_ablations.log, and
 writes rules_only_lr.csv (train mask -> test mask).
+--heuristics-only (hm / amazon): after the same row check, writes only heuristic_scores.csv, the
+AUROC/AUPRC of single activity features (negated recent activity; Amazon also days since last
+review) as anomaly scores on the report rows.
 Nothing under results/ is written; --out must not exist.
 """
 
@@ -41,9 +44,12 @@ LABEL_ENV = {"ATRISK_TAU_A": "0.05", "ATRISK_TAU_B": "10.0", "ATRISK_TAU_ALPHA":
 CLEARED_ENV = ("VAL_FIT_FRAC", "POS_DOWNSAMPLE_MODE", "SEED")
 DATASETS = {
     "hm": {"script": "scripts/hm_rad_vs_supervised_rdl.py", "prefix": "hm10seed",
-           "activity": ["recent_txns", "prev_txns_30d", "trend_w", "avg_activity"]},
+           "activity": ["recent_txns", "prev_txns_30d", "trend_w", "avg_activity"],
+           "heuristics": {"neg_recent_txns": ("recent_txns", -1.0)}},
     "amazon": {"script": "scripts/rad_vs_supervised_rdl.py", "prefix": "amazon10seed",
-               "activity": ["recent_reviews", "prev_reviews", "trend_w", "avg_activity", "days_since_last_review"]},
+               "activity": ["recent_reviews", "prev_reviews", "trend_w", "avg_activity", "days_since_last_review"],
+               "heuristics": {"neg_recent_reviews": ("recent_reviews", -1.0),
+                              "days_since_last_review": ("days_since_last_review", 1.0)}},
 }
 DATASET_BCE_LS = {"hm": "1.0", "amazon": "0.1"}  # LAMBDA_STRUCT of the with-BCE arm (rule-table tag)
 LR_SPEC = "sklearn LogisticRegression(C=1.0, lbfgs, max_iter=5000), no class weights, binary rule columns unscaled"
@@ -102,7 +108,7 @@ def find_rule_table(rules_dir: Path, prefix: str, seed: int, tag: str) -> Path:
     return hits[0]
 
 
-def run_relbench(ds: str, out: Path) -> None:
+def run_relbench(ds: str, out: Path, heuristics_only: bool = False) -> None:
     import torch
 
     cfg = DATASETS[ds]
@@ -120,7 +126,7 @@ def run_relbench(ds: str, out: Path) -> None:
     cust = base["rdl_db"].table_dict["customer"].df["customer_id"].astype(np.int64).tolist()
     cid_to_nidx = pd.Series(np.arange(len(cust)), index=cust)
 
-    lr_rows, act_rows, checks = [], [], []
+    lr_rows, act_rows, heur_rows, checks = [], [], [], []
     for seed in SEEDS:
         # The script splits and filters the task tables in place, and relbench's get_table returns
         # the same cached Table each call, so each seed gets fresh copies.
@@ -136,6 +142,18 @@ def run_relbench(ds: str, out: Path) -> None:
                 != (fp, len(y_te), int(y_te.sum())):
             raise RuntimeError(f"{ds} seed {seed}: rebuilt report rows {fp}/{len(y_te)}/{int(y_te.sum())} "
                                f"!= final run {want.to_dict('records')}")
+        if heuristics_only:
+            # A single activity feature as the anomaly score (sign chosen so that higher = more anomalous).
+            act = ns["_activity_features_for_targets"](test_df, lookback_days=30)
+            for name, (col, sign) in cfg["heuristics"].items():
+                heur_rows.append({"dataset": ds, "seed": seed, "heuristic": name, "feature": col, "sign": sign,
+                                  **metrics(y_te, sign * act[col].to_numpy(dtype=float)),
+                                  "prevalence": float(y_te.mean()), "eval_fp": fp, "n_eval": len(y_te),
+                                  "n_pos": int(y_te.sum())})
+            print(f"[{ds}] seed {seed}: report rows {fp}/{len(y_te)}/{int(y_te.sum())} ok; "
+                  + "; ".join(f"{r['heuristic']} auprc={r['auprc']:.4f} auroc={r['auroc']:.4f}"
+                              for r in heur_rows[-len(cfg["heuristics"]):]), flush=True)
+            continue
         llm_nobce = find_rule_table(final / "rules", cfg["prefix"], seed, "ls0.0_llm")
         llm_bce = find_rule_table(final / "rules", cfg["prefix"], seed, f"ls{DATASET_BCE_LS[ds]}_llm")
         if md5(llm_nobce) != md5(llm_bce):
@@ -177,6 +195,9 @@ def run_relbench(ds: str, out: Path) -> None:
               + "; ".join(f"{r['rule_source']} LR auprc={r['auprc']:.4f} auroc={r['auroc']:.4f}"
                           for r in lr_rows[-2:]), flush=True)
 
+    if heuristics_only:
+        pd.DataFrame(heur_rows).to_csv(out / "heuristic_scores.csv", index=False)
+        return
     pd.DataFrame(lr_rows).to_csv(out / "rules_only_lr.csv", index=False)
     pd.DataFrame(act_rows).to_csv(out / "activity_by_label.csv", index=False)
     pd.DataFrame(checks).to_csv(out / "rebuilt_rows_check.csv", index=False)
@@ -255,7 +276,11 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("dataset", choices=["hm", "amazon", "lanl"])
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--heuristics-only", action="store_true",
+                    help="hm/amazon: only score single activity features (heuristic_scores.csv)")
     a = ap.parse_args(argv)
+    if a.heuristics_only and a.dataset == "lanl":
+        ap.error("--heuristics-only is for hm and amazon")
     if os.environ.get("CUDA_VISIBLE_DEVICES", None) != "":
         raise RuntimeError("Run with CUDA_VISIBLE_DEVICES= (CPU only).")
     out = a.out.resolve()
@@ -263,8 +288,9 @@ def main(argv=None) -> int:
         raise RuntimeError(f"{out} exists; refusing to overwrite it.")
     out.mkdir(parents=True)
     (out / "config.json").write_text(json.dumps({"dataset": a.dataset, "label_env": LABEL_ENV, "lr": LR_SPEC,
-                                                 "seeds": list(SEEDS), "script": __file__}, indent=2) + "\n")
-    run_lanl(out) if a.dataset == "lanl" else run_relbench(a.dataset, out)
+                                                 "seeds": list(SEEDS), "script": __file__,
+                                                 "heuristics_only": a.heuristics_only}, indent=2) + "\n")
+    run_lanl(out) if a.dataset == "lanl" else run_relbench(a.dataset, out, a.heuristics_only)
     return 0
 
 
