@@ -124,6 +124,34 @@ def test_compare(tmp: Path):
     raises("different arms refused", lambda: cmp.compare_runs(a, fake_run(tmp / "h", "/new", arms=("nobce",))),
            "differ in")
 
+    # rf_detector_scores: rank-only check (identical ranking, bit-identical AUROC/AUPRC); all else bitwise.
+    y = np.array([0, 1, 0, 1, 0])
+    rf = np.array([0.1, 0.9, 0.3, 0.7, 0.2])
+    base = {"test_scores": np.array([0.1, 0.2, 0.3, 0.4, 0.5]), "test_labels": y, "rf_detector_scores": rf}
+    ra = fake_run(tmp / "ra", "/old", raw=base)
+    rep = cmp.compare_runs(ra, fake_run(tmp / "rb", "/new", raw=dict(base, rf_detector_scores=rf + 1e-16)))
+    r = rep["arms"]["bce"]["rank_only"]["rf_detector_scores"]
+    check("rf_detector_scores: ~1e-16 noise with the same ranking passes and is reported",
+          rep["identical"] and r["n_values_differ"] > 0 and 0 < r["max_abs_diff"] < 1e-15 and r["ranking_identical"])
+    rep = cmp.compare_runs(ra, fake_run(tmp / "rc", "/new", raw=dict(base, rf_detector_scores=rf[[0, 1, 4, 3, 2]])))
+    check("rf_detector_scores: a changed ranking with equal metrics is a difference", not rep["identical"] and
+          rep["arms"]["bce"]["raw_diffs"] == ["raw.rf_detector_scores: row ranking differs"])
+    rep = cmp.compare_runs(ra, fake_run(tmp / "rd", "/new", raw=dict(base, rf_detector_scores=rf[[1, 0, 2, 3, 4]])))
+    check("rf_detector_scores: a changed AUROC/AUPRC is a difference", not rep["identical"] and
+          any("auroc" in d for d in rep["arms"]["bce"]["raw_diffs"]))
+    rep = cmp.compare_runs(ra, fake_run(tmp / "re", "/new", raw=dict(base, rf_detector_scores=np.array([0.1, 0.9, 0.3, 0.7, 0.3]))))
+    check("rf_detector_scores: a new tie is a ranking difference", not rep["identical"])
+    rep = cmp.compare_runs(ra, fake_run(tmp / "rf", "/new", raw=dict(base, rf_detector_scores=rf.astype(np.float32))))
+    check("rf_detector_scores: dtype change is a difference", not rep["identical"])
+    rep = cmp.compare_runs(ra, fake_run(tmp / "rg", "/new", raw=dict(base, test_scores=np.nextafter(base["test_scores"], 1),
+                                                                     rf_detector_scores=rf + 1e-16)))
+    check("other keys stay bitwise next to the rank-only key",
+          rep["arms"]["bce"]["raw_diffs"] == ["raw.test_scores: 5 of 5 values differ"])
+    no_rf = {k: v for k, v in base.items() if k != "rf_detector_scores"}
+    rep = cmp.compare_runs(ra, fake_run(tmp / "rh", "/new", raw=no_rf))
+    check("rf_detector_scores in only one run is a difference",
+          rep["arms"]["bce"]["raw_diffs"] == ["raw: keys ['rf_detector_scores'] in only one run"])
+
     check("same exit code 0 when identical", cmp.main(["same", str(a), str(b)]) == 0)
     check("same exit code 1 when different", cmp.main(["same", str(a), str(c)]) == 1)
     secs = cmp.epoch_seconds(a / "bce" / "epoch_times.tsv")

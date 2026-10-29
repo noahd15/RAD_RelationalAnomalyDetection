@@ -14,6 +14,11 @@
 - raw_results.pt (SAVE_RAW_RESULTS_PATH): every entry is identical. Tensors and arrays must have
   the same dtype, shape and bytes (so NaNs in the same places compare equal), floats must be ==,
   and strings are compared after the same path normalization.
+  One exception, rf_detector_scores (the supervised RF detector baseline, scored with sklearn
+  n_jobs=-1, whose per-tree summation order varies between runs by ~1e-16): it must have the same
+  dtype and shape, an identical row ranking, and bit-identical AUROC and AUPRC against the run's
+  test_labels; its max abs difference is reported. It is not a Table 4 row and nothing downstream
+  reads it.
 - the rule table (rules/customer_rule_table.pt) has the same md5.
 Prints the first differences and exits 1 if anything differs.
 
@@ -33,6 +38,7 @@ DROPPED_PREFIXES = ("deterministic_mode: true", "rad_hp: ", "rad_inputs_fp: ", "
                     "[rules] rule table matches ")
 _DONE_IN = re.compile(r"^Done in \d+(\.\d+)? seconds\.$")
 MAX_SHOWN = 20
+RANK_ONLY_KEYS = ("rf_detector_scores",)  # see the docstring
 
 
 def _config(run: Path) -> dict:
@@ -94,6 +100,24 @@ def compare_objects(a, b, path: str, norm_a, norm_b) -> list[str]:
     return [] if a == b else [f"{path}: {a!r} != {b!r}"]
 
 
+def compare_rank_only(a, b, labels, path: str) -> tuple[list[str], dict]:
+    """Same dtype/shape, identical ranking (ties included), bit-identical AUROC and AUPRC."""
+    import numpy as np
+    from scipy.stats import rankdata
+    from sklearn.metrics import average_precision_score, roc_auc_score
+
+    a, b, y = np.asarray(a), np.asarray(b), np.asarray(labels)
+    if a.dtype != b.dtype or a.shape != b.shape:
+        return [f"{path}: {a.dtype}{a.shape} != {b.dtype}{b.shape}"], {}
+    info = {"n_values_differ": int((a != b).sum()), "max_abs_diff": float(np.abs(a.astype(float) - b.astype(float)).max()),
+            "ranking_identical": bool(np.array_equal(rankdata(a), rankdata(b))),
+            "auroc": [float(roc_auc_score(y, a)), float(roc_auc_score(y, b))],
+            "auprc": [float(average_precision_score(y, a)), float(average_precision_score(y, b))]}
+    diffs = [] if info["ranking_identical"] else [f"{path}: row ranking differs"]
+    diffs += [f"{path}: {m} {info[m][0]!r} != {info[m][1]!r}" for m in ("auroc", "auprc") if info[m][0] != info[m][1]]
+    return diffs, info
+
+
 def _md5(path: Path) -> str | None:
     return hashlib.md5(path.read_bytes()).hexdigest() if path.exists() else None
 
@@ -117,7 +141,15 @@ def compare_runs(run_a: Path, run_b: Path) -> dict:
         ra = torch.load(run_a / arm / "raw_results.pt", map_location="cpu", weights_only=False)
         rb = torch.load(run_b / arm / "raw_results.pt", map_location="cpu", weights_only=False)
         res["raw_keys"] = sorted(map(str, ra)) if isinstance(ra, dict) else type(ra).__name__
-        res["raw_diffs"] = compare_objects(ra, rb, "raw", norm[run_a], norm[run_b])
+        res["rank_only"] = {}
+        if isinstance(ra, dict) and isinstance(rb, dict):
+            ra, rb = dict(ra), dict(rb)
+            for k in RANK_ONLY_KEYS:
+                if k in ra and k in rb:  # a key in only one run is still reported below
+                    d, info = compare_rank_only(ra.pop(k), rb.pop(k), ra["test_labels"], f"raw.{k}")
+                    res["rank_only"][k] = {"diffs": d, **info}
+        res["raw_diffs"] = compare_objects(ra, rb, "raw", norm[run_a], norm[run_b]) + [
+            d for r in res["rank_only"].values() for d in r["diffs"]]
         ma, mb = _md5(run_a / arm / "rules" / "customer_rule_table.pt"), _md5(run_b / arm / "rules" / "customer_rule_table.pt")
         res["rule_table_md5"] = [ma, mb]
         res["identical"] = not res["stdout_diffs"] and not res["raw_diffs"] and ma == mb and ma is not None
@@ -143,6 +175,11 @@ def cmd_same(a) -> int:
               f"rule tables={res['rule_table_md5']}")
         for d in (res["stdout_diffs"] + res["raw_diffs"])[:MAX_SHOWN]:
             print("    " + d)
+        for k, r in res["rank_only"].items():
+            if r.get("auroc"):
+                print(f"    {k} (rank-only check): {r['n_values_differ']} values differ, max abs diff "
+                      f"{r['max_abs_diff']:.3g}, ranking identical={r['ranking_identical']}, "
+                      f"auroc {r['auroc'][0]!r}/{r['auroc'][1]!r}, auprc {r['auprc'][0]!r}/{r['auprc'][1]!r}")
     print(f"\n{'IDENTICAL' if report['identical'] else 'DIFFERENT'}: {a.run_a} vs {a.run_b}")
     if a.out:
         if a.out.exists():
