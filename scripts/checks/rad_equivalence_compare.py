@@ -19,6 +19,8 @@
   dtype and shape, an identical row ranking, and bit-identical AUROC and AUPRC against the run's
   test_labels; its max abs difference is reported. It is not a Table 4 row and nothing downstream
   reads it.
+  Keys in NEW_ONLY_KEYS (the per-row feature/structure error terms, saved only by the refactored
+  code) may be present in only one run; when both runs have one, it is compared bitwise.
 - the rule table (rules/customer_rule_table.pt) has the same md5.
 Prints the first differences and exits 1 if anything differs.
 
@@ -39,6 +41,7 @@ DROPPED_PREFIXES = ("deterministic_mode: true", "rad_hp: ", "rad_inputs_fp: ", "
 _DONE_IN = re.compile(r"^Done in \d+(\.\d+)? seconds\.$")
 MAX_SHOWN = 20
 RANK_ONLY_KEYS = ("rf_detector_scores",)  # see the docstring
+NEW_ONLY_KEYS = ("test_feat_err", "test_struct_err", "orig_test_feat_err", "orig_test_struct_err")
 
 
 def _config(run: Path) -> dict:
@@ -141,9 +144,14 @@ def compare_runs(run_a: Path, run_b: Path) -> dict:
         ra = torch.load(run_a / arm / "raw_results.pt", map_location="cpu", weights_only=False)
         rb = torch.load(run_b / arm / "raw_results.pt", map_location="cpu", weights_only=False)
         res["raw_keys"] = sorted(map(str, ra)) if isinstance(ra, dict) else type(ra).__name__
-        res["rank_only"] = {}
+        res["rank_only"], res["new_only_keys_in_one_run"] = {}, []
         if isinstance(ra, dict) and isinstance(rb, dict):
             ra, rb = dict(ra), dict(rb)
+            for k in NEW_ONLY_KEYS:
+                if (k in ra) != (k in rb):
+                    res["new_only_keys_in_one_run"].append(k)
+                    ra.pop(k, None)
+                    rb.pop(k, None)
             for k in RANK_ONLY_KEYS:
                 if k in ra and k in rb:  # a key in only one run is still reported below
                     d, info = compare_rank_only(ra.pop(k), rb.pop(k), ra["test_labels"], f"raw.{k}")
@@ -175,6 +183,8 @@ def cmd_same(a) -> int:
               f"rule tables={res['rule_table_md5']}")
         for d in (res["stdout_diffs"] + res["raw_diffs"])[:MAX_SHOWN]:
             print("    " + d)
+        if res["new_only_keys_in_one_run"]:
+            print(f"    in one run only (allowed): {res['new_only_keys_in_one_run']}")
         for k, r in res["rank_only"].items():
             if r.get("auroc"):
                 print(f"    {k} (rank-only check): {r['n_values_differ']} values differ, max abs diff "

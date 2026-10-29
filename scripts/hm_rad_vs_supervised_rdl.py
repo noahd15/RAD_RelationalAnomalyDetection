@@ -1504,6 +1504,12 @@ save_obj = {
     "orig_test_scores": orig_val_pred,
     "orig_test_labels": _orig_lbl,
     "rf_detector_scores": rf_detector_scores,
+    # Raw per-row error terms behind test_scores / orig_test_scores (combine with norm_stats and
+    # hyperparams alpha_feat / alpha_struct), for the score decomposition.
+    "test_feat_err": vf,
+    "test_struct_err": vs,
+    "orig_test_feat_err": orig_vf,
+    "orig_test_struct_err": orig_vs,
 }
 if "_final_sup_scores" in locals():
     save_obj["sup_val_scores"] = _final_sup_scores

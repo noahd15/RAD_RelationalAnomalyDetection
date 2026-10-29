@@ -109,6 +109,8 @@ def _run_rad_variant(seed: int, lambda_struct: float, tune_metric: str = "auprc"
             "TUNE_METRIC": tune_metric,
             "RF_RULE_MODE": rf_rule_mode,
             "RULES_OUT_DIR": (OUT_DIR / "rules" / run_tag).as_posix(),
+            # One raw_results file per arm (scores, labels and the feature/structure error terms).
+            "SAVE_RAW_RESULTS_PATH": (OUT_DIR / "raw" / f"{run_tag}.pt").as_posix(),
             # LATENT_DIM, EPOCHS, PATIENCE, WARMUP_*: shared with the per-seed studies.
             **run_env("amazon", env),
         }
@@ -235,6 +237,7 @@ def main() -> None:
         "deterministic_mode": DETERMINISTIC,
         "rf_seed_variant": RF_SEED_VARIANT,
         "rules_out_dir": (OUT_DIR / "rules").as_posix(),
+        "raw_results_dir": (OUT_DIR / "raw").as_posix(),
         "use_cached_llm_rules": os.environ.get("USE_CACHED_LLM_RULES", "0 (default: LLM regenerates rules)"),
     })
     all_rows: list[dict] = []

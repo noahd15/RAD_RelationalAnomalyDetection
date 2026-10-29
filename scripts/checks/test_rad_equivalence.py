@@ -152,6 +152,20 @@ def test_compare(tmp: Path):
     check("rf_detector_scores in only one run is a difference",
           rep["arms"]["bce"]["raw_diffs"] == ["raw: keys ['rf_detector_scores'] in only one run"])
 
+    # Feature/structure error terms: allowed in only one run; compared bitwise when in both.
+    terms = {k: np.array([0.5, 1.5, 2.5, 3.5, 4.5], dtype=np.float32) for k in cmp.NEW_ONLY_KEYS}
+    rep = cmp.compare_runs(ra, fake_run(tmp / "ta", "/new", raw=dict(base, **terms)))
+    check("error-term keys in only one run are allowed and listed", rep["identical"]
+          and rep["arms"]["bce"]["new_only_keys_in_one_run"] == list(cmp.NEW_ONLY_KEYS))
+    rt = fake_run(tmp / "tb", "/new", raw=dict(base, **terms))
+    other = dict(terms, test_struct_err=np.nextafter(terms["test_struct_err"], np.float32(9)))
+    rep = cmp.compare_runs(rt, fake_run(tmp / "tc", "/new", raw=dict(base, **other)))
+    check("error-term keys in both runs are compared bitwise",
+          rep["arms"]["bce"]["raw_diffs"] == ["raw.test_struct_err: 5 of 5 values differ"])
+    rep = cmp.compare_runs(ra, fake_run(tmp / "td", "/new", raw=dict(base, **terms, sup_val_scores=np.zeros(5))))
+    check("any other key in only one run is still a difference",
+          rep["arms"]["bce"]["raw_diffs"] == ["raw: keys ['sup_val_scores'] in only one run"])
+
     check("same exit code 0 when identical", cmp.main(["same", str(a), str(b)]) == 0)
     check("same exit code 1 when different", cmp.main(["same", str(a), str(c)]) == 1)
     secs = cmp.epoch_seconds(a / "bce" / "epoch_times.tsv")
