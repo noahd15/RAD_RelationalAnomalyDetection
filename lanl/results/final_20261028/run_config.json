@@ -1,0 +1,30 @@
+{
+  "code_version": {
+    "git_commit": "3cf7fd5ddf83814d4dd91978cbe53f2328a4dbb9",
+    "git_tag": "table4-final-20261026b",
+    "git_modified_tracked_files": []
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "mlp_supervised_detector": {
+    "hidden_layer_sizes": [
+      128,
+      64,
+      32
+    ],
+    "alpha": 1e-05,
+    "source": "lanl/tune_rf_mlp.py (train-only 3-fold CV, average_precision), log lanl/results/mlp_tuning_20261026/run.log"
+  },
+  "rad_hyperparameters_source": "source: author recollection; no Optuna artifact found. GAE_HP are the hard-coded _default_hparams of /array/dahlenw/RAD/notebooks/old/RAD_fixed.ipynb cell 21 (its merge of optuna_best_params is commented out); the only saved output of the Optuna cell (cell 24, study hetero_sage_ae, 60 trials planned) shows trial 0 interrupted by KeyboardInterrupt with no completed trial.",
+  "llm_rules": "per_run: regenerated each seed with meta-llama/Llama-3.1-8B-Instruct ({'max_new_tokens': 4000, 'do_sample': False, 'temperature': 0.0, 'top_p': 1.0}); RF seed rules and LLM rules selected on the val split only; saved under results/final_20261028/rules"
+}

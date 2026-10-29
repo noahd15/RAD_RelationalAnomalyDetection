@@ -1,0 +1,147 @@
+{
+  "rf_rule_mode": "rf_seed",
+  "used_cached_rules": null,
+  "llm": null,
+  "seed": 7,
+  "seed_note": "do_sample=False (greedy decoding), so the LLM output does not depend on a sampling seed; SEED sets the RF and the rule-selection slice; the seed-rule sample uses seed 42",
+  "rule_selection_rows": 40000,
+  "rule_selection_pos": 560,
+  "seed_rules_in_prompt": [
+    {
+      "rule_id": "rule_8889",
+      "sql_predicate": "price_std > 0.00891886 AND distinct_articles > 23.5 AND max_price <= 0.117492 AND min_price <= 0.00217797 AND mean_price <= 0.0163178 AND mean_price > 0.0150183 AND recent_txns_90d <= 21.5 AND max_price > 0.0491356 AND recent_txns_30d <= 11.5 AND total_txns <= 45",
+      "val_precision": 0.5,
+      "val_support": 2
+    },
+    {
+      "rule_id": "rule_4149",
+      "sql_predicate": "max_price > 0.0430254 AND min_price <= 0.0136949 AND mean_price <= 0.0354636 AND distinct_articles <= 25.5 AND recent_txns_90d > 12.5 AND min_price > 0.00587288 AND price_std > 0.0181473 AND distinct_articles <= 8.5",
+      "val_precision": 0.3333,
+      "val_support": 3
+    },
+    {
+      "rule_id": "rule_2133",
+      "sql_predicate": "distinct_articles <= 25.5 AND total_txns <= 7.5 AND recent_txns_90d > 2.5 AND recent_txns_90d > 6.5 AND mean_price <= 0.01623 AND price_std <= 0.0127692 AND price_std <= 0.00250771 AND recent_txns_30d > 5.5",
+      "val_precision": 0.25,
+      "val_support": 4
+    },
+    {
+      "rule_id": "rule_0201",
+      "sql_predicate": "total_txns > 7.5 AND recent_txns_90d <= 15.5 AND max_price <= 0.0406695 AND recent_txns_30d <= 13.5 AND price_std <= 0.0102784 AND mean_price > 0.0264619 AND mean_price > 0.0291096 AND total_txns <= 11.5 AND distinct_articles > 5.5 AND min_price > 0.0203898",
+      "val_precision": 0.2,
+      "val_support": 10
+    },
+    {
+      "rule_id": "rule_10293",
+      "sql_predicate": "recent_txns_90d <= 11.5 AND recent_txns_90d <= 4.5 AND recent_txns_30d > 0.5 AND price_std <= 0.00705958 AND distinct_articles <= 6.5 AND price_std > 0.00564042 AND max_price <= 0.0425254 AND price_std <= 0.00570711 AND distinct_articles <= 3.5",
+      "val_precision": 0.2,
+      "val_support": 5
+    },
+    {
+      "rule_id": "rule_2035",
+      "sql_predicate": "recent_txns_30d > 4.5 AND min_price <= 0.0105339 AND distinct_articles <= 52.5 AND total_txns <= 31.5 AND max_price <= 0.103568 AND max_price <= 0.0593136 AND mean_price > 0.0282508 AND mean_price > 0.0343336 AND recent_txns_90d <= 14.5 AND recent_txns_90d <= 5.5",
+      "val_precision": 0.1429,
+      "val_support": 7
+    },
+    {
+      "rule_id": "rule_9106",
+      "sql_predicate": "min_price > 0.0105339 AND recent_txns_90d <= 9.5 AND price_std > 0.00610951 AND mean_price <= 0.0813765 AND recent_txns_90d <= 3.5 AND distinct_articles <= 3.5 AND recent_txns_30d <= 1.5 AND mean_price > 0.0261836 AND price_std > 0.00835358 AND min_price <= 0.0131186",
+      "val_precision": 0.125,
+      "val_support": 8
+    },
+    {
+      "rule_id": "rule_10274",
+      "sql_predicate": "recent_txns_90d <= 11.5 AND recent_txns_90d <= 4.5 AND recent_txns_30d <= 0.5 AND max_price <= 0.0966441 AND total_txns <= 5.5 AND mean_price <= 0.0680621 AND mean_price <= 0.0229492 AND total_txns <= 3.5 AND min_price > 0.00371186 AND max_price > 0.0218305",
+      "val_precision": 0.0667,
+      "val_support": 30
+    },
+    {
+      "rule_id": "rule_4347",
+      "sql_predicate": "recent_txns_30d <= 9.5 AND total_txns <= 13.5 AND max_price <= 0.151144 AND max_price <= 0.0471949 AND max_price > 0.0306949 AND min_price <= 0.00785593 AND total_txns > 11.5 AND price_std > 0.00813656 AND min_price <= 0.00667797 AND distinct_articles <= 12.5",
+      "val_precision": 0.0645,
+      "val_support": 93
+    },
+    {
+      "rule_id": "rule_8223",
+      "sql_predicate": "distinct_articles <= 15.5 AND recent_txns_90d <= 3.5 AND max_price <= 0.0408729 AND recent_txns_90d > 0.5 AND min_price > 0.00284746 AND min_price > 0.00683898 AND recent_txns_30d > 0.5 AND max_price > 0.0392458 AND min_price > 0.0154661 AND distinct_articles <= 3.5",
+      "val_precision": 0.0526,
+      "val_support": 38
+    },
+    {
+      "rule_id": "rule_7380",
+      "sql_predicate": "max_price > 0.0427034 AND recent_txns_90d <= 12.5 AND total_txns <= 27.5 AND max_price <= 0.218534 AND min_price > 0.0456102 AND distinct_articles <= 3.5 AND min_price <= 0.0483136 AND price_std <= 0.00290602 AND distinct_articles <= 1.5 AND recent_txns_90d <= 1.5",
+      "val_precision": 0.0526,
+      "val_support": 19
+    },
+    {
+      "rule_id": "rule_9526",
+      "sql_predicate": "recent_txns_90d <= 11.5 AND min_price > 0.016822 AND recent_txns_30d <= 5.5 AND total_txns <= 3.5 AND mean_price > 0.0262754 AND max_price <= 0.139822 AND mean_price > 0.0355212 AND max_price > 0.0954915 AND price_std <= 0.0302588 AND min_price > 0.0682034",
+      "val_precision": 0.0508,
+      "val_support": 59
+    },
+    {
+      "rule_id": "rule_2212",
+      "sql_predicate": "distinct_articles <= 15.5 AND price_std <= 0.0121756 AND distinct_articles <= 8.5 AND max_price <= 0.136424 AND mean_price <= 0.0225191 AND mean_price <= 0.0222903 AND max_price > 0.0274746 AND min_price > 0.00909322 AND price_std > 0.0101641 AND total_txns > 2.5",
+      "val_precision": 0.0494,
+      "val_support": 81
+    },
+    {
+      "rule_id": "rule_5376",
+      "sql_predicate": "distinct_articles <= 15.5 AND total_txns <= 5.5 AND price_std > 0.0048945 AND recent_txns_90d > 2.5 AND mean_price <= 0.0813418 AND recent_txns_30d <= 2.5 AND recent_txns_90d <= 4.5 AND max_price > 0.0415339 AND distinct_articles > 4.5 AND recent_txns_90d <= 3.5",
+      "val_precision": 0.0417,
+      "val_support": 24
+    },
+    {
+      "rule_id": "rule_1414",
+      "sql_predicate": "max_price <= 0.0457542 AND distinct_articles <= 11.5 AND min_price > 0.0163305 AND distinct_articles <= 3.5 AND recent_txns_90d > 0.5 AND mean_price > 0.0310579 AND mean_price > 0.0321723 AND recent_txns_30d <= 2.5 AND distinct_articles <= 2.5 AND max_price <= 0.0454661",
+      "val_precision": 0.0369,
+      "val_support": 597
+    },
+    {
+      "rule_id": "rule_6551",
+      "sql_predicate": "min_price > 0.0106186 AND total_txns <= 3.5 AND price_std <= 0.0266588 AND min_price <= 0.0284661 AND recent_txns_30d > 0.5 AND mean_price <= 0.0406638 AND mean_price <= 0.0211412 AND mean_price <= 0.0176243 AND total_txns > 1.5 AND recent_txns_30d > 1.5",
+      "val_precision": 0.0361,
+      "val_support": 194
+    },
+    {
+      "rule_id": "rule_8319",
+      "sql_predicate": "distinct_articles > 15.5 AND recent_txns_30d > 13.5 AND distinct_articles > 32.5 AND min_price <= 0.0113983 AND recent_txns_90d > 22.5 AND max_price <= 0.0442627 AND price_std > 0.00772825 AND total_txns <= 88.5 AND distinct_articles > 44.5 AND recent_txns_90d <= 49.5",
+      "val_precision": 0.0345,
+      "val_support": 29
+    },
+    {
+      "rule_id": "rule_10175",
+      "sql_predicate": "max_price <= 0.0356017 AND distinct_articles <= 5.5 AND price_std <= 0.0167848 AND total_txns <= 2.5 AND recent_txns_30d > 1.5 AND price_std > 0.00478795 AND mean_price > 0.00913559 AND price_std <= 0.0108103 AND min_price > 0.00481356 AND mean_price > 0.0131186",
+      "val_precision": 0.0338,
+      "val_support": 266
+    },
+    {
+      "rule_id": "rule_6046",
+      "sql_predicate": "recent_txns_90d <= 9.5 AND price_std <= 0.00611419 AND recent_txns_90d > 0.5 AND recent_txns_30d <= 2.5 AND min_price <= 0.0316949 AND distinct_articles <= 20.5 AND max_price > 0.0219831 AND distinct_articles <= 8.5 AND distinct_articles <= 1.5 AND mean_price > 0.0227627",
+      "val_precision": 0.0314,
+      "val_support": 318
+    },
+    {
+      "rule_id": "rule_3140",
+      "sql_predicate": "price_std <= 0.00628063 AND price_std <= 0.00489288 AND max_price > 0.0101102 AND min_price <= 0.139949 AND price_std > 0.00239968 AND price_std > 0.00293446 AND total_txns <= 7.5 AND min_price <= 0.0436271 AND recent_txns_90d > 0.5 AND mean_price <= 0.0314843",
+      "val_precision": 0.0314,
+      "val_support": 606
+    }
+  ],
+  "broad_rules_included": false,
+  "response_truncated": null,
+  "n_candidates_parsed": 30,
+  "prompt_example_predicates": [
+    "recent_txns_90d <= 1",
+    "distinct_articles <= 2"
+  ],
+  "n_verbatim_prompt_copies": null,
+  "verbatim_prompt_copies": null,
+  "n_verbatim_seed_rule_copies": null,
+  "verbatim_seed_rule_copies": null,
+  "seed_fallback_used": false,
+  "n_rejected_missing_columns": 0,
+  "rejected": [],
+  "n_rule_columns": 30,
+  "llm_raw_response": null
+}

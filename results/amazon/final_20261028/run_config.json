@@ -1,0 +1,38 @@
+{
+  "code_version": {
+    "git_commit": "3cf7fd5ddf83814d4dd91978cbe53f2328a4dbb9",
+    "git_tag": "table4-final-20261026b",
+    "git_modified_tracked_files": []
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "label_env": {
+    "TARGET_ANOM_RATE": "0.015",
+    "TRAIN_EQ_RATE": null,
+    "ATRISK_TAU_A": "0.05",
+    "ATRISK_TAU_B": "10.0",
+    "ATRISK_TAU_ALPHA": "0.02",
+    "ATRISK_TAU_MULTIPLIER": "1.0"
+  },
+  "rad_hyperparameters": {
+    "LAMBDA_RANK": "2.0",
+    "ALPHA_FEAT": "1.0",
+    "ALPHA_STRUCT": "1.0",
+    "BCE_arm_LAMBDA_STRUCT": 0.1
+  },
+  "rad_hyperparameter_source": "scripts/optuna_rad32_tune.py, study rad32_optuna_postfix (30 trials, TPE seed 42, objective: val AUPRC, latent_dim 32 fixed); best trial #6 value 0.028929 = {lambda_struct: 0.1, lambda_rank: 2.0, alpha_feat: 1.0, alpha_struct: 1.0}. Record: results/amazon/optuna_rad32_postfix/{best_trial.txt,trials.csv,study.db} and results/amazon_optuna_postfix_run.log in commit e8c5a5e (branch wip/main-local-changes-20261026). Caveat: the tuner scored the full RelBench val table, which includes the report partition used here.",
+  "rad_hyperparameter_note": "LATENT_DIM 32 fixed (not tuned); EPOCHS/PATIENCE/WARMUP defaults date from 6574b66 with no tuning record.",
+  "rf_seed_variant": true,
+  "rules_out_dir": "/isis/home/dahlenw/repos/RAD_submission/results/amazon/final_20261028/rules",
+  "use_cached_llm_rules": "0"
+}

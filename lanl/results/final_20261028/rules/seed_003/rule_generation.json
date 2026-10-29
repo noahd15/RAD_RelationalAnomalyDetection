@@ -1,0 +1,159 @@
+{
+  "llm_rules_mode": "per_run",
+  "llm": {
+    "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+    "quantization": "4-bit nf4",
+    "max_new_tokens": 4000,
+    "do_sample": false,
+    "temperature": 0.0,
+    "top_p": 1.0
+  },
+  "seed": 3,
+  "seed_note": "do_sample=False (greedy decoding), so the LLM output does not depend on a sampling seed; SEED sets the RF and the seed-rule sample",
+  "selection_split": "val mask (7719 rows, 75 positives); test is not read",
+  "schema": "Table: features_table  (one row per LANL authentication event)\nColumns:\n  auth_type                    INTEGER  -- category code: 0=?, 1=Kerberos, 2=MICROSOFT_AUTHENTICATION_PACKAG, 3=MICROSOFT_AUTHENTICATION_PACKAGE, 4=MICROSOFT_AUTHENTICATION_PACKAGE_V1_0, 5=NTLM, 6=Negotiate, 7=Wave\n  logon_type                   INTEGER  -- category code: 0=?, 1=Batch, 2=CachedInteractive, 3=Interactive, 4=Network, 5=NetworkCleartext, 6=NewCredentials, 7=RemoteInteractive, 8=Service, 9=Unlock\n  auth_orientation             INTEGER  -- category code: 0=AuthMap, 1=LogOff, 2=LogOn, 3=ScreenLock, 4=ScreenUnlock, 5=TGS, 6=TGT\n  success_failure              INTEGER  -- category code: 0=Fail, 1=Success\n  new_src_dst_user_pair        INTEGER  -- range 0 to 1\n  user_auth_count_24h          INTEGER  -- range 0 to 306\n  dns_count_prev_5m            FLOAT    -- range 0 to 2\n  dns_unique_queries_prev_5m   INTEGER  -- range 0 to 0\n  flow_count_prev_5m           FLOAT    -- range 0 to 2\n  flow_bytes_sum_prev_5m       FLOAT    -- range 0 to 0\n  proc_count_prev_2m           FLOAT    -- range 0 to 2\n  proc_unique_prev_2m          INTEGER  -- range 0 to 0",
+  "seed_rules_in_prompt": [
+    {
+      "rule_id": "rf_rule_001",
+      "sql_predicate": "auth_type > 4.5 AND auth_type <= 5.5 AND user_auth_count_24h <= 134.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h > 0.5 AND dns_count_prev_5m <= 0.5 AND success_failure > 0.5 AND user_auth_count_24h <= 130.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 10.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h <= 4.5 AND user_auth_count_24h <= 3.5",
+      "val_precision": 0.35,
+      "val_support": 20
+    },
+    {
+      "rule_id": "rf_rule_002",
+      "sql_predicate": "new_src_dst_user_pair <= 0.5 AND user_auth_count_24h > 1.5 AND auth_orientation > 1.5 AND auth_type > 4.5 AND success_failure > 0.5 AND logon_type <= 4.5 AND logon_type > 3.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h <= 115.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 3.5",
+      "val_precision": 0.35,
+      "val_support": 20
+    },
+    {
+      "rule_id": "rf_rule_003",
+      "sql_predicate": "auth_type > 4.5 AND user_auth_count_24h <= 132.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h > 2.5 AND logon_type <= 4.5 AND user_auth_count_24h <= 103.5 AND auth_type <= 5.5 AND user_auth_count_24h <= 60.5 AND success_failure > 0.5 AND user_auth_count_24h <= 17.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h <= 3.5",
+      "val_precision": 0.35,
+      "val_support": 20
+    },
+    {
+      "rule_id": "rf_rule_004",
+      "sql_predicate": "user_auth_count_24h > 1.5 AND logon_type > 3.5 AND auth_type > 4.5 AND user_auth_count_24h <= 134.5 AND user_auth_count_24h > 3.5 AND new_src_dst_user_pair <= 0.5 AND logon_type <= 4.5 AND success_failure > 0.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h <= 5.5 AND user_auth_count_24h <= 4.5",
+      "val_precision": 0.3333,
+      "val_support": 24
+    },
+    {
+      "rule_id": "rf_rule_005",
+      "sql_predicate": "dns_count_prev_5m <= 0.5 AND logon_type > 3.5 AND auth_type > 4.5 AND success_failure > 0.5 AND auth_type <= 5.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 113.5 AND user_auth_count_24h <= 63.5 AND user_auth_count_24h <= 15.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h <= 5.5 AND user_auth_count_24h <= 4.5",
+      "val_precision": 0.3333,
+      "val_support": 24
+    },
+    {
+      "rule_id": "rf_rule_006",
+      "sql_predicate": "auth_type > 4.5 AND logon_type <= 4.5 AND user_auth_count_24h <= 135.5 AND logon_type > 3.5 AND user_auth_count_24h > 1.5 AND success_failure > 0.5 AND user_auth_count_24h <= 114.5 AND auth_type <= 5.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 60.5 AND user_auth_count_24h <= 21.5 AND user_auth_count_24h <= 12.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h <= 5.5 AND user_auth_count_24h <= 4.5",
+      "val_precision": 0.3333,
+      "val_support": 24
+    },
+    {
+      "rule_id": "rf_rule_007",
+      "sql_predicate": "auth_type > 4.5 AND user_auth_count_24h <= 135.5 AND auth_type <= 5.5 AND new_src_dst_user_pair <= 0.5 AND success_failure > 0.5 AND user_auth_count_24h > 1.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 111.5 AND user_auth_count_24h <= 63.5 AND user_auth_count_24h <= 19.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h <= 5.5 AND user_auth_count_24h > 4.5",
+      "val_precision": 0.3333,
+      "val_support": 15
+    },
+    {
+      "rule_id": "rf_rule_008",
+      "sql_predicate": "user_auth_count_24h > 2.5 AND auth_type > 4.5 AND new_src_dst_user_pair <= 0.5 AND auth_type <= 5.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h <= 108.5 AND success_failure > 0.5 AND user_auth_count_24h <= 56.5 AND user_auth_count_24h <= 37.5 AND user_auth_count_24h <= 11.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h > 4.5 AND user_auth_count_24h <= 5.5",
+      "val_precision": 0.3333,
+      "val_support": 15
+    },
+    {
+      "rule_id": "rf_rule_009",
+      "sql_predicate": "auth_orientation > 1.5 AND auth_orientation <= 2.5 AND auth_type > 4.5 AND user_auth_count_24h <= 135.5 AND logon_type <= 4.5 AND success_failure > 0.5 AND auth_type <= 5.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 114.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 66.5 AND user_auth_count_24h <= 11.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h <= 5.5 AND user_auth_count_24h > 4.5",
+      "val_precision": 0.3333,
+      "val_support": 15
+    },
+    {
+      "rule_id": "rf_rule_010",
+      "sql_predicate": "auth_orientation > 1.5 AND logon_type > 3.5 AND auth_type > 4.5 AND new_src_dst_user_pair <= 0.5 AND logon_type <= 4.5 AND auth_type <= 5.5 AND success_failure > 0.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 134.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 106.5 AND user_auth_count_24h <= 56.5 AND user_auth_count_24h <= 37.5 AND user_auth_count_24h <= 12.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h > 4.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h <= 5.5",
+      "val_precision": 0.3333,
+      "val_support": 15
+    },
+    {
+      "rule_id": "rf_rule_011",
+      "sql_predicate": "auth_type > 4.5 AND dns_count_prev_5m <= 0.5 AND success_failure > 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h <= 2.5 AND auth_type <= 5.5 AND new_src_dst_user_pair > 0.5 AND user_auth_count_24h <= 0.5",
+      "val_precision": 0.3,
+      "val_support": 10
+    },
+    {
+      "rule_id": "rf_rule_012",
+      "sql_predicate": "logon_type > 3.5 AND success_failure > 0.5 AND auth_type > 4.5 AND new_src_dst_user_pair > 0.5 AND logon_type <= 4.5 AND user_auth_count_24h <= 0.5",
+      "val_precision": 0.3,
+      "val_support": 10
+    },
+    {
+      "rule_id": "rf_rule_013",
+      "sql_predicate": "success_failure > 0.5 AND auth_type > 4.5 AND logon_type <= 4.5 AND user_auth_count_24h <= 135.5 AND auth_type <= 5.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 98.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 63.5 AND user_auth_count_24h <= 18.5 AND user_auth_count_24h <= 10.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h > 5.5",
+      "val_precision": 0.25,
+      "val_support": 16
+    },
+    {
+      "rule_id": "rf_rule_014",
+      "sql_predicate": "auth_type > 4.5 AND auth_type <= 5.5 AND user_auth_count_24h <= 134.5 AND user_auth_count_24h > 1.5 AND dns_count_prev_5m <= 0.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 104.5 AND user_auth_count_24h <= 63.5 AND success_failure > 0.5 AND user_auth_count_24h <= 9.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h > 5.5",
+      "val_precision": 0.25,
+      "val_support": 16
+    },
+    {
+      "rule_id": "rf_rule_015",
+      "sql_predicate": "user_auth_count_24h > 2.5 AND auth_type > 4.5 AND new_src_dst_user_pair <= 0.5 AND auth_type <= 5.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h <= 108.5 AND success_failure > 0.5 AND user_auth_count_24h <= 56.5 AND user_auth_count_24h <= 37.5 AND user_auth_count_24h <= 11.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h > 4.5 AND user_auth_count_24h > 5.5 AND user_auth_count_24h <= 6.5",
+      "val_precision": 0.25,
+      "val_support": 16
+    },
+    {
+      "rule_id": "rf_rule_016",
+      "sql_predicate": "auth_type > 4.5 AND logon_type <= 4.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h > 0.5 AND logon_type > 3.5 AND user_auth_count_24h <= 115.5 AND user_auth_count_24h > 1.5 AND success_failure > 0.5 AND user_auth_count_24h <= 60.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 16.5 AND user_auth_count_24h <= 9.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h > 5.5 AND user_auth_count_24h > 6.5 AND user_auth_count_24h > 7.5",
+      "val_precision": 0.1538,
+      "val_support": 13
+    },
+    {
+      "rule_id": "rf_rule_017",
+      "sql_predicate": "logon_type > 3.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h > 1.5 AND success_failure > 0.5 AND user_auth_count_24h <= 135.5 AND new_src_dst_user_pair <= 0.5 AND auth_type > 3 AND auth_type <= 5.5 AND user_auth_count_24h <= 115.5 AND user_auth_count_24h <= 60.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h > 6.5 AND user_auth_count_24h > 7.5",
+      "val_precision": 0.1538,
+      "val_support": 13
+    },
+    {
+      "rule_id": "rf_rule_018",
+      "sql_predicate": "auth_orientation > 1.5 AND dns_count_prev_5m <= 0.5 AND logon_type > 3.5 AND auth_type > 4.5 AND logon_type <= 4.5 AND user_auth_count_24h <= 134.5 AND new_src_dst_user_pair <= 0.5 AND success_failure > 0.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 105.5 AND user_auth_count_24h <= 63.5 AND user_auth_count_24h <= 15.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h > 6.5 AND user_auth_count_24h > 7.5 AND user_auth_count_24h <= 8.5",
+      "val_precision": 0.1538,
+      "val_support": 13
+    },
+    {
+      "rule_id": "rf_rule_019",
+      "sql_predicate": "success_failure > 0.5 AND auth_orientation > 1.5 AND auth_orientation <= 2.5 AND auth_type > 4.5 AND auth_type <= 5.5 AND user_auth_count_24h <= 134.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h > 0.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 127.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 9.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h > 6.5 AND user_auth_count_24h > 8.5",
+      "val_precision": 0.0769,
+      "val_support": 13
+    },
+    {
+      "rule_id": "rf_rule_020",
+      "sql_predicate": "auth_orientation > 1.5 AND auth_orientation <= 2.5 AND auth_type > 4.5 AND user_auth_count_24h <= 135.5 AND logon_type <= 4.5 AND success_failure > 0.5 AND auth_type <= 5.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 114.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 66.5 AND user_auth_count_24h <= 11.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h > 7.5 AND user_auth_count_24h > 8.5 AND user_auth_count_24h <= 9.5",
+      "val_precision": 0.0769,
+      "val_support": 13
+    }
+  ],
+  "response_truncated": false,
+  "n_candidates_parsed": 15,
+  "prompt_example_predicates": [],
+  "n_verbatim_prompt_copies": 0,
+  "verbatim_prompt_copies": [],
+  "n_verbatim_seed_rule_copies": 0,
+  "verbatim_seed_rule_copies": [],
+  "n_rejected_missing_columns": 0,
+  "rejected": [],
+  "n_sql_errors": 0,
+  "sql_errors": [],
+  "n_dropped_no_val_support": 1,
+  "dropped_no_val_support": [
+    {
+      "candidate_id": "rf_rule_033",
+      "sql_predicate": "success_failure > 0 AND auth_type > 4 AND logon_type <= 4 AND user_auth_count_24h <= 135 AND auth_type <= 5 AND user_auth_count_24h > 1 AND user_auth_count_24h <= 98 AND new_src_dst_user_pair <= 0 AND user_auth_count_24h <= 63 AND user_auth_count_24h <= 18 AND user_auth_count_24h <= 10 AND user_auth_count_24h > 2 AND user_auth_count_24h <= 6 AND user_auth_count_24h > 3 AND user_auth_count_24h > 5 AND user_auth_count_24h > 6 AND user_auth_count_24h > 7",
+      "val_support": 0
+    }
+  ],
+  "n_kept": 14,
+  "seed_fallback_used": false,
+  "llm_raw_response": "[\n  {\n    \"candidate_id\": \"rf_rule_021\",\n    \"sql_predicate\": \"auth_type > 4 AND auth_type <= 5 AND user_auth_count_24h <= 134 AND new_src_dst_user_pair <= 0 AND user_auth_count_24h > 1 AND dns_count_prev_5m <= 0 AND success_failure > 0 AND user_auth_count_24h <= 130 AND user_auth_count_24h > 2 AND user_auth_count_24h <= 10 AND user_auth_count_24h > 3 AND user_auth_count_24h <= 8 AND user_auth_count_24h <= 4\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of auth_type to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_022\",\n    \"sql_predicate\": \"new_src_dst_user_pair <= 0 AND user_auth_count_24h > 1 AND auth_orientation > 1 AND auth_type > 4 AND success_failure > 0 AND logon_type <= 4 AND logon_type > 3 AND user_auth_count_24h <= 135 AND user_auth_count_24h <= 115 AND dns_count_prev_5m <= 0 AND user_auth_count_24h <= 8 AND user_auth_count_24h > 2 AND user_auth_count_24h <= 3\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of logon_type to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_023\",\n    \"sql_predicate\": \"auth_type > 4 AND user_auth_count_24h <= 132 AND dns_count_prev_5m <= 0 AND user_auth_count_24h > 2 AND logon_type <= 4 AND user_auth_count_24h <= 103 AND auth_type <= 5 AND user_auth_count_24h <= 60 AND success_failure > 0 AND user_auth_count_24h <= 17 AND user_auth_count_24h <= 8 AND user_auth_count_24h <= 7 AND user_auth_count_24h <= 3\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of user_auth_count_24h to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_024\",\n    \"sql_predicate\": \"user_auth_count_24h > 1 AND logon_type > 3 AND auth_type > 4 AND user_auth_count_24h <= 134 AND user_auth_count_24h > 2 AND new_src_dst_user_pair <= 0 AND logon_type <= 4 AND success_failure > 0 AND user_auth_count_24h <= 8 AND user_auth_count_24h <= 7 AND user_auth_count_24h <= 6 AND user_auth_count_24h <= 5 AND user_auth_count_24h <= 4\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of user_auth_count_24h to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_025\",\n    \"sql_predicate\": \"dns_count_prev_5m <= 0 AND logon_type > 3 AND auth_type > 4 AND success_failure > 0 AND auth_type <= 5 AND new_src_dst_user_pair <= 0 AND user_auth_count_24h <= 135 AND user_auth_count_24h > 0 AND user_auth_count_24h > 1 AND user_auth_count_24h <= 113 AND user_auth_count_24h <= 63 AND user_auth_count_24h <= 15 AND user_auth_count_24h <= 8 AND user_auth_count_24h > 2 AND user_auth_count_24h <= 6 AND user_auth_count_24h > 3 AND user_auth_count_24h > 4 AND user_auth_count_24h <= 5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of user_auth_count_24h to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_026\",\n    \"sql_predicate\": \"auth_type > 4 AND logon_type <= 4 AND user_auth_count_24h <= 135 AND logon_type > 3 AND user_auth_count_24h > 1 AND success_failure > 0 AND user_auth_count_24h <= 114 AND auth_type <= 5 AND dns_count_prev_5m <= 0 AND user_auth_count_24h <= 60 AND user_auth_count_24h <= 21 AND user_auth_count_24h <= 12 AND user_auth_count_24h <= 7 AND user_auth_count_24h > 2 AND user_auth_count_24h > 3 AND user_auth_count_24h <= 5 AND user_auth_count_24h <= 4\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of user_auth_count_24h to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_027\",\n    \"sql_predicate\": \"auth_type > 4 AND user_auth_count_24h <= 135 AND auth_type <= 5 AND new_src_dst_user_pair <= 0 AND success_failure > 0 AND user_auth_count_24h > 1 AND dns_count_prev_5m <= 0 AND user_auth_count_24h <= 111 AND user_auth_count_24h <= 63 AND user_auth_count_24h <= 19 AND user_auth_count_24h <= 8 AND user_auth_count_24h > 3 AND user_auth_count_24h <= 6 AND user_auth_count_24h <= 5 AND user_auth_count_24h > 4\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of user_auth_count_24h to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_028\",\n    \"sql_predicate\": \"user_auth_count_24h > 2 AND auth_type > 4 AND new_src_dst_user_pair <= 0 AND auth_type <= 5 AND dns_count_prev_5m <= 0 AND user_auth_count_24h <= 135 AND user_auth_count_24h <= 108 AND success_failure > 0 AND user_auth_count_24h <= 56 AND user_auth_count_24h <= 37 AND user_auth_count_24h <= 11 AND user_auth_count_24h <= 7 AND user_auth_count_24h > 4 AND user_auth_count_24h <= 5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of user_auth_count_24h to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_029\",\n    \"sql_predicate\": \"auth_orientation > 1 AND auth_orientation <= 2 AND auth_type > 4 AND user_auth_count_24h <= 135 AND logon_type <= 4 AND success_failure > 0 AND auth_type <= 5 AND dns_count_prev_5m <= 0 AND user_auth_count_24h > 1 AND user_auth_count_24h <= 114 AND new_src_dst_user_pair <= 0 AND user_auth_count_24h <= 66 AND user_auth_count_24h <= 11 AND user_auth_count_24h > 2 AND user_auth_count_24h <= 7 AND user_auth_count_24h > 3 AND user_auth_count_24h <= 6 AND user_auth_count_24h <= 5 AND user_auth_count_24h > 4\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of auth_orientation to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_030\",\n    \"sql_predicate\": \"auth_orientation > 1 AND logon_type > 3 AND auth_type > 4 AND new_src_dst_user_pair <= 0 AND logon_type <= 4 AND auth_type <= 5 AND success_failure > 0 AND dns_count_prev_5m <= 0 AND user_auth_count_24h <= 134 AND user_auth_count_24h > 1 AND user_auth_count_24h <= 106 AND user_auth_count_24h <= 56 AND user_auth_count_24h <= 37 AND user_auth_count_24h <= 12 AND user_auth_count_24h > 2 AND user_auth_count_24h <= 8 AND user_auth_count_24h > 3 AND user_auth_count_24h > 4 AND user_auth_count_24h <= 6 AND user_auth_count_24h <= 5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the range of auth_orientation to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_031\",\n    \"sql_predicate\": \"auth_type > 4 AND dns_count_prev_5m <= 0 AND success_failure > 0 AND user_auth_count_24h <= 135 AND user_auth_count_24h <= 2 AND auth_type <= 5 AND new_src_dst_user_pair > 0 AND user_auth_count_24h <= 0\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_032\",\n    \"sql_predicate\": \"logon_type > 3 AND success_failure > 0 AND auth_type > 4 AND new_src_dst_user_pair > 0 AND logon_type <= 4 AND user_auth_count_24h <= 0\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition to improve precision\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_033\",\n    \"sql_predicate\": \"success_failure > 0 AND auth_type > 4 AND logon_type <= 4 AND user_auth_count_24h <= 135 AND auth_type <= 5 AND user_auth_count_24h > 1 AND user_auth_count_24h <= 98 AND new_src_dst_user_pair <= 0 AND user_auth_count_24h <= 63 AND user_auth_count_24h <= 18 AND user_auth_count_24h <= 10 AND user_auth_count_24h > 2 AND user_auth_count_24h <= 6 AND user_auth_count_24h > 3 AND user_auth_count_24h > 5 AND user_auth_count_24h > 6 AND user_auth_count_24h > 7\",\n    \"mutation_type\": \"relax\",\n    \"rationale\": \"Relaxed the range of user_auth_count_24h to improve recall\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_034\",\n    \"sql_predicate\": \"auth_type > 4 AND auth_type <= 5 AND user_auth_count_24h <= 134 AND user_auth_count_24h > 1 AND dns_count_prev_5m <= 0 AND new_src_dst_user_pair <= 0 AND user_auth_count_24h <= 104 AND user_auth_count_24h <= 63 AND success_failure > 0 AND user_auth_count_24h <= 9 AND user_auth_count_24h > 3 AND user_auth_count_24h <= 6 AND user_auth_count_24h > 5\",\n    \"mutation_type\": \"relax\",\n    \"rationale\": \"Relaxed the range of user_auth_count_24h to improve recall\"\n  },\n  {\n    \"candidate_id\": \"rf_rule_035\",\n    \"sql_predicate\": \"user_auth_count_24h > 2 AND auth_type > 4 AND new_src_dst_user_pair <= 0 AND auth_type <= 5 AND dns_count_prev_5m <= 0 AND user_auth_count_24h <= 135 AND user_auth_count_24h <= 108 AND success_failure > 0 AND user_auth_count_24h <= 56 AND user_auth_count_24h <= 37 AND user_auth_count_24h <= 11 AND user_auth_count_24h <= 7 AND user_auth_count_24h > 4 AND user_auth_count_24h > 5 AND user_auth_count_24h <= 6\",\n    \"mutation_type\": \"relax\",\n    \"rationale\": \"Relaxed the range of user_auth_count_24h to improve recall\"\n  }\n]"
+}

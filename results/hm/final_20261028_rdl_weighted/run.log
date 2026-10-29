@@ -1,0 +1,166 @@
+[env] date=2026-10-28T23:03:18-05:00 host=jarvis git=3cf7fd5ddf83814d4dd91978cbe53f2328a4dbb9 python=/array/dahlenw/RAD/rad/bin/python USE_CACHED_LLM_RULES=0 HM_INCLUDE_BROAD_RULES=0 RF_SEED_VARIANT=1
+[env] ATRISK_TAU_A=0.05 ATRISK_TAU_B=10.0 ATRISK_TAU_ALPHA=0.02 ATRISK_TAU_MULTIPLIER=1.0 TARGET_ANOM_RATE=0.015
+[env] CUDA_VISIBLE_DEVICES=0 BASELINES_CUDA_INDEX=0 N_SEEDS=10 START_SEED=0 OUT_SUBDIR=hm/final_20261028_rdl_weighted DATASET=hm WEIGHTED_LOSS=1 python scripts/run_10seed_supervised_rdl_weighted.py
+========================================================================
+Supervised RDL 10-seed run | dataset=hm | weighted_loss=True
+device=cuda:0 | seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+partial_auroc_max_fpr=0.1
+output=/isis/home/dahlenw/repos/RAD_submission/results/hm/final_20261028_rdl_weighted/per_seed.csv
+========================================================================
+[config] Wrote /isis/home/dahlenw/repos/RAD_submission/results/hm/final_20261028_rdl_weighted/run_config.json
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.78 seconds.
+[rdl] masked identity-proxy features: customer.postal_code
+
+[seed=0] starting
+[seed=0] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=0 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3120 | val_auprc=0.0282 | val_auroc=0.6596
+  epoch 02 | steps=676 | loss=1.2914 | val_auprc=0.0286 | val_auroc=0.6659
+  epoch 03 | steps=676 | loss=1.2881 | val_auprc=0.0282 | val_auroc=0.6619
+  epoch 04 | steps=676 | loss=1.2842 | val_auprc=0.0287 | val_auroc=0.6621
+  epoch 05 | steps=676 | loss=1.2804 | val_auprc=0.0284 | val_auroc=0.6633
+  epoch 06 | steps=676 | loss=1.2772 | val_auprc=0.0266 | val_auroc=0.6592
+  epoch 07 | steps=676 | loss=1.2757 | val_auprc=0.0279 | val_auroc=0.6589
+  early stop at epoch 7
+[seed=0] eval set: 5,694 rows | 85 positives | eval_fingerprint: 23f9b330dfdd
+[seed=0] auprc=0.0410 auroc=0.6768 pauc@fpr<=0.100=0.5423 p@k=0.0353 lift=2.7493 pos_weight=65.66
+
+[seed=1] starting
+[seed=1] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=1 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3125 | val_auprc=0.0282 | val_auroc=0.6747
+  epoch 02 | steps=676 | loss=1.2934 | val_auprc=0.0326 | val_auroc=0.6795
+  epoch 03 | steps=676 | loss=1.2871 | val_auprc=0.0333 | val_auroc=0.6879
+  epoch 04 | steps=676 | loss=1.2828 | val_auprc=0.0326 | val_auroc=0.6864
+  epoch 05 | steps=676 | loss=1.2796 | val_auprc=0.0356 | val_auroc=0.6853
+  epoch 06 | steps=676 | loss=1.2741 | val_auprc=0.0354 | val_auroc=0.6944
+  epoch 07 | steps=676 | loss=1.2708 | val_auprc=0.0339 | val_auroc=0.6930
+  epoch 08 | steps=676 | loss=1.2681 | val_auprc=0.0359 | val_auroc=0.6894
+  epoch 09 | steps=676 | loss=1.2663 | val_auprc=0.0379 | val_auroc=0.6925
+  epoch 10 | steps=676 | loss=1.2625 | val_auprc=0.0348 | val_auroc=0.6900
+[seed=1] eval set: 5,707 rows | 86 positives | eval_fingerprint: 710b11097e65
+[seed=1] auprc=0.0385 auroc=0.6760 pauc@fpr<=0.100=0.5560 p@k=0.0698 lift=2.5549 pos_weight=65.66
+
+[seed=2] starting
+[seed=2] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=2 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3034 | val_auprc=0.0402 | val_auroc=0.6896
+  epoch 02 | steps=676 | loss=1.2869 | val_auprc=0.0490 | val_auroc=0.7018
+  epoch 03 | steps=676 | loss=1.2810 | val_auprc=0.0482 | val_auroc=0.7090
+  epoch 04 | steps=676 | loss=1.2793 | val_auprc=0.0556 | val_auroc=0.7029
+  epoch 05 | steps=676 | loss=1.2755 | val_auprc=0.0404 | val_auroc=0.7024
+  epoch 06 | steps=676 | loss=1.2717 | val_auprc=0.0403 | val_auroc=0.6978
+  epoch 07 | steps=676 | loss=1.2698 | val_auprc=0.0396 | val_auroc=0.7038
+  early stop at epoch 7
+[seed=2] eval set: 5,654 rows | 85 positives | eval_fingerprint: 0584086c6c16
+[seed=2] auprc=0.0307 auroc=0.7000 pauc@fpr<=0.100=0.5339 p@k=0.0118 lift=2.0441 pos_weight=65.66
+
+[seed=3] starting
+[seed=3] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=3 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3097 | val_auprc=0.0335 | val_auroc=0.6730
+  epoch 02 | steps=676 | loss=1.2894 | val_auprc=0.0346 | val_auroc=0.6873
+  epoch 03 | steps=676 | loss=1.2817 | val_auprc=0.0350 | val_auroc=0.6865
+  epoch 04 | steps=676 | loss=1.2797 | val_auprc=0.0328 | val_auroc=0.6803
+  epoch 05 | steps=676 | loss=1.2764 | val_auprc=0.0371 | val_auroc=0.6978
+  epoch 06 | steps=676 | loss=1.2731 | val_auprc=0.0358 | val_auroc=0.6655
+  epoch 07 | steps=676 | loss=1.2710 | val_auprc=0.0373 | val_auroc=0.6889
+  epoch 08 | steps=676 | loss=1.2674 | val_auprc=0.0354 | val_auroc=0.6890
+  epoch 09 | steps=676 | loss=1.2651 | val_auprc=0.0367 | val_auroc=0.6812
+  epoch 10 | steps=676 | loss=1.2625 | val_auprc=0.0378 | val_auroc=0.6889
+[seed=3] eval set: 5,669 rows | 85 positives | eval_fingerprint: 7b4e0a018b58
+[seed=3] auprc=0.0275 auroc=0.6647 pauc@fpr<=0.100=0.5300 p@k=0.0118 lift=1.8346 pos_weight=65.66
+
+[seed=4] starting
+[seed=4] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=4 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3150 | val_auprc=0.0418 | val_auroc=0.7007
+  epoch 02 | steps=676 | loss=1.2959 | val_auprc=0.0432 | val_auroc=0.6854
+  epoch 03 | steps=676 | loss=1.2900 | val_auprc=0.0536 | val_auroc=0.6968
+  epoch 04 | steps=676 | loss=1.2862 | val_auprc=0.0465 | val_auroc=0.7037
+  epoch 05 | steps=676 | loss=1.2840 | val_auprc=0.0480 | val_auroc=0.6918
+  epoch 06 | steps=676 | loss=1.2803 | val_auprc=0.0488 | val_auroc=0.7076
+  early stop at epoch 6
+[seed=4] eval set: 5,742 rows | 86 positives | eval_fingerprint: 52c316c066f3
+[seed=4] auprc=0.0323 auroc=0.6721 pauc@fpr<=0.100=0.5512 p@k=0.0349 lift=2.1551 pos_weight=65.66
+
+[seed=5] starting
+[seed=5] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=5 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3121 | val_auprc=0.0304 | val_auroc=0.6511
+  epoch 02 | steps=676 | loss=1.2896 | val_auprc=0.0301 | val_auroc=0.6696
+  epoch 03 | steps=676 | loss=1.2823 | val_auprc=0.0308 | val_auroc=0.6901
+  epoch 04 | steps=676 | loss=1.2787 | val_auprc=0.0286 | val_auroc=0.6834
+  epoch 05 | steps=676 | loss=1.2746 | val_auprc=0.0285 | val_auroc=0.6791
+  epoch 06 | steps=676 | loss=1.2707 | val_auprc=0.0291 | val_auroc=0.6896
+  early stop at epoch 6
+[seed=5] eval set: 5,667 rows | 85 positives | eval_fingerprint: 7434710cf5f1
+[seed=5] auprc=0.0355 auroc=0.6725 pauc@fpr<=0.100=0.5427 p@k=0.0353 lift=2.3662 pos_weight=65.66
+
+[seed=6] starting
+[seed=6] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=6 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3137 | val_auprc=0.0361 | val_auroc=0.6693
+  epoch 02 | steps=676 | loss=1.2940 | val_auprc=0.0387 | val_auroc=0.6843
+  epoch 03 | steps=676 | loss=1.2897 | val_auprc=0.0391 | val_auroc=0.6912
+  epoch 04 | steps=676 | loss=1.2845 | val_auprc=0.0408 | val_auroc=0.6837
+  epoch 05 | steps=676 | loss=1.2801 | val_auprc=0.0386 | val_auroc=0.6881
+  epoch 06 | steps=676 | loss=1.2771 | val_auprc=0.0382 | val_auroc=0.6858
+  epoch 07 | steps=676 | loss=1.2745 | val_auprc=0.0385 | val_auroc=0.6952
+  early stop at epoch 7
+[seed=6] eval set: 5,718 rows | 86 positives | eval_fingerprint: bc5d6f7b1e69
+[seed=6] auprc=0.0318 auroc=0.6460 pauc@fpr<=0.100=0.5518 p@k=0.0349 lift=2.1132 pos_weight=65.66
+
+[seed=7] starting
+[seed=7] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=7 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3105 | val_auprc=0.0299 | val_auroc=0.6430
+  epoch 02 | steps=676 | loss=1.2917 | val_auprc=0.0296 | val_auroc=0.6600
+  epoch 03 | steps=676 | loss=1.2859 | val_auprc=0.0300 | val_auroc=0.6665
+  epoch 04 | steps=676 | loss=1.2821 | val_auprc=0.0323 | val_auroc=0.6586
+  epoch 05 | steps=676 | loss=1.2778 | val_auprc=0.0305 | val_auroc=0.6668
+  epoch 06 | steps=676 | loss=1.2745 | val_auprc=0.0310 | val_auroc=0.6613
+  epoch 07 | steps=676 | loss=1.2706 | val_auprc=0.0291 | val_auroc=0.6722
+  early stop at epoch 7
+[seed=7] eval set: 5,634 rows | 85 positives | eval_fingerprint: 145e95034987
+[seed=7] auprc=0.0516 auroc=0.6910 pauc@fpr<=0.100=0.5914 p@k=0.0941 lift=3.4187 pos_weight=65.66
+
+[seed=8] starting
+[seed=8] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=8 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3124 | val_auprc=0.0325 | val_auroc=0.6394
+  epoch 02 | steps=676 | loss=1.2947 | val_auprc=0.0334 | val_auroc=0.6631
+  epoch 03 | steps=676 | loss=1.2878 | val_auprc=0.0368 | val_auroc=0.6556
+  epoch 04 | steps=676 | loss=1.2841 | val_auprc=0.0370 | val_auroc=0.6656
+  epoch 05 | steps=676 | loss=1.2820 | val_auprc=0.0391 | val_auroc=0.6580
+  epoch 06 | steps=676 | loss=1.2776 | val_auprc=0.0388 | val_auroc=0.6657
+  epoch 07 | steps=676 | loss=1.2744 | val_auprc=0.0376 | val_auroc=0.6541
+  epoch 08 | steps=676 | loss=1.2721 | val_auprc=0.0380 | val_auroc=0.6700
+  early stop at epoch 8
+[seed=8] eval set: 5,741 rows | 86 positives | eval_fingerprint: a68e0856e9e4
+[seed=8] auprc=0.0498 auroc=0.7044 pauc@fpr<=0.100=0.5532 p@k=0.1047 lift=3.3254 pos_weight=65.66
+
+[seed=9] starting
+[seed=9] test split has no labels; using held-out val partition for final evaluation.
+[split-check] seed=9 val fit vs report: fit=45,934 rows | report=30,622 rows | row-index intersection=0 | (customer_id, timestamp) intersection=0
+  epoch 01 | steps=676 | loss=1.3099 | val_auprc=0.0262 | val_auroc=0.6461
+  epoch 02 | steps=676 | loss=1.2896 | val_auprc=0.0309 | val_auroc=0.6669
+  epoch 03 | steps=676 | loss=1.2852 | val_auprc=0.0297 | val_auroc=0.6613
+  epoch 04 | steps=676 | loss=1.2823 | val_auprc=0.0329 | val_auroc=0.6722
+  epoch 05 | steps=676 | loss=1.2783 | val_auprc=0.0329 | val_auroc=0.6690
+  epoch 06 | steps=676 | loss=1.2749 | val_auprc=0.0313 | val_auroc=0.6672
+  epoch 07 | steps=676 | loss=1.2717 | val_auprc=0.0335 | val_auroc=0.6693
+  epoch 08 | steps=676 | loss=1.2684 | val_auprc=0.0345 | val_auroc=0.6605
+  epoch 09 | steps=676 | loss=1.2643 | val_auprc=0.0337 | val_auroc=0.6679
+  epoch 10 | steps=676 | loss=1.2613 | val_auprc=0.0318 | val_auroc=0.6671
+[seed=9] eval set: 5,683 rows | 85 positives | eval_fingerprint: 8fcae05d6763
+[seed=9] auprc=0.0242 auroc=0.6332 pauc@fpr<=0.100=0.5164 p@k=0.0235 lift=1.6163 pos_weight=65.66
+
+10-SEED SUMMARY
+dataset  weighted_loss  auroc_mean  auroc_std  auroc_partial_mean  auroc_partial_std  auprc_mean  auprc_std  p@k_mean  p@k_std  lift_mean  lift_std
+     hm           True    0.673671   0.022201            0.546895           0.019921     0.03629   0.009043  0.045595 0.032735   2.417774  0.600075
+
+Per-seed: /isis/home/dahlenw/repos/RAD_submission/results/hm/final_20261028_rdl_weighted/per_seed.csv
+Summary:  /isis/home/dahlenw/repos/RAD_submission/results/hm/final_20261028_rdl_weighted/summary_mean_std.csv
+[exit] final_20261028_rdl_weighted rc=0

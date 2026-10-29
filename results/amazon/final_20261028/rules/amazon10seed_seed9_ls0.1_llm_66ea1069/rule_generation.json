@@ -1,0 +1,169 @@
+{
+  "rf_rule_mode": "llm",
+  "used_cached_rules": null,
+  "llm": {
+    "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+    "max_new_tokens": 4000,
+    "do_sample": false,
+    "temperature": 0.0,
+    "top_p": 1.0
+  },
+  "seed": 9,
+  "seed_note": "do_sample=False (greedy decoding), so the LLM output does not depend on a sampling seed; SEED sets the RF and the rule-selection slice; the seed-rule sample uses seed 42",
+  "rule_selection_rows": 40000,
+  "rule_selection_pos": 571,
+  "seed_rules_in_prompt": [
+    {
+      "rule_id": "rule_4797",
+      "sql_predicate": "recent_reviews_30d <= 1.5 AND rating_std > 0.0324785 AND recent_reviews_90d > 1.5 AND total_reviews > 7.5 AND total_reviews > 24.5 AND rating_std <= 0.601499 AND days_since_last_review > 58.5 AND recent_reviews_90d <= 3.5 AND rating_std > 0.51608 AND distinct_products > 46.5",
+      "val_precision": 0.5,
+      "val_support": 2
+    },
+    {
+      "rule_id": "rule_13005",
+      "sql_predicate": "min_rating > 4.5 AND total_reviews <= 8.5 AND days_since_last_review > 26.5 AND days_since_last_review <= 71.5 AND days_since_last_review > 67.5 AND review_span_days <= 716.5 AND days_since_last_review <= 68.5 AND recent_reviews_90d <= 1.5 AND review_span_days <= 173 AND distinct_products > 2.5",
+      "val_precision": 0.5,
+      "val_support": 2
+    },
+    {
+      "rule_id": "rule_0713",
+      "sql_predicate": "recent_reviews_90d > 2.5 AND total_reviews > 8.5 AND recent_reviews_30d <= 0.5 AND review_span_days <= 209 AND recent_reviews_90d <= 20.5 AND mean_rating <= 4.64171 AND min_rating <= 2.5 AND distinct_products > 19.5 AND mean_rating > 3.98611",
+      "val_precision": 0.3333,
+      "val_support": 3
+    },
+    {
+      "rule_id": "rule_11479",
+      "sql_predicate": "recent_reviews_90d <= 2.5 AND min_rating <= 4.5 AND distinct_products <= 9.5 AND recent_reviews_90d > 1.5 AND recent_reviews_30d > 0.5 AND low_rating_flag > 0.5 AND distinct_products <= 4.5 AND review_span_days <= 0.5 AND max_rating > 2.5 AND mean_rating <= 2.25",
+      "val_precision": 0.3333,
+      "val_support": 3
+    },
+    {
+      "rule_id": "rule_4516",
+      "sql_predicate": "total_reviews <= 9.5 AND rating_std > 0.166667 AND low_rating_flag > 0.5 AND max_rating <= 3.5 AND rating_std > 0.784266 AND review_span_days <= 2138.5 AND review_span_days <= 0.5 AND recent_reviews_30d > 1",
+      "val_precision": 0.25,
+      "val_support": 4
+    },
+    {
+      "rule_id": "rule_2145",
+      "sql_predicate": "distinct_products > 8.5 AND distinct_products > 23.5 AND days_since_last_review <= 13.5 AND recent_reviews_90d <= 2.5 AND review_span_days > 1046.5 AND rating_std <= 1.08993 AND distinct_products > 30.5 AND rating_std > 0.960563 AND rating_std <= 0.985184",
+      "val_precision": 0.2,
+      "val_support": 5
+    },
+    {
+      "rule_id": "rule_5217",
+      "sql_predicate": "total_reviews <= 8.5 AND review_span_days > 557.5 AND days_since_last_review <= 21.5 AND recent_reviews_90d > 1.5 AND recent_reviews_30d <= 1.5 AND total_reviews > 3.5 AND mean_rating > 3.41429 AND mean_rating > 4.69048 AND total_reviews > 7.5 AND mean_rating > 4.9375",
+      "val_precision": 0.1667,
+      "val_support": 12
+    },
+    {
+      "rule_id": "rule_2582",
+      "sql_predicate": "review_span_days <= 2.5 AND days_since_last_review <= 14.5 AND recent_reviews_30d <= 4.5 AND low_rating_flag <= 0.5 AND min_rating > 4.5 AND days_since_last_review > 1.5 AND days_since_last_review <= 2.5 AND total_reviews <= 2.5 AND recent_reviews_90d > 1.5 AND review_span_days <= 0.5",
+      "val_precision": 0.1111,
+      "val_support": 9
+    },
+    {
+      "rule_id": "rule_4659",
+      "sql_predicate": "total_reviews <= 8.5 AND days_since_last_review > 23.5 AND rating_std > 0.365759 AND rating_std <= 2.12971 AND distinct_products <= 7.5 AND recent_reviews_90d > 4.5 AND recent_reviews_30d <= 2.5 AND days_since_last_review > 61.5 AND mean_rating > 4.36667 AND mean_rating <= 4.69048",
+      "val_precision": 0.1053,
+      "val_support": 19
+    },
+    {
+      "rule_id": "rule_11464",
+      "sql_predicate": "recent_reviews_90d <= 2.5 AND min_rating <= 4.5 AND distinct_products <= 9.5 AND recent_reviews_90d <= 1.5 AND mean_rating > 2.88194 AND total_reviews <= 8.5 AND rating_std > 2.56891 AND recent_reviews_30d > 0.5 AND days_since_last_review > 23.5 AND days_since_last_review <= 27.5",
+      "val_precision": 0.0909,
+      "val_support": 11
+    },
+    {
+      "rule_id": "rule_9398",
+      "sql_predicate": "days_since_last_review > 29.5 AND distinct_products <= 9.5 AND total_reviews > 1.5 AND review_span_days <= 0.5 AND total_reviews > 3.5 AND days_since_last_review > 62.5 AND recent_reviews_90d <= 7.5 AND min_rating > 1.5 AND max_rating > 4.5 AND rating_std <= 1.27465",
+      "val_precision": 0.0896,
+      "val_support": 67
+    },
+    {
+      "rule_id": "rule_12155",
+      "sql_predicate": "distinct_products <= 9.5 AND review_span_days <= 2.5 AND recent_reviews_30d <= 0.5 AND recent_reviews_90d > 0.5 AND min_rating > 4.5 AND review_span_days <= 1.5 AND total_reviews > 2.5 AND total_reviews <= 4.5 AND recent_reviews_90d > 3.5",
+      "val_precision": 0.087,
+      "val_support": 23
+    },
+    {
+      "rule_id": "rule_13145",
+      "sql_predicate": "total_reviews <= 9.5 AND distinct_products > 2.5 AND recent_reviews_30d > 1.5 AND review_span_days <= 2.5 AND days_since_last_review > 9.5 AND total_reviews <= 4.5 AND min_rating > 4.5 AND review_span_days <= 0.5 AND total_reviews > 3.5 AND days_since_last_review <= 26.5",
+      "val_precision": 0.0833,
+      "val_support": 12
+    },
+    {
+      "rule_id": "rule_8419",
+      "sql_predicate": "recent_reviews_90d <= 3.5 AND distinct_products <= 9.5 AND review_span_days > 0.5 AND recent_reviews_30d > 0.5 AND recent_reviews_90d > 1.5 AND days_since_last_review > 22.5 AND recent_reviews_30d <= 2.5 AND recent_reviews_90d <= 2.5 AND days_since_last_review <= 23.5 AND review_span_days <= 27.5",
+      "val_precision": 0.0667,
+      "val_support": 15
+    },
+    {
+      "rule_id": "rule_12738",
+      "sql_predicate": "days_since_last_review <= 28.5 AND total_reviews <= 8.5 AND recent_reviews_90d <= 1.5 AND total_reviews <= 6.5 AND rating_std <= 2.56891 AND days_since_last_review > 6.5 AND distinct_products <= 5.5 AND days_since_last_review > 18.5 AND min_rating <= 4.5 AND max_rating <= 1.5",
+      "val_precision": 0.0556,
+      "val_support": 54
+    },
+    {
+      "rule_id": "rule_0593",
+      "sql_predicate": "recent_reviews_90d <= 2.5 AND distinct_products <= 9.5 AND total_reviews <= 6.5 AND review_span_days <= 0.5 AND days_since_last_review > 12.5 AND mean_rating > 4.83333 AND recent_reviews_30d <= 0.5 AND days_since_last_review > 63.5 AND recent_reviews_90d > 1.5 AND days_since_last_review <= 79.5",
+      "val_precision": 0.0548,
+      "val_support": 73
+    },
+    {
+      "rule_id": "rule_11528",
+      "sql_predicate": "recent_reviews_90d <= 2.5 AND min_rating > 4.5 AND recent_reviews_30d > 0.5 AND distinct_products <= 11.5 AND days_since_last_review <= 12.5 AND days_since_last_review > 5.5 AND review_span_days <= 0.5 AND total_reviews <= 1.5 AND days_since_last_review > 6.5 AND days_since_last_review <= 10.5",
+      "val_precision": 0.05,
+      "val_support": 300
+    },
+    {
+      "rule_id": "rule_5144",
+      "sql_predicate": "total_reviews <= 8.5 AND review_span_days <= 557.5 AND days_since_last_review <= 29.5 AND total_reviews <= 6.5 AND distinct_products <= 2.5 AND min_rating > 2.5 AND days_since_last_review <= 7.5 AND review_span_days > 259.5 AND review_span_days <= 450.5 AND mean_rating > 4.75",
+      "val_precision": 0.0488,
+      "val_support": 41
+    },
+    {
+      "rule_id": "rule_13883",
+      "sql_predicate": "distinct_products <= 9.5 AND review_span_days > 0.5 AND review_span_days > 252.5 AND recent_reviews_90d > 1.5 AND distinct_products > 5.5 AND total_reviews <= 6.5 AND rating_std > 0.204124 AND days_since_last_review > 11.5 AND days_since_last_review > 13.5 AND review_span_days > 1305",
+      "val_precision": 0.0444,
+      "val_support": 45
+    },
+    {
+      "rule_id": "rule_13056",
+      "sql_predicate": "total_reviews <= 9.5 AND distinct_products <= 2.5 AND days_since_last_review <= 28.5 AND review_span_days <= 350.5 AND total_reviews <= 1.5 AND low_rating_flag > 0.5 AND min_rating <= 1.5 AND days_since_last_review > 11.5 AND days_since_last_review <= 26.5 AND days_since_last_review <= 25.5",
+      "val_precision": 0.0441,
+      "val_support": 68
+    }
+  ],
+  "response_truncated": false,
+  "n_candidates_parsed": 20,
+  "prompt_example_predicates": [],
+  "n_verbatim_prompt_copies": 0,
+  "verbatim_prompt_copies": [],
+  "n_verbatim_seed_rule_copies": 19,
+  "verbatim_seed_rule_copies": [
+    "min_rating > 4.5 AND total_reviews <= 8.5 AND days_since_last_review > 26.5 AND days_since_last_review <= 71.5 AND days_since_last_review > 67.5 AND review_span_days <= 716.5 AND days_since_last_review <= 68.5 AND recent_reviews_90d <= 1.5 AND review_span_days <= 173 AND distinct_products > 2.5",
+    "recent_reviews_90d > 2.5 AND total_reviews > 8.5 AND recent_reviews_30d <= 0.5 AND review_span_days <= 209 AND recent_reviews_90d <= 20.5 AND mean_rating <= 4.64171 AND min_rating <= 2.5 AND distinct_products > 19.5 AND mean_rating > 3.98611",
+    "recent_reviews_90d <= 2.5 AND min_rating <= 4.5 AND distinct_products <= 9.5 AND recent_reviews_90d > 1.5 AND recent_reviews_30d > 0.5 AND low_rating_flag > 0.5 AND distinct_products <= 4.5 AND review_span_days <= 0.5 AND max_rating > 2.5 AND mean_rating <= 2.25",
+    "total_reviews <= 9.5 AND rating_std > 0.166667 AND low_rating_flag > 0.5 AND max_rating <= 3.5 AND rating_std > 0.784266 AND review_span_days <= 2138.5 AND review_span_days <= 0.5 AND recent_reviews_30d > 1",
+    "distinct_products > 8.5 AND distinct_products > 23.5 AND days_since_last_review <= 13.5 AND recent_reviews_90d <= 2.5 AND review_span_days > 1046.5 AND rating_std <= 1.08993 AND distinct_products > 30.5 AND rating_std > 0.960563 AND rating_std <= 0.985184",
+    "total_reviews <= 8.5 AND review_span_days > 557.5 AND days_since_last_review <= 21.5 AND recent_reviews_90d > 1.5 AND recent_reviews_30d <= 1.5 AND total_reviews > 3.5 AND mean_rating > 3.41429 AND mean_rating > 4.69048 AND total_reviews > 7.5 AND mean_rating > 4.9375",
+    "review_span_days <= 2.5 AND days_since_last_review <= 14.5 AND recent_reviews_30d <= 4.5 AND low_rating_flag <= 0.5 AND min_rating > 4.5 AND days_since_last_review > 1.5 AND days_since_last_review <= 2.5 AND total_reviews <= 2.5 AND recent_reviews_90d > 1.5 AND review_span_days <= 0.5",
+    "total_reviews <= 8.5 AND days_since_last_review > 23.5 AND rating_std > 0.365759 AND rating_std <= 2.12971 AND distinct_products <= 7.5 AND recent_reviews_90d > 4.5 AND recent_reviews_30d <= 2.5 AND days_since_last_review > 61.5 AND mean_rating > 4.36667 AND mean_rating <= 4.69048",
+    "recent_reviews_90d <= 2.5 AND min_rating <= 4.5 AND distinct_products <= 9.5 AND recent_reviews_90d <= 1.5 AND mean_rating > 2.88194 AND total_reviews <= 8.5 AND rating_std > 2.56891 AND recent_reviews_30d > 0.5 AND days_since_last_review > 23.5 AND days_since_last_review <= 27.5",
+    "days_since_last_review > 29.5 AND distinct_products <= 9.5 AND total_reviews > 1.5 AND review_span_days <= 0.5 AND total_reviews > 3.5 AND days_since_last_review > 62.5 AND recent_reviews_90d <= 7.5 AND min_rating > 1.5 AND max_rating > 4.5 AND rating_std <= 1.27465",
+    "distinct_products <= 9.5 AND review_span_days <= 2.5 AND recent_reviews_30d <= 0.5 AND recent_reviews_90d > 0.5 AND min_rating > 4.5 AND review_span_days <= 1.5 AND total_reviews > 2.5 AND total_reviews <= 4.5 AND recent_reviews_90d > 3.5",
+    "total_reviews <= 9.5 AND distinct_products > 2.5 AND recent_reviews_30d > 1.5 AND review_span_days <= 2.5 AND days_since_last_review > 9.5 AND total_reviews <= 4.5 AND min_rating > 4.5 AND review_span_days <= 0.5 AND total_reviews > 3.5 AND days_since_last_review <= 26.5",
+    "recent_reviews_90d <= 3.5 AND distinct_products <= 9.5 AND review_span_days > 0.5 AND recent_reviews_30d > 0.5 AND recent_reviews_90d > 1.5 AND days_since_last_review > 22.5 AND recent_reviews_30d <= 2.5 AND recent_reviews_90d <= 2.5 AND days_since_last_review <= 23.5 AND review_span_days <= 27.5",
+    "days_since_last_review <= 28.5 AND total_reviews <= 8.5 AND recent_reviews_90d <= 1.5 AND total_reviews <= 6.5 AND rating_std <= 2.56891 AND days_since_last_review > 6.5 AND distinct_products <= 5.5 AND days_since_last_review > 18.5 AND min_rating <= 4.5 AND max_rating <= 1.5",
+    "recent_reviews_90d <= 2.5 AND distinct_products <= 9.5 AND total_reviews <= 6.5 AND review_span_days <= 0.5 AND days_since_last_review > 12.5 AND mean_rating > 4.83333 AND recent_reviews_30d <= 0.5 AND days_since_last_review > 63.5 AND recent_reviews_90d > 1.5 AND days_since_last_review <= 79.5",
+    "recent_reviews_90d <= 2.5 AND min_rating > 4.5 AND recent_reviews_30d > 0.5 AND distinct_products <= 11.5 AND days_since_last_review <= 12.5 AND days_since_last_review > 5.5 AND review_span_days <= 0.5 AND total_reviews <= 1.5 AND days_since_last_review > 6.5 AND days_since_last_review <= 10.5",
+    "total_reviews <= 8.5 AND review_span_days <= 557.5 AND days_since_last_review <= 29.5 AND total_reviews <= 6.5 AND distinct_products <= 2.5 AND min_rating > 2.5 AND days_since_last_review <= 7.5 AND review_span_days > 259.5 AND review_span_days <= 450.5 AND mean_rating > 4.75",
+    "distinct_products <= 9.5 AND review_span_days > 0.5 AND review_span_days > 252.5 AND recent_reviews_90d > 1.5 AND distinct_products > 5.5 AND total_reviews <= 6.5 AND rating_std > 0.204124 AND days_since_last_review > 11.5 AND days_since_last_review > 13.5 AND review_span_days > 1305",
+    "total_reviews <= 9.5 AND distinct_products <= 2.5 AND days_since_last_review <= 28.5 AND review_span_days <= 350.5 AND total_reviews <= 1.5 AND low_rating_flag > 0.5 AND min_rating <= 1.5 AND days_since_last_review > 11.5 AND days_since_last_review <= 26.5 AND days_since_last_review <= 25.5"
+  ],
+  "seed_fallback_used": false,
+  "n_rejected_missing_columns": 0,
+  "rejected": [],
+  "n_rule_columns": 20,
+  "llm_raw_response": "[\n  {\n    \"candidate_id\": \"rule_4797_1\",\n    \"sql_predicate\": \"recent_reviews_30d <= 1 AND rating_std > 0.0324785 AND recent_reviews_90d > 1.5 AND total_reviews > 7.5 AND total_reviews > 24.5 AND rating_std <= 0.601499 AND days_since_last_review > 58.5 AND recent_reviews_90d <= 3.5 AND rating_std > 0.51608 AND distinct_products > 46.5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the condition on recent_reviews_30d to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_13005_1\",\n    \"sql_predicate\": \"min_rating > 4.5 AND total_reviews <= 8.5 AND days_since_last_review > 26.5 AND days_since_last_review <= 71.5 AND days_since_last_review > 67.5 AND review_span_days <= 716.5 AND days_since_last_review <= 68.5 AND recent_reviews_90d <= 1.5 AND review_span_days <= 173 AND distinct_products > 2.5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the condition on min_rating to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_0713_1\",\n    \"sql_predicate\": \"recent_reviews_90d > 2.5 AND total_reviews > 8.5 AND recent_reviews_30d <= 0.5 AND review_span_days <= 209 AND recent_reviews_90d <= 20.5 AND mean_rating <= 4.64171 AND min_rating <= 2.5 AND distinct_products > 19.5 AND mean_rating > 3.98611\",\n    \"mutation_type\": \"relax\",\n    \"rationale\": \"Relaxed the condition on recent_reviews_30d to improve recall.\"\n  },\n  {\n    \"candidate_id\": \"rule_11479_1\",\n    \"sql_predicate\": \"recent_reviews_90d <= 2.5 AND min_rating <= 4.5 AND distinct_products <= 9.5 AND recent_reviews_90d > 1.5 AND recent_reviews_30d > 0.5 AND low_rating_flag > 0.5 AND distinct_products <= 4.5 AND review_span_days <= 0.5 AND max_rating > 2.5 AND mean_rating <= 2.25\",\n    \"mutation_type\": \"combine\",\n    \"rationale\": \"Combined the conditions on low_rating_flag and mean_rating to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_4516_1\",\n    \"sql_predicate\": \"total_reviews <= 9.5 AND rating_std > 0.166667 AND low_rating_flag > 0.5 AND max_rating <= 3.5 AND rating_std > 0.784266 AND review_span_days <= 2138.5 AND review_span_days <= 0.5 AND recent_reviews_30d > 1\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition on recent_reviews_30d to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_2145_1\",\n    \"sql_predicate\": \"distinct_products > 8.5 AND distinct_products > 23.5 AND days_since_last_review <= 13.5 AND recent_reviews_90d <= 2.5 AND review_span_days > 1046.5 AND rating_std <= 1.08993 AND distinct_products > 30.5 AND rating_std > 0.960563 AND rating_std <= 0.985184\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the condition on distinct_products to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_5217_1\",\n    \"sql_predicate\": \"total_reviews <= 8.5 AND review_span_days > 557.5 AND days_since_last_review <= 21.5 AND recent_reviews_90d > 1.5 AND recent_reviews_30d <= 1.5 AND total_reviews > 3.5 AND mean_rating > 3.41429 AND mean_rating > 4.69048 AND total_reviews > 7.5 AND mean_rating > 4.9375\",\n    \"mutation_type\": \"relax\",\n    \"rationale\": \"Relaxed the condition on recent_reviews_30d to improve recall.\"\n  },\n  {\n    \"candidate_id\": \"rule_2582_1\",\n    \"sql_predicate\": \"review_span_days <= 2.5 AND days_since_last_review <= 14.5 AND recent_reviews_30d <= 4.5 AND low_rating_flag <= 0.5 AND min_rating > 4.5 AND days_since_last_review > 1.5 AND days_since_last_review <= 2.5 AND total_reviews <= 2.5 AND recent_reviews_90d > 1.5 AND review_span_days <= 0.5\",\n    \"mutation_type\": \"combine\",\n    \"rationale\": \"Combined the conditions on low_rating_flag and min_rating to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_4659_1\",\n    \"sql_predicate\": \"total_reviews <= 8.5 AND days_since_last_review > 23.5 AND rating_std > 0.365759 AND rating_std <= 2.12971 AND distinct_products <= 7.5 AND recent_reviews_90d > 4.5 AND recent_reviews_30d <= 2.5 AND days_since_last_review > 61.5 AND mean_rating > 4.36667 AND mean_rating <= 4.69048\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition on recent_reviews_30d to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_11464_1\",\n    \"sql_predicate\": \"recent_reviews_90d <= 2.5 AND min_rating <= 4.5 AND distinct_products <= 9.5 AND recent_reviews_90d <= 1.5 AND mean_rating > 2.88194 AND total_reviews <= 8.5 AND rating_std > 2.56891 AND recent_reviews_30d > 0.5 AND days_since_last_review > 23.5 AND days_since_last_review <= 27.5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the condition on mean_rating to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_9398_1\",\n    \"sql_predicate\": \"days_since_last_review > 29.5 AND distinct_products <= 9.5 AND total_reviews > 1.5 AND review_span_days <= 0.5 AND total_reviews > 3.5 AND days_since_last_review > 62.5 AND recent_reviews_90d <= 7.5 AND min_rating > 1.5 AND max_rating > 4.5 AND rating_std <= 1.27465\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition on review_span_days to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_12155_1\",\n    \"sql_predicate\": \"distinct_products <= 9.5 AND review_span_days <= 2.5 AND recent_reviews_30d <= 0.5 AND recent_reviews_90d > 0.5 AND min_rating > 4.5 AND review_span_days <= 1.5 AND total_reviews > 2.5 AND total_reviews <= 4.5 AND recent_reviews_90d > 3.5\",\n    \"mutation_type\": \"combine\",\n    \"rationale\": \"Combined the conditions on recent_reviews_30d and recent_reviews_90d to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_13145_1\",\n    \"sql_predicate\": \"total_reviews <= 9.5 AND distinct_products > 2.5 AND recent_reviews_30d > 1.5 AND review_span_days <= 2.5 AND days_since_last_review > 9.5 AND total_reviews <= 4.5 AND min_rating > 4.5 AND review_span_days <= 0.5 AND total_reviews > 3.5 AND days_since_last_review <= 26.5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the condition on recent_reviews_30d to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_8419_1\",\n    \"sql_predicate\": \"recent_reviews_90d <= 3.5 AND distinct_products <= 9.5 AND review_span_days > 0.5 AND recent_reviews_30d > 0.5 AND recent_reviews_90d > 1.5 AND days_since_last_review > 22.5 AND recent_reviews_30d <= 2.5 AND recent_reviews_90d <= 2.5 AND days_since_last_review <= 23.5 AND review_span_days <= 27.5\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition on review_span_days to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_12738_1\",\n    \"sql_predicate\": \"days_since_last_review <= 28.5 AND total_reviews <= 8.5 AND recent_reviews_90d <= 1.5 AND total_reviews <= 6.5 AND rating_std <= 2.56891 AND days_since_last_review > 6.5 AND distinct_products <= 5.5 AND days_since_last_review > 18.5 AND min_rating <= 4.5 AND max_rating <= 1.5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the condition on days_since_last_review to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_0593_1\",\n    \"sql_predicate\": \"recent_reviews_90d <= 2.5 AND distinct_products <= 9.5 AND total_reviews <= 6.5 AND review_span_days <= 0.5 AND days_since_last_review > 12.5 AND mean_rating > 4.83333 AND recent_reviews_30d <= 0.5 AND days_since_last_review > 63.5 AND recent_reviews_90d > 1.5 AND days_since_last_review <= 79.5\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition on review_span_days to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_11528_1\",\n    \"sql_predicate\": \"recent_reviews_90d <= 2.5 AND min_rating > 4.5 AND recent_reviews_30d > 0.5 AND distinct_products <= 11.5 AND days_since_last_review <= 12.5 AND days_since_last_review > 5.5 AND review_span_days <= 0.5 AND total_reviews <= 1.5 AND days_since_last_review > 6.5 AND days_since_last_review <= 10.5\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the condition on recent_reviews_30d to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_5144_1\",\n    \"sql_predicate\": \"total_reviews <= 8.5 AND review_span_days <= 557.5 AND days_since_last_review <= 29.5 AND total_reviews <= 6.5 AND distinct_products <= 2.5 AND min_rating > 2.5 AND days_since_last_review <= 7.5 AND review_span_days > 259.5 AND review_span_days <= 450.5 AND mean_rating > 4.75\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition on review_span_days to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_13883_1\",\n    \"sql_predicate\": \"distinct_products <= 9.5 AND review_span_days > 0.5 AND review_span_days > 252.5 AND recent_reviews_90d > 1.5 AND distinct_products > 5.5 AND total_reviews <= 6.5 AND rating_std > 0.204124 AND days_since_last_review > 11.5 AND days_since_last_review > 13.5 AND review_span_days > 1305\",\n    \"mutation_type\": \"tighten\",\n    \"rationale\": \"Tightened the condition on distinct_products to improve precision.\"\n  },\n  {\n    \"candidate_id\": \"rule_13056_1\",\n    \"sql_predicate\": \"total_reviews <= 9.5 AND distinct_products <= 2.5 AND days_since_last_review <= 28.5 AND review_span_days <= 350.5 AND total_reviews <= 1.5 AND low_rating_flag > 0.5 AND min_rating <= 1.5 AND days_since_last_review > 11.5 AND days_since_last_review <= 26.5 AND days_since_last_review <= 25.5\",\n    \"mutation_type\": \"novel\",\n    \"rationale\": \"Introduced a new condition on low_rating_flag to improve precision.\"\n  }\n]"
+}

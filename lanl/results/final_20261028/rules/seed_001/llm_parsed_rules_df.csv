@@ -1,0 +1,3 @@
+candidate_id,sql_predicate,mutation_type,val_support,val_pos,val_precision
+rf_rule_002_relax,logon_type > 3 AND auth_type > 4 AND auth_type <= 6 AND success_failure > 0.5 AND user_auth_count_24h <= 135 AND dns_count_prev_5m <= 0.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 133 AND user_auth_count_24h <= 9 AND user_auth_count_24h > 2 AND user_auth_count_24h <= 4,relax,49,15,0.30612244897959184
+rf_rule_011_combine,success_failure > 0.5 AND auth_type > 5 AND dns_count_prev_5m <= 0.5 AND auth_type <= 6 AND user_auth_count_24h <= 135 AND new_src_dst_user_pair > 0.5 AND user_auth_count_24h <= 1,combine,67,0,0.0

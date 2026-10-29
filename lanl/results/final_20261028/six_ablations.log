@@ -1,0 +1,338 @@
+[env] date=2026-10-29T02:13:33-05:00 host=jarvis git=3cf7fd5ddf83814d4dd91978cbe53f2328a4dbb9 python=/array/dahlenw/RAD/rad/bin/python
+[env] CUDA_VISIBLE_DEVICES=0 N_SEEDS=10 START_SEED=0 LANL_RESULTS_DIR=results/final_20261028 LANL_MLP_HIDDEN=128,64,32 LANL_MLP_ALPHA=1e-5 LANL_LLM_RULES=per_run python run_lanl_six_ablations.py
+[init] device=cuda
+[init] partial_auroc_max_fpr=0.1
+[init] raw outputs=results/final_20261028/six_ablations_raw
+[init] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] mlp_hidden=(128, 64, 32) mlp_alpha=1e-05 llm_rules=per_run
+eval_fingerprint: ad800208e39b n_eval=63627 n_pos=127
+
+[seed 0] starting
+  [rf] training RF and building RF source artifacts for seed=0...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   1%|          | 2/291 [00:00<00:28, 10.32it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   5%|▌         | 15/291 [00:00<00:04, 60.30it/s]Loading weights:  14%|█▎        | 40/291 [00:00<00:01, 125.82it/s]Loading weights:  20%|██        | 59/291 [00:00<00:01, 146.99it/s]Loading weights:  27%|██▋       | 78/291 [00:00<00:01, 160.53it/s]Loading weights:  34%|███▍      | 100/291 [00:00<00:01, 178.76it/s]Loading weights:  42%|████▏     | 121/291 [00:00<00:00, 186.14it/s]Loading weights:  48%|████▊     | 141/291 [00:00<00:00, 182.94it/s]Loading weights:  57%|█████▋    | 166/291 [00:01<00:00, 196.35it/s]Loading weights:  64%|██████▍   | 186/291 [00:01<00:00, 190.35it/s]Loading weights:  73%|███████▎  | 211/291 [00:01<00:00, 201.20it/s]Loading weights:  80%|███████▉  | 232/291 [00:01<00:00, 197.15it/s]Loading weights:  88%|████████▊ | 256/291 [00:01<00:00, 203.72it/s]Loading weights:  95%|█████████▌| 277/291 [00:01<00:00, 198.65it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 176.14it/s]
+[transformers] The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+[transformers] Passing `generation_config` together with generation-related arguments=({'max_new_tokens', 'do_sample', 'top_p', 'temperature'}) is deprecated and will be removed in future versions. Please pass either a `generation_config` object OR all generation parameters explicitly, but not both.
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+  [rules] verbatim prompt copies: 0 (of 20 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 0 []
+  [llm-rules] parsed=20 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=0 kept=20
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_000/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/20 rules referencing columns missing from the rule-evaluation table
+  [rules] 20 rule columns; matches per rule = [1079, 1740, 651, 1520, 651, 502, 500, 793, 500, 810, 588, 574, 591, 614, 524, 524, 524, 2173, 2167, 2167]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/20 rules referencing columns missing from the rule-evaluation table
+  [rules] 20 rule columns; matches per rule = [1079, 1740, 651, 1520, 651, 502, 500, 793, 500, 810, 588, 574, 591, 614, 524, 524, 524, 2173, 2167, 2167]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 651, 651, 651, 651, 493, 493, 493, 493, 493, 571, 571, 573, 497, 498, 498, 498, 2166, 2167, 2166, 480, 500, 500, 215, 201, 417, 345, 214, 257, 296]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 651, 651, 651, 651, 493, 493, 493, 493, 493, 571, 571, 573, 497, 498, 498, 498, 2166, 2167, 2166, 480, 500, 500, 215, 201, 417, 345, 214, 257, 296]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 0] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 1] starting
+  [rf] training RF and building RF source artifacts for seed=1...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:30,  9.55it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   1%|▏         | 4/291 [00:00<00:14, 20.38it/s]Loading weights:   8%|▊         | 23/291 [00:00<00:02, 94.96it/s]Loading weights:  15%|█▌        | 44/291 [00:00<00:01, 138.96it/s]Loading weights:  23%|██▎       | 67/291 [00:00<00:01, 166.17it/s]Loading weights:  30%|██▉       | 87/291 [00:00<00:01, 170.77it/s]Loading weights:  37%|███▋      | 109/291 [00:00<00:00, 186.06it/s]Loading weights:  45%|████▍     | 130/291 [00:00<00:00, 191.65it/s]Loading weights:  52%|█████▏    | 150/291 [00:00<00:00, 187.13it/s]Loading weights:  60%|██████    | 175/291 [00:01<00:00, 199.73it/s]Loading weights:  67%|██████▋   | 195/291 [00:01<00:00, 192.64it/s]Loading weights:  75%|███████▌  | 219/291 [00:01<00:00, 206.15it/s]Loading weights:  82%|████████▏ | 240/291 [00:01<00:00, 194.73it/s]Loading weights:  91%|█████████ | 265/291 [00:01<00:00, 205.14it/s]Loading weights:  98%|█████████▊| 286/291 [00:01<00:00, 200.62it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 179.21it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [rules] verbatim prompt copies: 0 (of 20 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 0 []
+  [llm-rules] parsed=20 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=18 kept=2
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_001/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/2 rules referencing columns missing from the rule-evaluation table
+  [rules] 2 rule columns; matches per rule = [4668, 2802]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/2 rules referencing columns missing from the rule-evaluation table
+  [rules] 2 rule columns; matches per rule = [4668, 2802]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 1079, 1079, 651, 651, 651, 493, 493, 571, 573, 571, 497, 497, 497, 497, 497, 497, 480, 480, 500, 500, 500, 500, 238, 214, 238, 257, 257, 257]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 1079, 1079, 651, 651, 651, 493, 493, 571, 573, 571, 497, 497, 497, 497, 497, 497, 480, 480, 500, 500, 500, 500, 238, 214, 238, 257, 257, 257]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 1] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 2] starting
+  [rf] training RF and building RF source artifacts for seed=2...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:34,  8.37it/s]Loading weights:   1%|          | 2/291 [00:00<00:32,  8.78it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   7%|▋         | 19/291 [00:00<00:03, 76.70it/s]Loading weights:  13%|█▎        | 37/291 [00:00<00:02, 114.85it/s]Loading weights:  19%|█▉        | 55/291 [00:00<00:01, 136.88it/s]Loading weights:  25%|██▌       | 73/291 [00:00<00:01, 150.10it/s]Loading weights:  31%|███▏      | 91/291 [00:00<00:01, 158.63it/s]Loading weights:  37%|███▋      | 108/291 [00:00<00:01, 161.42it/s]Loading weights:  43%|████▎     | 125/291 [00:00<00:01, 164.01it/s]Loading weights:  49%|████▉     | 142/291 [00:01<00:00, 165.05it/s]Loading weights:  55%|█████▍    | 159/291 [00:01<00:00, 165.09it/s]Loading weights:  61%|██████    | 177/291 [00:01<00:00, 168.42it/s]Loading weights:  67%|██████▋   | 195/291 [00:01<00:00, 170.63it/s]Loading weights:  73%|███████▎  | 213/291 [00:01<00:00, 172.55it/s]Loading weights:  79%|███████▉  | 231/291 [00:01<00:00, 173.88it/s]Loading weights:  86%|████████▌ | 249/291 [00:01<00:00, 174.81it/s]Loading weights:  92%|█████████▏| 267/291 [00:01<00:00, 175.55it/s]Loading weights:  98%|█████████▊| 285/291 [00:01<00:00, 176.03it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 155.79it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [llm-rules] response did not close its JSON array (max_new_tokens=4000); kept the 13 complete objects
+  [rules] verbatim prompt copies: 0 (of 13 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 0 []
+  [llm-rules] parsed=13 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=8 kept=5
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_002/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/5 rules referencing columns missing from the rule-evaluation table
+  [rules] 5 rule columns; matches per rule = [10045, 1079, 1079, 1079, 1079]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/5 rules referencing columns missing from the rule-evaluation table
+  [rules] 5 rule columns; matches per rule = [10045, 1079, 1079, 1079, 1079]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 1079, 1079, 651, 651, 651, 651, 493, 493, 571, 573, 497, 497, 498, 498, 498, 2166, 480, 480, 480, 500, 500, 500, 456, 456, 214, 238, 238, 100]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 1079, 1079, 651, 651, 651, 651, 493, 493, 571, 573, 497, 497, 498, 498, 498, 2166, 480, 480, 480, 500, 500, 500, 456, 456, 214, 238, 238, 100]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 2] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 3] starting
+  [rf] training RF and building RF source artifacts for seed=3...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:33,  8.64it/s]Loading weights:   1%|          | 2/291 [00:00<00:31,  9.09it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   7%|▋         | 20/291 [00:00<00:03, 83.02it/s]Loading weights:  14%|█▎        | 40/291 [00:00<00:02, 122.86it/s]Loading weights:  20%|██        | 59/291 [00:00<00:01, 140.40it/s]Loading weights:  27%|██▋       | 78/291 [00:00<00:01, 151.35it/s]Loading weights:  33%|███▎      | 96/291 [00:00<00:01, 159.27it/s]Loading weights:  39%|███▉      | 114/291 [00:00<00:01, 164.79it/s]Loading weights:  46%|████▌     | 134/291 [00:00<00:00, 175.10it/s]Loading weights:  52%|█████▏    | 152/291 [00:01<00:00, 176.35it/s]Loading weights:  59%|█████▉    | 171/291 [00:01<00:00, 179.43it/s]Loading weights:  65%|██████▌   | 190/291 [00:01<00:00, 181.39it/s]Loading weights:  73%|███████▎  | 211/291 [00:01<00:00, 183.83it/s]Loading weights:  79%|███████▉  | 230/291 [00:01<00:00, 180.20it/s]Loading weights:  86%|████████▌ | 249/291 [00:01<00:00, 178.03it/s]Loading weights:  93%|█████████▎| 270/291 [00:01<00:00, 184.57it/s]Loading weights:  99%|█████████▉| 289/291 [00:01<00:00, 177.29it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 160.10it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [rules] verbatim prompt copies: 0 (of 15 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 0 []
+  [llm-rules] parsed=15 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=1 kept=14
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_003/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/14 rules referencing columns missing from the rule-evaluation table
+  [rules] 14 rule columns; matches per rule = [651, 1079, 1079, 1730, 493, 651, 493, 493, 493, 493, 571, 571, 497, 497]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/14 rules referencing columns missing from the rule-evaluation table
+  [rules] 14 rule columns; matches per rule = [651, 1079, 1079, 1730, 493, 651, 493, 493, 493, 493, 571, 571, 497, 497]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 1079, 651, 651, 651, 493, 493, 493, 493, 571, 571, 497, 497, 497, 498, 498, 498, 480, 480, 500, 500, 500, 500, 201, 201, 345, 456, 214, 100]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 1079, 651, 651, 651, 493, 493, 493, 493, 571, 571, 497, 497, 497, 498, 498, 498, 480, 480, 500, 500, 500, 500, 201, 201, 345, 456, 214, 100]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 3] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 4] starting
+  [rf] training RF and building RF source artifacts for seed=4...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:34,  8.42it/s]Loading weights:   1%|          | 2/291 [00:00<00:32,  8.89it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   7%|▋         | 20/291 [00:00<00:03, 81.51it/s]Loading weights:  13%|█▎        | 38/291 [00:00<00:02, 118.28it/s]Loading weights:  20%|█▉        | 58/291 [00:00<00:01, 140.89it/s]Loading weights:  26%|██▋       | 77/291 [00:00<00:01, 150.03it/s]Loading weights:  33%|███▎      | 95/291 [00:00<00:01, 158.94it/s]Loading weights:  39%|███▉      | 113/291 [00:00<00:01, 162.74it/s]Loading weights:  45%|████▌     | 131/291 [00:00<00:00, 166.15it/s]Loading weights:  51%|█████     | 149/291 [00:01<00:00, 169.86it/s]Loading weights:  57%|█████▋    | 167/291 [00:01<00:00, 172.58it/s]Loading weights:  64%|██████▎   | 185/291 [00:01<00:00, 174.68it/s]Loading weights:  70%|██████▉   | 203/291 [00:01<00:00, 175.75it/s]Loading weights:  76%|███████▋  | 222/291 [00:01<00:00, 173.85it/s]Loading weights:  83%|████████▎ | 242/291 [00:01<00:00, 181.12it/s]Loading weights:  90%|████████▉ | 261/291 [00:01<00:00, 181.35it/s]Loading weights:  96%|█████████▌| 280/291 [00:01<00:00, 182.22it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 158.28it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [rules] verbatim prompt copies: 0 (of 16 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 0 []
+  [llm-rules] parsed=16 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=0 kept=16
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_004/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/16 rules referencing columns missing from the rule-evaluation table
+  [rules] 16 rule columns; matches per rule = [1730, 1079, 1079, 651, 651, 651, 651, 493, 493, 493, 573, 574, 497, 497, 498, 2167]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/16 rules referencing columns missing from the rule-evaluation table
+  [rules] 16 rule columns; matches per rule = [1730, 1079, 1079, 651, 651, 651, 651, 493, 493, 493, 573, 574, 497, 497, 498, 2167]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 1079, 651, 651, 651, 651, 493, 493, 493, 573, 574, 497, 497, 498, 2167, 2166, 2166, 500, 500, 500, 500, 500, 500, 456, 345, 238, 257, 100, 19]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 1079, 651, 651, 651, 651, 493, 493, 493, 573, 574, 497, 497, 498, 2167, 2166, 2166, 500, 500, 500, 500, 500, 500, 456, 345, 238, 257, 100, 19]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 4] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 5] starting
+  [rf] training RF and building RF source artifacts for seed=5...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:33,  8.78it/s]Loading weights:   1%|          | 2/291 [00:00<00:31,  9.16it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   8%|▊         | 22/291 [00:00<00:03, 87.93it/s]Loading weights:  14%|█▍        | 41/291 [00:00<00:02, 121.63it/s]Loading weights:  21%|██        | 60/291 [00:00<00:01, 140.22it/s]Loading weights:  28%|██▊       | 81/291 [00:00<00:01, 161.48it/s]Loading weights:  34%|███▍      | 99/291 [00:00<00:01, 166.90it/s]Loading weights:  41%|████      | 118/291 [00:00<00:01, 172.21it/s]Loading weights:  48%|████▊     | 139/291 [00:00<00:00, 176.93it/s]Loading weights:  54%|█████▍    | 158/291 [00:01<00:00, 175.35it/s]Loading weights:  61%|██████    | 177/291 [00:01<00:00, 174.46it/s]Loading weights:  68%|██████▊   | 198/291 [00:01<00:00, 183.48it/s]Loading weights:  75%|███████▍  | 218/291 [00:01<00:00, 187.60it/s]Loading weights:  82%|████████▏ | 238/291 [00:01<00:00, 186.36it/s]Loading weights:  88%|████████▊ | 257/291 [00:01<00:00, 182.91it/s]Loading weights:  95%|█████████▍| 276/291 [00:01<00:00, 180.45it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 163.73it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [rules] verbatim prompt copies: 0 (of 15 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 3 ['user_auth_count_24h > 1.5 AND auth_orientation > 1.5 AND user_auth_count_24h <= 135.5 AND auth_orientation <= 2.5 AND auth_type > 4.5 AND dns_count_prev_5m <= 0.5 AND auth_type <= 5.5 AND success_failure > 0.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 111.5 AND user_auth_count_24h <= 56.5 AND user_auth_count_24h <= 17.5 AND user_auth_count_24h <= 13.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 4.5 AND user_auth_count_24h > 6.5 AND user_auth_count_24h > 7.5', 'logon_type > 3.5 AND logon_type <= 4.5 AND auth_type > 4.5 AND user_auth_count_24h <= 135.5 AND new_src_dst_user_pair <= 0.5 AND auth_type <= 6 AND user_auth_count_24h > 0.5 AND user_auth_count_24h <= 116.5 AND success_failure > 0.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h <= 3.5 AND user_auth_count_24h <= 2.5', 'auth_type > 4.5 AND logon_type <= 4.5 AND logon_type > 3.5 AND new_src_dst_user_pair <= 0.5 AND dns_count_prev_5m <= 0.5 AND auth_type <= 5.5 AND user_auth_count_24h <= 134.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h > 6.5 AND user_auth_count_24h > 7.5']
+  [llm-rules] parsed=15 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=0 kept=15
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_005/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/15 rules referencing columns missing from the rule-evaluation table
+  [rules] 15 rule columns; matches per rule = [651, 651, 493, 493, 493, 571, 573, 497, 497, 497, 497, 498, 498, 2168, 501]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/15 rules referencing columns missing from the rule-evaluation table
+  [rules] 15 rule columns; matches per rule = [651, 651, 493, 493, 493, 571, 573, 497, 497, 497, 497, 498, 498, 2168, 501]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [106, 1079, 1079, 651, 651, 651, 493, 493, 493, 571, 571, 573, 497, 497, 497, 497, 498, 498, 2168, 501, 480, 480, 480, 500, 456, 238, 238, 257, 296, 296]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [106, 1079, 1079, 651, 651, 651, 493, 493, 493, 571, 571, 573, 497, 497, 497, 497, 498, 498, 2168, 501, 480, 480, 480, 500, 456, 238, 238, 257, 296, 296]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 5] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 6] starting
+  [rf] training RF and building RF source artifacts for seed=6...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:32,  8.83it/s]Loading weights:   1%|          | 2/291 [00:00<00:31,  9.21it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   8%|▊         | 22/291 [00:00<00:03, 88.27it/s]Loading weights:  14%|█▍        | 41/291 [00:00<00:02, 121.57it/s]Loading weights:  21%|██        | 60/291 [00:00<00:01, 140.21it/s]Loading weights:  28%|██▊       | 81/291 [00:00<00:01, 160.65it/s]Loading weights:  34%|███▍      | 99/291 [00:00<00:01, 165.26it/s]Loading weights:  40%|████      | 117/291 [00:00<00:01, 169.04it/s]Loading weights:  46%|████▋     | 135/291 [00:00<00:00, 172.24it/s]Loading weights:  53%|█████▎    | 154/291 [00:01<00:00, 175.67it/s]Loading weights:  59%|█████▉    | 172/291 [00:01<00:00, 176.84it/s]Loading weights:  66%|██████▋   | 193/291 [00:01<00:00, 180.15it/s]Loading weights:  73%|███████▎  | 212/291 [00:01<00:00, 177.59it/s]Loading weights:  79%|███████▉  | 231/291 [00:01<00:00, 176.14it/s]Loading weights:  87%|████████▋ | 252/291 [00:01<00:00, 184.61it/s]Loading weights:  93%|█████████▎| 271/291 [00:01<00:00, 185.62it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 162.06it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [rules] verbatim prompt copies: 0 (of 20 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 0 []
+  [llm-rules] parsed=20 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=1 kept=19
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_006/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/19 rules referencing columns missing from the rule-evaluation table
+  [rules] 19 rule columns; matches per rule = [1080, 1079, 1079, 651, 651, 493, 493, 493, 571, 571, 571, 571, 497, 497, 497, 497, 498, 480, 480]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/19 rules referencing columns missing from the rule-evaluation table
+  [rules] 19 rule columns; matches per rule = [1080, 1079, 1079, 651, 651, 493, 493, 493, 571, 571, 571, 571, 497, 497, 497, 497, 498, 480, 480]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1080, 1079, 1079, 651, 651, 651, 493, 493, 493, 571, 571, 571, 571, 497, 497, 497, 497, 498, 480, 480, 480, 500, 500, 500, 201, 238, 238, 214, 214, 296]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1080, 1079, 1079, 651, 651, 651, 493, 493, 493, 571, 571, 571, 571, 497, 497, 497, 497, 498, 480, 480, 480, 500, 500, 500, 201, 238, 238, 214, 214, 296]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 6] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 7] starting
+  [rf] training RF and building RF source artifacts for seed=7...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:33,  8.76it/s]Loading weights:   1%|          | 2/291 [00:00<00:33,  8.73it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   8%|▊         | 22/291 [00:00<00:03, 85.28it/s]Loading weights:  14%|█▍        | 41/291 [00:00<00:02, 119.07it/s]Loading weights:  21%|██        | 60/291 [00:00<00:01, 138.34it/s]Loading weights:  28%|██▊       | 81/291 [00:00<00:01, 159.96it/s]Loading weights:  34%|███▍      | 99/291 [00:00<00:01, 165.88it/s]Loading weights:  41%|████      | 118/291 [00:00<00:01, 171.15it/s]Loading weights:  47%|████▋     | 137/291 [00:00<00:00, 176.73it/s]Loading weights:  54%|█████▍    | 157/291 [00:01<00:00, 177.87it/s]Loading weights:  60%|██████    | 176/291 [00:01<00:00, 175.87it/s]Loading weights:  67%|██████▋   | 195/291 [00:01<00:00, 174.92it/s]Loading weights:  74%|███████▍  | 216/291 [00:01<00:00, 184.00it/s]Loading weights:  81%|████████  | 235/291 [00:01<00:00, 185.51it/s]Loading weights:  88%|████████▊ | 256/291 [00:01<00:00, 186.55it/s]Loading weights:  95%|█████████▍| 275/291 [00:01<00:00, 182.85it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 162.29it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [llm-rules] response did not close its JSON array (max_new_tokens=4000); kept the 19 complete objects
+  [rules] verbatim prompt copies: 0 (of 19 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 14 ['auth_orientation > 1.5 AND auth_orientation <= 2.5 AND new_src_dst_user_pair <= 0.5 AND auth_type > 4.5 AND auth_type <= 5.5 AND success_failure > 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 114.5 AND user_auth_count_24h <= 66.5 AND user_auth_count_24h <= 11.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h <= 4.5 AND user_auth_count_24h <= 3.5', 'success_failure > 0.5 AND flow_count_prev_5m <= 0.5 AND auth_type > 4.5 AND auth_type <= 5.5 AND new_src_dst_user_pair <= 0.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 129.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 110.5 AND user_auth_count_24h <= 56.5 AND user_auth_count_24h <= 34.5 AND user_auth_count_24h <= 17.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h <= 4.5 AND user_auth_count_24h > 3.5', 'auth_orientation > 1.5 AND logon_type > 3.5 AND auth_type > 4.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 135.5 AND logon_type <= 4.5 AND user_auth_count_24h > 1.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 115.5 AND success_failure > 0.5 AND user_auth_count_24h <= 57.5 AND user_auth_count_24h <= 36.5 AND user_auth_count_24h <= 17.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h <= 5.5 AND user_auth_count_24h <= 4.5', 'user_auth_count_24h > 1.5 AND auth_type > 4.5 AND logon_type <= 4.5 AND logon_type > 3.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h <= 7.5 AND success_failure > 0.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h <= 5.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h > 4.5', 'logon_type > 3.5 AND auth_orientation > 1.5 AND logon_type <= 4.5 AND auth_type > 4.5 AND success_failure > 0.5 AND user_auth_count_24h <= 134.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h > 1.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h <= 5.5 AND user_auth_count_24h > 4.5', 'logon_type > 3.5 AND user_auth_count_24h > 1.5 AND auth_type > 4.5 AND auth_type <= 5.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 135.5 AND success_failure > 0.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 101.5 AND user_auth_count_24h <= 56.5 AND user_auth_count_24h <= 35.5 AND user_auth_count_24h <= 11.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h > 4.5 AND user_auth_count_24h <= 5.5', 'success_failure > 0.5 AND auth_orientation > 1.5 AND auth_type > 4.5 AND auth_type <= 5.5 AND new_src_dst_user_pair > 0.5 AND user_auth_count_24h <= 0.5', 'user_auth_count_24h > 1.5 AND flow_count_prev_5m <= 0.5 AND user_auth_count_24h <= 134.5 AND logon_type > 3.5 AND auth_orientation > 1.5 AND user_auth_count_24h > 2.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h > 4.5 AND auth_type > 4.5 AND user_auth_count_24h <= 8.5 AND success_failure > 0.5 AND auth_type <= 5.5 AND user_auth_count_24h > 5.5 AND user_auth_count_24h <= 6.5', 'user_auth_count_24h > 1.5 AND success_failure > 0.5 AND auth_type > 4.5 AND logon_type <= 4.5 AND user_auth_count_24h <= 135.5 AND logon_type > 3.5 AND auth_type <= 5.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 115.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 7.5 AND user_auth_count_24h <= 6.5 AND user_auth_count_24h > 4.5 AND user_auth_count_24h > 5.5', 'auth_type > 4.5 AND user_auth_count_24h <= 135.5 AND auth_type <= 5.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 92.5 AND user_auth_count_24h <= 63.5 AND success_failure > 0.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 19.5 AND user_auth_count_24h <= 13.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 3.5 AND user_auth_count_24h > 4.5 AND user_auth_count_24h > 7.5', 'dns_count_prev_5m <= 0.5 AND user_auth_count_24h > 2.5 AND auth_orientation > 1.5 AND success_failure > 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h > 4.5 AND logon_type > 3.5 AND logon_type <= 4.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 106.5 AND auth_type > 3 AND user_auth_count_24h <= 56.5 AND user_auth_count_24h <= 36.5 AND user_auth_count_24h <= 18.5 AND user_auth_count_24h <= 9.5 AND user_auth_count_24h > 7.5 AND user_auth_count_24h <= 8.5', 'auth_orientation > 1.5 AND auth_orientation <= 2.5 AND success_failure > 0.5 AND new_src_dst_user_pair <= 0.5 AND flow_count_prev_5m <= 0.5 AND proc_count_prev_2m <= 1 AND auth_type > 3 AND auth_type <= 5.5 AND dns_count_prev_5m <= 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 114.5 AND user_auth_count_24h <= 56.5 AND user_auth_count_24h <= 18.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h > 2.5 AND user_auth_count_24h > 6.5 AND user_auth_count_24h > 7.5', 'auth_type > 4.5 AND dns_count_prev_5m <= 0.5 AND auth_type <= 5.5 AND success_failure > 0.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h <= 131.5 AND user_auth_count_24h <= 113.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 8.5 AND user_auth_count_24h <= 2.5', 'auth_type > 4.5 AND auth_type <= 5.5 AND dns_count_prev_5m <= 0.5 AND success_failure > 0.5 AND new_src_dst_user_pair <= 0.5 AND user_auth_count_24h <= 135.5 AND user_auth_count_24h > 0.5 AND user_auth_count_24h <= 113.5 AND user_auth_count_24h > 1.5 AND user_auth_count_24h <= 63.5 AND user_auth_count_24h <= 9.5 AND user_auth_count_24h <= 3.5 AND user_auth_count_24h <= 2.5']
+  [llm-rules] parsed=19 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=0 kept=19
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_007/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/19 rules referencing columns missing from the rule-evaluation table
+  [rules] 19 rule columns; matches per rule = [151, 1079, 1079, 1079, 1080, 651, 651, 651, 493, 493, 493, 571, 497, 497, 498, 498, 498, 2166, 2166]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/19 rules referencing columns missing from the rule-evaluation table
+  [rules] 19 rule columns; matches per rule = [151, 1079, 1079, 1079, 1080, 651, 651, 651, 493, 493, 493, 571, 497, 497, 498, 498, 498, 2166, 2166]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [151, 1079, 1079, 1079, 1080, 651, 651, 651, 493, 493, 493, 571, 497, 497, 498, 498, 498, 2166, 2166, 2166, 480, 500, 500, 215, 345, 345, 238, 214, 238, 296]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [151, 1079, 1079, 1079, 1080, 651, 651, 651, 493, 493, 493, 571, 497, 497, 498, 498, 498, 2166, 2166, 2166, 480, 500, 500, 215, 345, 345, 238, 214, 238, 296]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 7] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 8] starting
+  [rf] training RF and building RF source artifacts for seed=8...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:33,  8.63it/s]Loading weights:   1%|          | 2/291 [00:00<00:31,  9.07it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   6%|▌         | 17/291 [00:00<00:03, 69.55it/s]Loading weights:  11%|█▏        | 33/291 [00:00<00:02, 100.72it/s]Loading weights:  19%|█▊        | 54/291 [00:00<00:01, 136.80it/s]Loading weights:  25%|██▌       | 73/291 [00:00<00:01, 152.67it/s]Loading weights:  32%|███▏      | 92/291 [00:00<00:01, 164.23it/s]Loading weights:  37%|███▋      | 109/291 [00:00<00:01, 165.87it/s]Loading weights:  44%|████▎     | 127/291 [00:00<00:00, 169.78it/s]Loading weights:  50%|█████     | 146/291 [00:01<00:00, 175.32it/s]Loading weights:  56%|█████▋    | 164/291 [00:01<00:00, 176.60it/s]Loading weights:  63%|██████▎   | 184/291 [00:01<00:00, 177.83it/s]Loading weights:  70%|██████▉   | 203/291 [00:01<00:00, 176.15it/s]Loading weights:  76%|███████▋  | 222/291 [00:01<00:00, 174.45it/s]Loading weights:  84%|████████▎ | 243/291 [00:01<00:00, 182.83it/s]Loading weights:  90%|█████████ | 262/291 [00:01<00:00, 183.35it/s]Loading weights:  97%|█████████▋| 283/291 [00:01<00:00, 184.76it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 159.10it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [rules] verbatim prompt copies: 0 (of 15 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 0 []
+  [llm-rules] parsed=15 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=0 kept=15
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_008/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/15 rules referencing columns missing from the rule-evaluation table
+  [rules] 15 rule columns; matches per rule = [1079, 1079, 4389, 1730, 651, 493, 497, 493, 493, 571, 571, 497, 497, 480, 497]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/15 rules referencing columns missing from the rule-evaluation table
+  [rules] 15 rule columns; matches per rule = [1079, 1079, 4389, 1730, 651, 493, 497, 493, 493, 571, 571, 497, 497, 480, 497]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [106, 1079, 1079, 651, 651, 651, 493, 493, 493, 493, 571, 571, 497, 497, 497, 497, 497, 497, 181, 480, 480, 480, 500, 215, 417, 456, 456, 345, 345, 257]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [106, 1079, 1079, 651, 651, 651, 493, 493, 493, 493, 571, 571, 497, 497, 497, 497, 497, 497, 181, 480, 480, 480, 500, 215, 417, 456, 456, 345, 345, 257]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 8] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[seed 9] starting
+  [rf] training RF and building RF source artifacts for seed=9...
+[split-check] train=312,728 val=7,719 test=63,627 | train&val=0 train&test=0 val&test=0
+[rule-selection] ranking/filter/sampling keys=['val_precision', 'val_support', 'val_lift'] (no test statistics); RF fit on train only; test_support_eval is written for reporting and never read back
+  [rf] sampled rule csv: results/final_20261028/lanl_rf_sampled_rules.csv
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:33,  8.73it/s]Loading weights:   1%|          | 2/291 [00:00<00:31,  9.14it/s]/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:213: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+Loading weights:   8%|▊         | 22/291 [00:00<00:03, 87.92it/s]Loading weights:  14%|█▍        | 41/291 [00:00<00:02, 121.74it/s]Loading weights:  21%|██        | 60/291 [00:00<00:01, 140.24it/s]Loading weights:  28%|██▊       | 81/291 [00:00<00:01, 161.13it/s]Loading weights:  34%|███▍      | 99/291 [00:00<00:01, 166.67it/s]Loading weights:  41%|████      | 118/291 [00:00<00:01, 172.02it/s]Loading weights:  47%|████▋     | 137/291 [00:00<00:00, 177.42it/s]Loading weights:  54%|█████▍    | 157/291 [00:01<00:00, 178.21it/s]Loading weights:  60%|██████    | 176/291 [00:01<00:00, 176.14it/s]Loading weights:  67%|██████▋   | 195/291 [00:01<00:00, 174.98it/s]Loading weights:  74%|███████▍  | 216/291 [00:01<00:00, 183.93it/s]Loading weights:  81%|████████  | 235/291 [00:01<00:00, 185.30it/s]Loading weights:  88%|████████▊ | 256/291 [00:01<00:00, 186.61it/s]Loading weights:  95%|█████████▍| 275/291 [00:01<00:00, 182.78it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 163.14it/s]
+[transformers] Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+[transformers] Both `max_new_tokens` (=4000) and `max_length`(=20) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/array/dahlenw/RAD/rad/lib/python3.10/site-packages/bitsandbytes/backends/cuda/ops.py:468: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  torch._check_is_size(blocksize)
+  [rules] verbatim prompt copies: 0 (of 20 generated; 0 example predicates in the prompt) []
+  [rules] verbatim seed-rule copies: 0 []
+  [llm-rules] parsed=20 rejected(missing columns)=0 sql_errors=0 dropped(val_support<1)=0 kept=20
+  [llm-rules] per-run rule csv: results/final_20261028/rules/seed_009/llm_parsed_rules_df.csv
+  [run] rad_llm_rules_no_bce | source=llm | lambda_struct_override=0.0
+  [rules] llm_parsed_rules_df.csv: rejected 0/20 rules referencing columns missing from the rule-evaluation table
+  [rules] 20 rule columns; matches per rule = [1079, 1079, 651, 651, 493, 493, 493, 493, 571, 571, 571, 571, 571, 497, 498, 498, 2166, 501, 480, 500]
+  [run] llm_rules_with_bce | source=llm | lambda_struct_override=None
+  [rules] llm_parsed_rules_df.csv: rejected 0/20 rules referencing columns missing from the rule-evaluation table
+  [rules] 20 rule columns; matches per rule = [1079, 1079, 651, 651, 493, 493, 493, 493, 571, 571, 571, 571, 571, 497, 498, 498, 2166, 501, 480, 500]
+  [run] rf_sampled_rules_no_bce | source=rf_sampled | lambda_struct_override=0.0
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 651, 651, 493, 493, 493, 493, 571, 571, 571, 571, 571, 497, 498, 498, 2166, 501, 480, 500, 500, 500, 500, 500, 456, 456, 214, 257, 296, 296]
+  [run] rf_sampled_rules_with_bce | source=rf_sampled | lambda_struct_override=None
+  [rules] lanl_rf_sampled_rules.csv: rejected 0/30 rules referencing columns missing from the rule-evaluation table
+  [rules] 30 rule columns; matches per rule = [1079, 1079, 651, 651, 493, 493, 493, 493, 571, 571, 571, 571, 571, 497, 498, 498, 2166, 501, 480, 500, 500, 500, 500, 500, 456, 456, 214, 257, 296, 296]
+  [run] rf_decision_features_no_bce | source=rf_decision | lambda_struct_override=0.0
+  [run] rf_decision_features_with_bce | source=rf_decision | lambda_struct_override=None
+[seed 9] checkpoint saved -> results/final_20261028/lanl_six_ablations_by_seed.csv
+
+[done] LANL six ablations complete
+[done] by-seed:  results/final_20261028/lanl_six_ablations_by_seed.csv
+[done] summary:  results/final_20261028/lanl_six_ablations_mean_std.csv
+[done] elapsed:  218.6 min
+[exit] six_ablations rc=0

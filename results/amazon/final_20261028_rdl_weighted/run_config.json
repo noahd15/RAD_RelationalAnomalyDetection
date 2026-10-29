@@ -1,0 +1,36 @@
+{
+  "code_version": {
+    "git_commit": "3cf7fd5ddf83814d4dd91978cbe53f2328a4dbb9",
+    "git_tag": "table4-final-20261026b",
+    "git_modified_tracked_files": []
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "label_env": {
+    "TARGET_ANOM_RATE": "0.015",
+    "TRAIN_EQ_RATE": null,
+    "ATRISK_TAU_A": "0.05",
+    "ATRISK_TAU_B": "10.0",
+    "ATRISK_TAU_ALPHA": "0.02",
+    "ATRISK_TAU_MULTIPLIER": "1.0"
+  },
+  "dataset": "amazon",
+  "weighted_loss": true,
+  "rdl_hyperparameters": {
+    "RDL_EPOCHS": 10,
+    "RDL_MAX_STEPS": 2000,
+    "RDL_PATIENCE": 3,
+    "RDL_GRAD_CLIP": 2.0
+  },
+  "rdl_hyperparameter_source": "script defaults; no tuning record"
+}

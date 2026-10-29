@@ -1,0 +1,16 @@
+candidate_id,col_name,sql_predicate,mutation_type
+pred_1,pred_1,recent_txns_90d <= 1,novel
+pred_2,pred_2,distinct_articles <= 2,novel
+pred_3,pred_3,recent_txns_30d <= 0.5,tighten
+pred_4,pred_4,total_txns <= 1,novel
+pred_5,pred_5,mean_price <= 0.001,novel
+pred_6,pred_6,price_std <= 0.001,novel
+pred_7,pred_7,max_price <= 0.01,novel
+pred_8,pred_8,min_price <= 0.001,novel
+pred_9,pred_9,recent_txns_90d <= 0.5 AND distinct_articles <= 2,combine
+pred_10,pred_10,recent_txns_30d <= 0.5 AND total_txns <= 1,combine
+pred_11,pred_11,mean_price <= 0.001 AND price_std <= 0.001,combine
+pred_12,pred_12,max_price <= 0.01 AND min_price <= 0.001,combine
+pred_13,pred_13,recent_txns_90d <= 1 AND total_txns <= 1,combine
+pred_14,pred_14,recent_txns_30d <= 0.5 AND mean_price <= 0.001,combine
+pred_15,pred_15,total_txns <= 1 AND price_std <= 0.001,combine

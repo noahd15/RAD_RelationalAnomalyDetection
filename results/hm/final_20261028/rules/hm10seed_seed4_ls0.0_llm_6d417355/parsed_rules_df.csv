@@ -1,0 +1,16 @@
+candidate_id,col_name,sql_predicate,mutation_type
+rule_8429_tighten,rule_8429_tighten,recent_txns_90d <= 10.5,tighten
+rule_9379_relax,rule_9379_relax,recent_txns_90d > 9.5,relax
+rule_8395_combine,rule_8395_combine,recent_txns_90d <= 10.5 AND total_txns > 10.5,combine
+rule_11109_novel,rule_11109_novel,mean_price > 0.01,novel
+rule_10291_tighten,rule_10291_tighten,distinct_articles <= 10.5,tighten
+rule_7615_relax,rule_7615_relax,recent_txns_90d <= 11.5,relax
+rule_3656_novel,rule_3656_novel,price_std > 0.05,novel
+rule_1968_tighten,rule_1968_tighten,recent_txns_30d > 7.5,tighten
+rule_0549_relax,rule_0549_relax,distinct_articles <= 10.5,relax
+rule_0337_novel,rule_0337_novel,min_price > 0.01,novel
+rule_5626_combine,rule_5626_combine,recent_txns_30d <= 10.5 AND recent_txns_90d > 10.5,combine
+rule_0664_tighten,rule_0664_tighten,recent_txns_90d <= 5.5,tighten
+rule_6939_novel,rule_6939_novel,total_txns > 10.5,novel
+rule_7149_relax,rule_7149_relax,total_txns <= 16.5,relax
+rule_0139_combine,rule_0139_combine,price_std <= 0.007 AND total_txns <= 6.5,combine
