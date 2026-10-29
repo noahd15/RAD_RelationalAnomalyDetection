@@ -1,0 +1,10 @@
+[lanl] seed 0: 20 rules, match counts match the log; LR auprc=0.0435 auroc=0.7087
+[lanl] seed 1: 2 rules, match counts match the log; LR auprc=0.0039 auroc=0.5586
+[lanl] seed 2: 5 rules, match counts match the log; LR auprc=0.0053 auroc=0.5233
+[lanl] seed 3: 14 rules, match counts match the log; LR auprc=0.0200 auroc=0.6379
+[lanl] seed 4: 16 rules, match counts match the log; LR auprc=0.0335 auroc=0.7100
+[lanl] seed 5: 15 rules, match counts match the log; LR auprc=0.0256 auroc=0.6758
+[lanl] seed 6: 19 rules, match counts match the log; LR auprc=0.0252 auroc=0.6607
+[lanl] seed 7: 19 rules, match counts match the log; LR auprc=0.0258 auroc=0.7093
+[lanl] seed 8: 15 rules, match counts match the log; LR auprc=0.0237 auroc=0.6938
+[lanl] seed 9: 20 rules, match counts match the log; LR auprc=0.0318 auroc=0.7364

@@ -1,0 +1,13 @@
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-hm/db...
+Done in 0.94 seconds.
+[hm] seed 0: report rows 23f9b330dfdd/5694/85 ok; llm LR auprc=0.0254 auroc=0.6712; rf_sampled LR auprc=0.0161 auroc=0.5281
+[hm] seed 1: report rows 710b11097e65/5707/86 ok; llm LR auprc=0.0221 auroc=0.6351; rf_sampled LR auprc=0.0194 auroc=0.5167
+[hm] seed 2: report rows 0584086c6c16/5654/85 ok; llm LR auprc=0.0152 auroc=0.4874; rf_sampled LR auprc=0.0163 auroc=0.5210
+[hm] seed 3: report rows 7b4e0a018b58/5669/85 ok; llm LR auprc=0.0296 auroc=0.6961; rf_sampled LR auprc=0.0155 auroc=0.4601
+[hm] seed 4: report rows 52c316c066f3/5742/86 ok; llm LR auprc=0.0237 auroc=0.6355; rf_sampled LR auprc=0.0151 auroc=0.4628
+[hm] seed 5: report rows 7434710cf5f1/5667/85 ok; llm LR auprc=0.0245 auroc=0.6544; rf_sampled LR auprc=0.0158 auroc=0.5164
+[hm] seed 6: report rows bc5d6f7b1e69/5718/86 ok; llm LR auprc=0.0202 auroc=0.6095; rf_sampled LR auprc=0.0168 auroc=0.5123
+[hm] seed 7: report rows 145e95034987/5634/85 ok; llm LR auprc=0.0367 auroc=0.6695; rf_sampled LR auprc=0.0146 auroc=0.4802
+[hm] seed 8: report rows a68e0856e9e4/5741/86 ok; llm LR auprc=0.0233 auroc=0.6501; rf_sampled LR auprc=0.0165 auroc=0.5241
+[hm] seed 9: report rows 8fcae05d6763/5683/85 ok; llm LR auprc=0.0235 auroc=0.6586; rf_sampled LR auprc=0.0148 auroc=0.4842
+[diag-hm] rc=0

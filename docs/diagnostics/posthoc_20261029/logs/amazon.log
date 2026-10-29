@@ -1,0 +1,13 @@
+Loading Database object from /isis/home/dahlenw/.cache/relbench/rel-amazon/db...
+Done in 42.69 seconds.
+[amazon] seed 0: report rows 5ddbb8273d7a/42041/631 ok; llm LR auprc=0.0150 auroc=0.4974; rf_sampled LR auprc=0.0149 auroc=0.4915
+[amazon] seed 1: report rows c54ab329bb2d/41931/629 ok; llm LR auprc=0.0156 auroc=0.5056; rf_sampled LR auprc=0.0153 auroc=0.4976
+[amazon] seed 2: report rows 713c33d4b132/41918/629 ok; llm LR auprc=0.0150 auroc=0.5005; rf_sampled LR auprc=0.0150 auroc=0.4999
+[amazon] seed 3: report rows 170e5651972d/42043/631 ok; llm LR auprc=0.0156 auroc=0.5013; rf_sampled LR auprc=0.0156 auroc=0.5104
+[amazon] seed 4: report rows ccdc141476f4/41996/630 ok; llm LR auprc=0.0149 auroc=0.4974; rf_sampled LR auprc=0.0152 auroc=0.5025
+[amazon] seed 5: report rows 95bccbda8063/42088/631 ok; llm LR auprc=0.0150 auroc=0.5009; rf_sampled LR auprc=0.0150 auroc=0.4981
+[amazon] seed 6: report rows 1439146ebe61/41686/625 ok; llm LR auprc=0.0150 auroc=0.5001; rf_sampled LR auprc=0.0151 auroc=0.4999
+[amazon] seed 7: report rows f07a61219235/41773/627 ok; llm LR auprc=0.0152 auroc=0.5023; rf_sampled LR auprc=0.0150 auroc=0.5000
+[amazon] seed 8: report rows da9af4226c6b/41926/629 ok; llm LR auprc=0.0150 auroc=0.5000; rf_sampled LR auprc=0.0149 auroc=0.4906
+[amazon] seed 9: report rows 9f85c767f52e/42084/631 ok; llm LR auprc=0.0151 auroc=0.5040; rf_sampled LR auprc=0.0152 auroc=0.5061
+[diag-amazon] rc=0
